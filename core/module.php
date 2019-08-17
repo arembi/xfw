@@ -86,7 +86,7 @@ remember to set the options['ID']. (If not, it will get one in its main())
 !!! DO NOT FORGET !!!
 Each module class has to call the loadModel() and the loadPathParams() functions
 in their main function in order to be able to use the database and have access
-to the parameters set via the URI.
+to the path parameters.
 Had to move those 2 functions out of the constructor, because we need to use
 them before the parent's constructor is called.
 
@@ -95,6 +95,8 @@ from their main modules.
 */
 
 namespace Arembi\Xfw\Core;
+
+use Arembi\Xfw\Filter\LayoutFilter;
 
 abstract class ModuleCore {
 	// Whether the autoloader should look for a model
@@ -188,6 +190,7 @@ abstract class ModuleCore {
 		} else {
 			$this->options['layout'] = Settings::_('defaultModuleLayout');
 		}
+
 		/*
 		Code that should run every time the module is instantiated
 		shall be put into its main() function
@@ -358,11 +361,10 @@ abstract class ModuleCore {
 		} else {
 			$params['name'] = $name;
 			// Case the module has been set
-			// Preventing infinite loop: the embedded module same as its parent has to have a different ID from the parent
-			if ($this->options['name'] != $params['name'] || !array_key_exists($params['name'] . '#' . (isset($params['ID']) ? $params['ID'] : '0') , App::getRegisteredModules())) {
+			// Preventing infinite loop: the embedded module with the same name as its parent has to have a different ID from the parent
+			if ($this->options['name'] != $params['name']
+				|| !array_key_exists($params['name'] . '#' . (isset($params['ID']) ? $params['ID'] : '0') , App::getRegisteredModules())) {
 				// Adding the embedded module to the list
-				//$moduleRecord = Misc\md_array_lookup(App::getActiveModules(), 'name', $params['name']);
-
 				$module = collect(App::getActiveModules())
 					->first(function($value, $key) use ($params){
 						return $value->name === $params['name'];
@@ -427,7 +429,7 @@ abstract class ModuleCore {
 		}
 
 		// Adding namespace
-		$moduleModel = '\\Arembi\Xfw\\Module\\' . $moduleModel;
+		$moduleModel = '\\Arembi\\Xfw\\Module\\' . $moduleModel;
 
 		// Instantiating the module's model
 		if (class_exists($moduleModel)) {
@@ -436,11 +438,18 @@ abstract class ModuleCore {
 	}
 
 
-	protected function print($var)
+	protected function print(string $str, $layoutFilter = null)
 	{
-		if (isset($var) && (is_string($var) || is_numeric($var))) {
-			echo $var;
+		if (is_string($layoutFilter)) {
+			$filterClass = "\\Arembi\\Xfw\\Filter\\$layoutFilter";
+			if (class_exists($filterClass)) {
+				$layoutFilter = new $filterClass();
+			}
 		}
+		if ($layoutFilter instanceof LayoutFilter) {
+			$str = $layoutFilter->filter($str);
+		}
+		echo $str;
 	}
 
 

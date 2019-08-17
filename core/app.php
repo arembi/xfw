@@ -64,6 +64,9 @@ abstract class App {
 		// Loading configuration
 		self::loadConfigAndDebug();
 
+		// Loading scripts from the engine include directory
+		self::loadScriptsFromDirectory(ENGINE . DS . 'include') ;
+
 		// Load libraries from other vendors
 		self::loadThirdPartyLibs();
 
@@ -100,6 +103,9 @@ abstract class App {
 		Router::init();
 		Router::getEnvironment();
 		Debug::alert('[SYS] Router initialized');
+
+		// Loading scripts from the engine include directory
+		self::loadScriptsFromDirectory(DOMAIN_DIRECTORY . DS . 'include') ;
 
 		// Initializing sessions
 		Session::init();
@@ -198,7 +204,7 @@ abstract class App {
 		// The base models
 		$files = glob(ENGINE . DS . 'models' . DS . '*.php');
 		foreach ($files as $file) {
-			require($file);
+			include($file);
 		}
 
 		// The core module files
@@ -208,7 +214,7 @@ abstract class App {
 			$controllerFile = CORE . DS . $controllerFileName;
 
 			if (file_exists($controllerFile)) {
-				require($controllerFile);
+				include($controllerFile);
 				Debug::alert('Core controller %' .  $module . ' successfully loaded.', 'o');
 			} else {
 				Debug::alert('Core controller %' .  $module . ' could not be loaded.', 'f');
@@ -234,6 +240,26 @@ abstract class App {
 			Debug::alert('Model for core module %app successfully loaded.', 'o');
 		} else {
 			Debug::alert('Model for core module %app could not be loaded.', 'w');
+		}
+	}
+
+
+	private static function loadScriptsFromDirectory(string $directory)
+	{
+		$fileNamePattern = $directory . DS . '*.php';
+
+		$files = glob($fileNamePattern);
+
+		foreach ($files as $key => $file) {
+			$iPos = strrpos($file, 'interface.');
+			if ($iPos !== false && strrpos($file, '/') < $iPos) {
+				include($file);
+				unset($files[$key]);
+			}
+		}
+
+		foreach ($files as $file) {
+			include($file);
 		}
 	}
 
@@ -417,7 +443,6 @@ abstract class App {
 	}
 
 
-
 	private static function loadThirdPartyLibs()
 	{
 		// Composer Autoload
@@ -431,19 +456,16 @@ abstract class App {
 	}
 
 
-
 	public static function getLang()
 	{
 		return self::$lang;
 	}
 
 
-
 	public static function setLang($lang)
 	{
 		self::$lang = $lang;
 	}
-
 
 
 	public static function lang($lang = null)
@@ -454,7 +476,6 @@ abstract class App {
 			self::$lang = $lang;
 		}
 	}
-
 
 
 	public static function moduleInfo($identifier, $value)
@@ -475,7 +496,6 @@ abstract class App {
 	}
 
 
-
 	// Function to check whether a module is installed for on the current domain
 	public static function isInstalledModule($module)
 	{
@@ -491,12 +511,10 @@ abstract class App {
 	}
 
 
-
 	public static function getActiveModules($attribute = false)
 	{
 		return $attribute ? array_column(self::$activeModules, $attribute) : self::$activeModules;
 	}
-
 
 
 	public static function getPrimaryModules()
@@ -507,14 +525,12 @@ abstract class App {
 	}
 
 
-
 	// Register all instantiated modules as an array
 	public static function registerModule(&$moduleObject)
 	{
 		self::$registeredModules[self::$registeredModuleID] = $moduleObject;
 		return self::$registeredModuleID ++;
 	}
-
 
 
 	// Returns the whole record of registered modules
@@ -524,12 +540,10 @@ abstract class App {
 	}
 
 
-
 	public static function getRegisteredModule($ID)
 	{
 		return self::$registeredModules[$ID] ?? false;
 	}
-
 
 
 	public static function getDocument()
@@ -537,12 +551,8 @@ abstract class App {
 		return self::$registeredModules[0] ?? false;
 	}
 
-
-
-	/* Implement it if needed
-	public static function unlistModule($name, $ID) {}
-	*/
-
+	// Implement it if needed
+	//public static function unlistModule(string $name, int $ID) {}
 
 	// Returns the path parameter order for the requested module
 	public static function getPathParamOrder($moduleName)
@@ -559,7 +569,6 @@ abstract class App {
 	}
 
 
-
 	// Halt & Catch Fire
 	// Stops the execution and optionally displays a message
 	public static function hcf($message = '')
@@ -568,7 +577,6 @@ abstract class App {
 		Debug::render();
 		exit;
 	}
-
 
 
 	public static function AMP($value = null)
@@ -591,7 +599,6 @@ abstract class App {
 	{
 		return self::$model->getUsersByDomain($domain);
 	}
-
 
 
 }
