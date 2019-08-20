@@ -438,17 +438,29 @@ abstract class ModuleCore {
 	}
 
 
+	// Prints $str in the layouts after applying the layoutFilters
+	// $layoutFilters can be given as a single or an array of strings or
+	// LayoutFilter objects
 	protected function print(string $str, $layoutFilter = null)
 	{
-		if (is_string($layoutFilter)) {
-			$filterClass = "\\Arembi\\Xfw\\Filter\\$layoutFilter";
-			if (class_exists($filterClass)) {
-				$layoutFilter = new $filterClass();
+		$filters = [];
+
+		if (is_array($layoutFilter)) {
+			$filters = $layoutFilter;
+		} elseif ($layoutFilter !== null) {
+			$filters[] = $layoutFilter;
+		}
+
+		foreach ($filters as $filter) {
+			if (is_string($filter)) {
+				$filterClass = "\\Arembi\\Xfw\\Filter\\$filter";
+				if (class_exists($filterClass)) {
+					$filter = new $filterClass();
+				}
 			}
+			$str = $filter->filter($str);
 		}
-		if ($layoutFilter instanceof LayoutFilter) {
-			$str = $layoutFilter->filter($str);
-		}
+
 		echo $str;
 	}
 
