@@ -7,7 +7,7 @@ class Domain extends Model {
 
     protected function getSettingsAttribute($value)
     {
-      return \Arembi\Xfw\Core\Misc\decodeIfJSON($value, true);
+      return \Arembi\Xfw\Misc\decodeIfJSON($value, true);
     }
 
 

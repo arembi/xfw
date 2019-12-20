@@ -3,7 +3,7 @@ namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Debug;
-use Arembi\Xfw\Core\Misc;
+use Arembi\Xfw\Misc;
 
 
 class MenuBase extends \Arembi\Xfw\Core\ModuleCore {

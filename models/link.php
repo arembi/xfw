@@ -7,7 +7,7 @@ class Link extends Model {
 
     protected function getPathParamsAttribute($value)
     {
-      return \Arembi\Xfw\Core\Misc\decodeIfJSON($value, true);
+      return \Arembi\Xfw\Misc\decodeIfJSON($value, true);
     }
 
 
@@ -23,7 +23,7 @@ class Link extends Model {
 
     protected function getQueryStringAttribute($value)
     {
-      return \Arembi\Xfw\Core\Misc\decodeIfJSON($value, true);
+      return \Arembi\Xfw\Misc\decodeIfJSON($value, true);
     }
 
     protected function setQueryStringAttribute($value)

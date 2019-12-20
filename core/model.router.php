@@ -6,6 +6,7 @@ use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\Models\Domain;
 use Arembi\Xfw\Core\Models\Redirect;
 use Arembi\Xfw\Core\Models\Route;
+use Arembi\Xfw\Misc;
 
 class RouterModel {
 

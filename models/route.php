@@ -7,7 +7,7 @@ class Route extends Model {
 
   protected function getPathAttribute($value)
   {
-    return \Arembi\Xfw\Core\Misc\decodeIfJSON($value, true);
+    return \Arembi\Xfw\Misc\decodeIfJSON($value, true);
   }
 
 

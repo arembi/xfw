@@ -8,6 +8,7 @@
 namespace Arembi\Xfw\Core;
 
 use Arembi\Xfw\Module\Document;
+use Arembi\Xfw\Misc;
 
 abstract class App {
 

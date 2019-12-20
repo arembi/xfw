@@ -27,7 +27,7 @@ use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Settings;
 use Arembi\Xfw\Module\HEAD;
-use function Arembi\Xfw\Core\Misc\parseHtmlAttributes;
+use function Arembi\Xfw\Misc\parseHtmlAttributes;
 
 class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 

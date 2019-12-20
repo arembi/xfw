@@ -7,7 +7,7 @@ class Menuitem extends Model {
 
   protected function getItemAttribute($value)
   {
-    return \Arembi\Xfw\Core\Misc\decodeIfJSON($value, true);
+    return \Arembi\Xfw\Misc\decodeIfJSON($value, true);
   }
 
 

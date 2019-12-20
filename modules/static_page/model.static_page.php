@@ -4,7 +4,7 @@ namespace Arembi\Xfw\Module;
 
 use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\App;
-use Arembi\Xfw\Core\Misc;
+use Arembi\Xfw\Misc;
 use Arembi\Xfw\Core\Settings;
 use Arembi\Xfw\Core\Models\Static_Page;
 

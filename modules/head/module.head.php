@@ -75,7 +75,7 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		// Creating the favicon <link>
 		if (self::$faviconUrl !== false) {
-			$iconType = \Arembi\Xfw\Core\Misc\getFileExtension(self::$faviconUrl);
+			$iconType = \Arembi\Xfw\Misc\getFileExtension(self::$faviconUrl);
 			$favicon = '<link rel="icon" type="image/' . $iconType . '" href="' . self::$faviconUrl . '">';
 		} else {
 			$favicon = null;

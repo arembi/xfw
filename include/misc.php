@@ -1,7 +1,7 @@
 <?php
 /* For now, this is the place for all the various misc stuff */
 
-namespace Arembi\Xfw\Core\Misc;
+namespace Arembi\Xfw\Misc;
 
 
 // Simple Timer class to measeure for instance load speeds

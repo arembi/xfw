@@ -2,7 +2,7 @@
 
 namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\App;
-use function Arembi\Xfw\Core\Misc\parseHtmlAttributes;
+use function Arembi\Xfw\Misc\parseHtmlAttributes;
 
 class ImageBase extends \Arembi\Xfw\Core\ModuleCore {
 

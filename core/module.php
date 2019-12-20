@@ -97,6 +97,7 @@ from their main modules.
 namespace Arembi\Xfw\Core;
 
 use Arembi\Xfw\Filter\LayoutFilter;
+use Arembi\Xfw\Misc;
 
 abstract class ModuleCore {
 	// Whether the autoloader should look for a model
@@ -297,9 +298,6 @@ abstract class ModuleCore {
 			$this->CSSAutoload($layoutDir);
 		}
 
-		// Displaying debug information about the module;
-		// $this->moduleInfo();
-
 		if (!empty($this->layoutHTML)) {
 			// Initializing embedded modules (if enabled)
 			if ($this->recursive) {
@@ -473,7 +471,7 @@ abstract class ModuleCore {
 		];
 
 		$linkOptions = $linkOptions + $options;
-		//string $title = '', bool $follow = true
+
 		$this->embed('link', $linkOptions);
 	}
 
@@ -568,7 +566,7 @@ abstract class ModuleCore {
 		$pathParamOrder = Router::getMatchedRoutePpo() ?? App::getPathParamOrder($this->name) ?? null;
 
 		// Assigning the pathParams to the options
-		// Path params WILL NOT OVERRIDE already existing moduleVars
+		// Path params WILL NOT OVERRIDE already existing module options
 		if (!empty($pathParamOrder)) {
 			foreach ($pathParamOrder as $key => $value) {
 				if (!isset($this->options[$value])) {
@@ -602,7 +600,7 @@ abstract class ModuleCore {
 
 
 	// Returns the nth child
-	public function child($n)
+	public function child(int $n)
 	{
 		return $this->embeddedModules[$n] ?? null;
 	}

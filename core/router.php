@@ -12,6 +12,8 @@ Router tasks:
 
 namespace Arembi\Xfw\Core;
 
+use Arembi\Xfw\Misc;
+
 abstract class Router {
 
 	private static $model = null;
@@ -578,7 +580,7 @@ abstract class Router {
 				readfile($file);
 				exit;
 			} else {
-				App::hcf('File not found: ' . $file);
+				App::hcf('Requested file could not be found.');
 			}
 		}
 	}
