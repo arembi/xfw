@@ -154,9 +154,13 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 			}
 		}
 
-		$actionLink = new Link(['href'=>$this->actionUrl]);
-		
-		$actionUrl = $actionLink->getHref();
+		if (!empty($this->actionUrl)) {
+			$actionLink = new Link(['href'=>$this->actionUrl]);
+			$actionUrl = $actionLink->getHref();
+		} else {
+			$actionUrl = '';
+		}
+
 
 		$this->lv('fields', $this->fields);
 		$this->lv('action', $actionUrl);

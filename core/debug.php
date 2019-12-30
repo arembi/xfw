@@ -8,13 +8,13 @@ abstract class Debug {
 	// keys are the notations
 	// values: debug message notation , message color
 	private static $alertLevels = [
-		'default' => ['', '#FFF'],
-		'i' => ['[I]', '#C0C'],
-		'o' => ['[OK]', '#0C0'],
-		'n' => ['[N]', '#0CC'],
-		'w' => ['[WARNING]', '#CC0'],
-		'f' => ['[FAILED]', '#C60'],
-		'e' => ['[ERROR]', '#C00']
+		'default' => ['&#128421;', '#FFF'],
+		'i' => ['&#128712;', '#C0C'],
+		'o' => ['&#10003;', '#0C0'],
+		'n' => ['&#128276;', '#0CC'],
+		'w' => ['&#33;', '#CC0'],
+		'f' => ['&#10060;', '#C60'],
+		'e' => ['&#9760;', '#C00']
 	];
 
 	private static $style = '

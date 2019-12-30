@@ -2,8 +2,8 @@
 
 /*
 The <head>
-	The head will be rendered before the rest of the embedded modules.
-	You can set f.i.: the title anywhere in the system by calling the
+	The head will be sent to the output after the rest of the embedded modules.
+	You can set f.i. the title anywhere in the system by calling the
 	Head::setTitle('your title') function.
 	Same goes to the other head elements: CSS, JS, meta tags.
 */
@@ -21,9 +21,9 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	private static $meta = [];
 	private static $link = [];
-	private static $baseUrl = false;
-	private static $faviconUrl = false;
-	private static $canonicalUrl = false;
+	private static $baseUrl = null;
+	private static $faviconUrl = null;
+	private static $canonicalUrl = null;
 	private static $JS = [];
 	private static $CSS = [];
 	private static $custom = [];
@@ -255,7 +255,7 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 				self::$CSS[] = $CSS;
 			}
 		} else {
-			Debug::alert('Not supported CSS: ' . print_r($CSS, TRUE));
+			Debug::alert('Not supported CSS: ' . print_r($CSS, true));
 		}
 	}
 

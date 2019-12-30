@@ -52,7 +52,6 @@ abstract class App {
 		self::$coreModules = [
 			'model',
 			'settings',
-			'misc',
 			'language',
 			'session',
 			'module',
@@ -228,8 +227,6 @@ abstract class App {
 			if (file_exists($modelFile)) {
 				require($modelFile);
 				Debug::alert('Model for core module %' .  $module . ' successfully loaded.', 'o');
-			} else {
-				Debug::alert('Model for core module %' .  $module . ' could not be loaded.', 'w');
 			}
 		}
 
@@ -380,6 +377,22 @@ abstract class App {
 		$head->priority = 99;
 		$head->pathParamOrder = null;
 
+		$bodyStart = new \stdClass();
+		$bodyStart->ID = 0;
+		$bodyStart->name = 'body_start';
+		$bodyStart->class = 'system';
+		$bodyStart->active = 1;
+		$bodyStart->priority = 98;
+		$bodyStart->pathParamOrder = null;
+
+		$bodyEnd = new \stdClass();
+		$bodyEnd->ID = 0;
+		$bodyEnd->name = 'body_end';
+		$bodyEnd->class = 'system';
+		$bodyEnd->active = 1;
+		$bodyEnd->priority = 98;
+		$bodyEnd->pathParamOrder = null;
+
 		$image = new \stdClass();
 		$image->ID = 0;
 		$image->name = 'image';
@@ -391,6 +404,8 @@ abstract class App {
 		self::$installedModules = [
 			$document,
 			$head,
+			$bodyStart,
+			$bodyEnd,
 			$image
 		];
 
