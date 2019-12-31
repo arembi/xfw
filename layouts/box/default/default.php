@@ -2,10 +2,7 @@
 	<header>
 		<h2><?php echo $title;?></h2>
 	</header>
-	<p>
-	<?php echo $content;?>
-	</p>
 	<div>
-			<?php echo $kedvenc_allat;?>
+		<?php echo $content;?>
 	</div>
 </div>

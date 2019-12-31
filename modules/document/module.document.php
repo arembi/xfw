@@ -10,6 +10,7 @@ class DocumentBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	protected static $hasModel = true;
 
+
 	public function main(&$options)
 	{
 		$this->loadPathParams($options);
@@ -17,10 +18,8 @@ class DocumentBase extends \Arembi\Xfw\Core\ModuleCore {
 		$this->lv('lang', App::getLang());
 		$this->lv('primaryModule', $options['primaryModule']);
 
-		HEAD::addMeta(['charset' => 'utf-8']);
-		HEAD::setTitle('Default Document Title');
+		Head::addMeta(['charset' => 'utf-8']);
+		Head::setTitle('Default Document Title');
 
 	}
-
-
 }

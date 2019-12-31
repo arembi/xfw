@@ -74,8 +74,8 @@ abstract class App {
 		self::loadCore();
 
 		Debug::init();
-		Debug::alert('[SYS] Configuration loaded');
-		Debug::alert('[SYS] Core loaded');
+		Debug::alert('Configuration loaded');
+		Debug::alert('Core loaded');
 
 		// Do not show PHP errors in production environment
 		if (!Config::_('debugMode')) {
@@ -102,14 +102,14 @@ abstract class App {
 		// Determine environment (protocol, domain)
 		Router::init();
 		Router::getEnvironment();
-		Debug::alert('[SYS] Router initialized');
+		Debug::alert('Router initialized');
 
 		// Loading scripts from the engine include directory
 		self::loadScriptsFromDirectory(DOMAIN_DIRECTORY . DS . 'include') ;
 
 		// Initializing sessions
 		Session::init();
-		Debug::alert('[SYS] Session started');
+		Debug::alert('Session started');
 
 		// Setting the model of the App class
 		self::$model = new AppModel();
@@ -121,12 +121,12 @@ abstract class App {
 
 		// Loading Settings (settings stored in the database)
 		Settings::init();
-		Debug::alert('[SYS] Settings loaded');
+		Debug::alert('Settings loaded');
 
 		// Load the modules with ModuleCore
 		self::loadInstalledModules();
 
-		Debug::alert('[SYS] Modules loaded');
+		Debug::alert('Modules loaded');
 
 		// Load routes, links, redirects
 		Router::loadData();
@@ -137,7 +137,7 @@ abstract class App {
 		 * */
 		$matchedRoute = Router::parseRoute();
 
-		Debug::alert('[SYS] URI parsed');
+		Debug::alert('URI parsed');
 
 		// Initializing inner autoincrementing ID
 		self::$registeredModuleID = 0;
@@ -147,15 +147,15 @@ abstract class App {
 		note: the layout may be overridden by AMP
 		*/
 		$documentModuleOptions = [
-			'layout' => $matchedRoute['documentLayout'],
-			'primaryModule' => $matchedRoute['primary'],
-			'parentModule' => null
+			'layout'=>$matchedRoute['documentLayout'],
+			'primaryModule'=>$matchedRoute['primary'],
+			'parentModule'=>null
 			];
 
 		// The response is simply an instance of a document module
 		$response = new Document($documentModuleOptions);
 
-		Debug::alert('[SYS] Document ready to render');
+		Debug::alert('Document ready to render');
 
 		// Start the layout loop and show the result
 		$response->processLayout();
@@ -248,7 +248,7 @@ abstract class App {
 
 		$files = glob($fileNamePattern);
 
-		foreach ($files as $key => $file) {
+		foreach ($files as $key=>$file) {
 			$iPos = strrpos($file, 'interface.');
 			if ($iPos !== false && strrpos($file, '/') < $iPos) {
 				include($file);

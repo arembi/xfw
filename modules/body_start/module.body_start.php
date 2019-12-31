@@ -29,7 +29,7 @@ class Body_StartBase extends \Arembi\Xfw\Core\ModuleCore {
 				if (strpos($js[0], '</script>') == strlen($js[0]) - 9) {
 					$JS .= $js[0] . PHP_EOL;
 				} else {
-					Debug::alert('Some JavaScript code is missing due to incorrect embedding.');
+					Debug::alert('Some JavaScript code is missing due to incorrect embedding.', 'f');
 				}
 			} else {
 				$JS .= '<script';

@@ -69,16 +69,16 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 		}
 
 		// Creating the <base>
-		$base = self::$baseUrl !== false
+		$base = self::$baseUrl !== null
 			? '<base href="' . self::$baseUrl . '">'
 			: '';
 
 		// Creating the favicon <link>
-		if (self::$faviconUrl !== false) {
+		if (self::$faviconUrl !== null) {
 			$iconType = \Arembi\Xfw\Misc\getFileExtension(self::$faviconUrl);
 			$favicon = '<link rel="icon" type="image/' . $iconType . '" href="' . self::$faviconUrl . '">';
 		} else {
-			$favicon = null;
+			$favicon = '';
 		}
 
 		// Adding meta HTML entities to the code
@@ -206,13 +206,13 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public static function setbaseUrl($url = false)
+	public static function setBaseUrl($url = false)
 	{
 		self::$baseUrl = $url;
 	}
 
 
-	public static function setfaviconUrl($url = false)
+	public static function setFaviconUrl($url = false)
 	{
 		if ($url) self::$faviconUrl = $url;
 	}

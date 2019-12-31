@@ -122,7 +122,7 @@ abstract class ModuleCore {
 	protected $layoutHTML;
 
 	// Shows whether the module's layout has already been processed
-	protected $layoutProcessed = false;
+	protected $layoutProcessed;
 
 	// Constructor options
 	protected $options = [];
@@ -150,6 +150,8 @@ abstract class ModuleCore {
 
 	final public function __construct(array $options = [])
 	{
+		$this->layoutProcessed = false;
+
 		$this->reflector = new \ReflectionClass($this);
 
 		$class = $this->reflector->getShortName();
@@ -247,7 +249,7 @@ abstract class ModuleCore {
 		}
 
 		if (isset($mainResult) && $mainResult !== false) {
-			Debug::alert('Error during execution of main() at module' . $this->name . '#' . $this->options['ID'], 'f');
+			Debug::alert('Error during execution of main() at module' . $this->name . '#' . $this->options['ID'], 'e');
 		}
 
 	}
@@ -512,7 +514,7 @@ abstract class ModuleCore {
 		$this->layoutHTML = $eamp->convertToAmpHtml();
 
 		// Print validation issues and fixes made to HTML provided in the $html string
-		Debug::alert('[AMP] ' . $eamp->warningsHumanText());
+		Debug::alert($eamp->warningsHumanText());
 		return $this;
 	}
 

@@ -211,7 +211,7 @@ abstract class Router {
 			$status = 'off';
 		}
 		App::AMP($status);
-		Debug::alert('[AMP] status: ' . $status . '.');
+		Debug::alert('AMP status: ' . $status . '.', 'i');
 	}
 
 
