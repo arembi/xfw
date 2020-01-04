@@ -69,6 +69,8 @@ abstract class Config {
 			'domain',
 			'form',
 			'link',
+			'menu',
+			'menuitem',
 			'module',
 			'module_category',
 			'redirect',
