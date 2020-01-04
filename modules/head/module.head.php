@@ -5,12 +5,13 @@ The <head>
 	The head will be sent to the output after the rest of the embedded modules.
 	You can set f.i. the title anywhere in the system by calling the
 	Head::setTitle('your title') function.
-	Same goes to the other head elements: CSS, JS, meta tags.
+	Same goes to the other head elements: css, JS, meta tags.
 */
 
 namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\Router;
+use Arembi\Xfw\Seo;
 
 class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	protected static $hasModel = false;
@@ -24,12 +25,9 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	private static $baseUrl = null;
 	private static $faviconUrl = null;
 	private static $canonicalUrl = null;
-	private static $JS = [];
-	private static $CSS = [];
+	private static $js = [];
+	private static $css = [];
 	private static $custom = [];
-
-	public static $setBy = [];
-
 
 	protected $options = [
 		'title' => null,
@@ -37,8 +35,8 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 		'meta' => null,
 		'link' => null,
 		'favicon' => null,
-		'CSS' => null,
-		'JS' => null
+		'css' => null,
+		'js' => null
 		];
 
 
@@ -46,8 +44,8 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	{
 		$meta = '';
 		$link = '';
-		$CSS = '';
-		$JS = '';
+		$css = '';
+		$js = '';
 		$custom = '';
 
 		// Creating title tag
@@ -62,12 +60,6 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 			Debug::alert('The title was set by ' . self::$setBy['metaDescription'] . '.', 'n');
 		}
 
-		// Creating meta keywords tag
-		self::addMeta(['name' => 'keywords', 'content' => self::$metaKeywords]);
-		if (!empty(self::$setBy['metaKeywords'])) {
-			Debug::alert('The title was set by ' . self::$setBy['metaKeywords'] . '.', 'n');
-		}
-
 		// Creating the <base>
 		$base = self::$baseUrl !== null
 			? '<base href="' . self::$baseUrl . '">'
@@ -80,6 +72,9 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 		} else {
 			$favicon = '';
 		}
+
+		// Get the robots meta tag contents
+		self::generateRobotsMeta();
 
 		// Adding meta HTML entities to the code
 		if (!empty(self::$meta['charset'])) {
@@ -124,28 +119,28 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 		}
 
 		// Adding JavaScript HTML entities to the code
-		foreach (self::$JS as $js) {
+		foreach (self::$js as $cjs) {
 			// $js[0] is the js code or src, $js[1] is the async attribute
-			if (strpos($js[0], '<script') !== false) {
-				if (strpos($js[0], '</script>') == strlen($js[0]) - 9) {
-					$JS .= $js[0] . PHP_EOL;
+			if (strpos($cjs[0], '<script') !== false) {
+				if (strpos($cjs[0], '</script>') == strlen($js[0]) - 9) {
+					$js .= $cjs[0] . PHP_EOL;
 				} else {
 					Debug::alert('Some JavaScript code is missing due to incorrect embedding.');
 				}
 			} else {
-				$JS .= '<script';
-				$JS .= $js[1] ? ' async' : '';
-				$JS .= ' src="' . (strpos($js[0], '//') !== false ? '' : Router::$hostURL) . htmlspecialchars($js[0]) . '"';
-				$JS .= '></script>' . PHP_EOL;
+				$js .= '<script';
+				$js .= $cjs[1] ? ' async' : '';
+				$js .= ' src="' . (strpos($cjs[0], '//') !== false ? '' : Router::$hostURL) . htmlspecialchars($cjs[0]) . '"';
+				$js .= '></script>' . PHP_EOL;
 			}
 		}
 
 		/*
-		Adding CSS HTML entities to the code
+		Adding css HTML entities to the code
 		*/
 
-		foreach (self::$CSS as $css) {
-			$CSS .= '<link rel="stylesheet" href="' . (strpos($css, '//') !== false ? '' : Router::getHostUrl()) . htmlspecialchars($css) . '" type="text/css">' . PHP_EOL;
+		foreach (self::$css as $css) {
+			$css .= '<link rel="stylesheet" href="' . (strpos($css, '//') !== false ? '' : Router::getHostUrl()) . htmlspecialchars($css) . '" type="text/css">' . PHP_EOL;
 		}
 
 		/*
@@ -158,8 +153,8 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		$this->lv('title', $title);
 		$this->lv('meta', $meta);
-		$this->lv('CSS', $CSS);
-		$this->lv('JS', $JS);
+		$this->lv('css', $css);
+		$this->lv('js', $js);
 		$this->lv('custom', $custom);
 		$this->lv('link', $link);
 		$this->lv('base', $base);
@@ -167,10 +162,9 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public static function setTitle($title, $setBy = false)
+	public static function setTitle(string $title)
 	{
 		self::$title = $title;
-		self::$setBy['title'] = $setBy;
 	}
 
 
@@ -180,10 +174,9 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public static function setMetaDescription($description, $setBy = false)
+	public static function setMetaDescription(string $description)
 	{
 		self::$metaDescription = $description;
-		self::$setBy['metaDescription'] = $setBy;
 	}
 
 
@@ -193,69 +186,54 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public static function setMetaKeywords($keywords, $setBy = false)
-	{
-		self::$metaKeywords = $keywords;
-		self::$setBy['metaKeywords'] = $setBy;
-	}
-
-
-	public static function getMetaKeywords()
-	{
-		return self::$metaKeywords;
-	}
-
-
-	public static function setBaseUrl($url = false)
+	public static function setBaseUrl(string $url)
 	{
 		self::$baseUrl = $url;
 	}
 
 
-	public static function setFaviconUrl($url = false)
+	public static function setFaviconUrl(string $url)
 	{
-		if ($url) self::$faviconUrl = $url;
+		self::$faviconUrl = $url;
 	}
 
 
-	public static function addJS($JS, $async = false)
+	public static function addJS($js, bool $async = false)
 	{
-		$async = ($async !== false); // convert everything to boolean
-
-		if (is_array($JS)) {
-			foreach ($JS as $cJS) {
-				$cJS = trim($cJS);
-				if (!in_array($cJS, self::$JS)) {
-					self::$JS[] = [$cJS, $async];
+		if (is_array($js)) {
+			foreach ($js as $cjs) {
+				$cjs = trim($cjs);
+				if (!in_array($cjs, self::$js)) {
+					self::$js[] = [$cjs, $async];
 				}
 			}
 		} else {
-			$JS = trim($JS);
-			if (!in_array($JS, self::$JS)) {
-				self::$JS[] = [$JS, $async];
+			$js = trim($js);
+			if (!in_array($js, self::$js)) {
+				self::$js[] = [$js, $async];
 			}
 		}
 	}
 
 
-	public static function addCSS($CSS)
+	public static function addCss($css)
 	{
-		if (is_array($CSS)) {
-			foreach ($CSS as $cCSS) {
-				$cCSS = trim($cCSS);
-				$cCSS = str_replace(SITES, Router::getHostUrl(), $cCSS);
-				if (!in_array($cCSS, self::$CSS)) {
-					self::$CSS[] = $cCSS;
+		if (is_array($css)) {
+			foreach ($css as $ccss) {
+				$ccss = trim($ccss);
+				$ccss = str_replace(SITES, Router::getHostUrl(), $ccss);
+				if (!in_array($ccss, self::$css)) {
+					self::$css[] = $ccss;
 				}
 			}
-		} elseif (is_string($CSS)) {
-			$CSS = trim($CSS);
-			$CSS = str_replace(SITES, Router::getHostUrl(), $CSS);
-			if (!in_array($CSS, self::$CSS)) {
-				self::$CSS[] = $CSS;
+		} elseif (is_string($css)) {
+			$css = trim($css);
+			$css = str_replace(SITES, Router::getHostUrl(), $css);
+			if (!in_array($css, self::$css)) {
+				self::$css[] = $css;
 			}
 		} else {
-			Debug::alert('Not supported CSS: ' . print_r($CSS, true));
+			Debug::alert('Not supported css: ' . print_r($css, true));
 		}
 	}
 
@@ -306,12 +284,9 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 
 
-	public static function canonical($href, $setBy = false)
+	public static function canonical(string $href)
 	{
 		self::$canonicalUrl = $href;
-		if ($setBy !== false) {
-			self::$setBy['canonical'] = $setBy;
-		}
 	}
 
 
@@ -319,6 +294,26 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	public static function addCustomHTML($custom)
 	{
 		self::$custom[] = $custom;
+	}
+
+
+	public static function generateRobotsMeta()
+	{
+		$meta = [];
+		$meta['index'] = Seo::isIndexable() ? 'index' : 'noindex';
+		$meta['follow'] = Seo::isFollowable() ? 'follow' : 'nofollow';
+		$meta['noArchive'] = Seo::isArchivable() ? false : 'noarchive';
+		$meta['maxSnippet'] = 'max-snippet:' . Seo::getMaxSnippet();
+		$meta['maxImagePreview'] = 'max-image-preview:' . Seo::getMaxImagePreview();
+		$meta['max-video-preview'] = 'max-video-preview:' . Seo::getMaxVideoPreview();
+		$meta['noTranslate'] = Seo::isTranslatable() ? false : 'notranslate';
+		$meta['noImageIndex'] = Seo::areImagesIndexable() ? false : 'noimageindex';
+
+		$meta = array_filter($meta);
+
+		$content = implode(', ', $meta);
+
+		self::addMeta(['name' => 'robots', 'content' => $content]);
 	}
 
 }

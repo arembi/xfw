@@ -2,13 +2,11 @@
 
 namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\App;
-use Arembi\Xfw\Core\Router;
-use Arembi\Xfw\Core\Models\Route;
-use Arembi\Xfw\Core\Models\Domain;
+use Arembi\Xfw\Seo;
 
 class DocumentBase extends \Arembi\Xfw\Core\ModuleCore {
 
-	protected static $hasModel = true;
+	protected static $hasModel = false;
 
 
 	public function main(&$options)
@@ -19,7 +17,8 @@ class DocumentBase extends \Arembi\Xfw\Core\ModuleCore {
 		$this->lv('primaryModule', $options['primaryModule']);
 
 		Head::addMeta(['charset' => 'utf-8']);
-		Head::setTitle('Default Document Title');
-
+		Seo::init();
+		Seo::title('&#x1D6BE; by Arembi');
+		Seo::metaDescription('Xfw - The &#x1D6BE; FrameWork created by Arembi');
 	}
 }
