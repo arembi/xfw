@@ -11,7 +11,7 @@ use Arembi\Xfw\Core\Models\Static_Page;
 class Static_PageBaseModel {
 
 	// Returns static page records
-	// All if $pageIDs was not given, or only the records with requested IDs
+	// All, if $pageIds was not given, or only the records with requested IDs
 	public function getPages(array $pageIDs = [])
 	{
 		$pages = DB::table('static_pages')
@@ -30,7 +30,6 @@ class Static_PageBaseModel {
 				'users.username as username',
 				'seo.title as seoTitle',
 				'seo.description as seoDescription',
-				'seo.keywords as seoKeywords',
 				'seo.head_end as seoHeadEnd',
 				'seo.body_begin as seoBodyBegin',
 				'seo.body_end as seoBodyEnd'
@@ -85,7 +84,6 @@ class Static_PageBaseModel {
 				'users.username as username',
 				'seo.title as seoTitle',
 				'seo.description as seoDescription',
-				'seo.keywords as seoKeywords',
 				'seo.head_end as seoHeadEnd',
 				'seo.body_begin as seoBodyBegin',
 				'seo.body_end as seoBodyEnd'
@@ -136,7 +134,6 @@ class Static_PageBaseModel {
 	}
 
 
-
 	public function deletePage($ID)
 	{
 		$page = Static_Page::find($ID);
@@ -146,7 +143,6 @@ class Static_PageBaseModel {
 		} else {
 			return false;
 		}
-
 	}
 
 }

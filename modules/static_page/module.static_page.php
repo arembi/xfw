@@ -3,7 +3,8 @@
 namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
-use Arembi\Xfw\Module\HEAD;
+use Arembi\Xfw\Module\Head;
+use Arembi\Xfw\Seo;
 
 class Static_PageBase extends \Arembi\Xfw\Core\ModuleCore {
 
@@ -40,7 +41,6 @@ class Static_PageBase extends \Arembi\Xfw\Core\ModuleCore {
 			$contentTitle = $this->unavailableInfo[$lang]['contentTitle'] ?? '';
 			$content = $this->unavailableInfo[$lang]['content'] ?? '';
 			$ID = 0;
-			HEAD::setTitle($this->unavailableInfo[$lang]['contentTitle'] ?? '', __CLASS__);
 
 			$createdAt = false;
 			$createdBy = false;
@@ -51,13 +51,10 @@ class Static_PageBase extends \Arembi\Xfw\Core\ModuleCore {
 			$ID = $page->ID;
 
 			if (!empty($page->seoDescription[$lang])) {
-				HEAD::setDescription($page->seoDescription[$lang], __CLASS__);
-			}
-			if (!empty($page->seoKeywords[$lang])) {
-				HEAD::setKeywords($page->seoKeywords[$lang], __CLASS__);
+				Seo::metaDescription($page->seoDescription[$lang]);
 			}
 			if (!empty($page->seoTitle[$lang])) {
-				HEAD::setTitle($page->seoTitle[$lang], __CLASS__);
+				Seo::title($page->seoTitle[$lang]);
 			}
 
 			// Showing error message when the content is not available in the requested language
