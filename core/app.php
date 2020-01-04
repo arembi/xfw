@@ -244,20 +244,27 @@ abstract class App {
 
 	private static function loadScriptsFromDirectory(string $directory)
 	{
-		$fileNamePattern = $directory . DS . '*.php';
+		if (file_exists($directory)) {
+			$dirIterator = new \RecursiveDirectoryIterator($directory);
+			$iterator = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::SELF_FIRST);
 
-		$files = glob($fileNamePattern);
-
-		foreach ($files as $key=>$file) {
-			$iPos = strrpos($file, 'interface.');
-			if ($iPos !== false && strrpos($file, '/') < $iPos) {
-				include($file);
-				unset($files[$key]);
+			$includes = [];
+			foreach ($iterator as $i=>$file) {
+				if ($file->isFile()) {
+					// interfaces have to be loaded first
+					$iPos = strrpos($file, 'interface.');
+					if ($iPos !== false && strrpos($file, '/') < $iPos) {
+						array_unshift($includes, $file);
+					} else {
+						array_push($includes, $file);
+					}
+				}
 			}
-		}
-
-		foreach ($files as $file) {
-			include($file);
+			foreach ($includes as $file) {
+				include($file);
+			}
+		} else {
+			Debug::alert('Include directory does not exists at' . $directory, 'n');
 		}
 	}
 
