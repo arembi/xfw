@@ -2,7 +2,6 @@
 
 namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\App;
-use function Arembi\Xfw\Misc\parseHtmlAttributes;
 
 class ImageBase extends \Arembi\Xfw\Core\ModuleCore {
 
@@ -34,7 +33,7 @@ class ImageBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		$attributes['src'] = $link->getHref();
 
-		$a = parseHtmlAttributes($attributes);
+		$a = \Arembi\Xfw\Misc\parseHtmlAttributes($attributes);
 
 		$this->lv('attributes', $a);
 	}

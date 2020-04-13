@@ -74,7 +74,8 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 		}
 
 		// Get the robots meta tag contents
-		self::generateRobotsMeta();
+		$robotsMeta = self::generateRobotsMeta();
+		self::addMeta(['name' => 'robots', 'content' => $robotsMeta]);
 
 		// Adding meta HTML entities to the code
 		if (!empty(self::$meta['charset'])) {
@@ -239,14 +240,11 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 
 
-	/* Metas should be arrays like this
-	 * [
-	 * 'attr1' => 'value1',
-	 * 'attr2' => 'value2'
-	 * ]
-	 *
-	 *
-	 * */
+	// Metas should be arrays like this
+	// [
+	// 'attr1' => 'value1',
+	// 'attr2' => 'value2'
+	// ]
 
 	public static function addMeta(array $meta)
 	{
@@ -313,7 +311,7 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		$content = implode(', ', $meta);
 
-		self::addMeta(['name' => 'robots', 'content' => $content]);
+		return $content;
 	}
 
 }
