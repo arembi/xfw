@@ -40,8 +40,8 @@ class CP_Static_PageBase extends Static_Page {
 
 	public function page_list()
 	{
-		$pages = $this->model->getPages();
-
+		$pages = $this->model->getPagesByDomainID(DOMAIN_ID);
+		
 		$avLangs = \Arembi\Xfw\Core\Settings::_('availableLanguages');
 
 		foreach ($pages as &$page) {
@@ -157,7 +157,7 @@ class CP_Static_PageBase extends Static_Page {
 	public function page_edit()
 	{
 		$page = $this->model->getPageByID(Router::$GET['id']);
-		
+
 		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_edit'], false);
 
 		// ID

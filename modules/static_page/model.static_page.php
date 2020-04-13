@@ -42,18 +42,42 @@ class Static_PageBaseModel {
 			});
 		}
 
-		$pages->transform(function($page){
-			$date = new \DateTime($page->createdAt);
-			$page->createdAt = $date->format(Settings::_('dateTimeFormat')[App::getLang()]);
+		$pages->transform(function ($page) {
+			return $this->normalize($page);
+		});
 
-			if ($page->updatedAt !== null) {
-				$date = new \DateTime($page->updatedAt);
-				$page->updatedAt = $date->format(Settings::_('dateTimeFormat')[App::getLang()]);
-			}
+		return $pages;
+	}
 
-			$page->pageTitle = json_decode($page->pageTitle, true);
-			$page->pageContent = json_decode($page->pageContent, true);
-			return $page;
+
+	public function getPagesByDomainID(int $domainID)
+	{
+		$pages = DB::table('static_pages')
+			->leftJoin('routes', 'routes.id', '=', 'static_pages.route_id')
+			->leftJoin('users', 'users.id', '=', 'static_pages.created_by')
+			->leftJoin('seo_module', 'seo_module.foreign_id', '=', 'static_pages.id')
+			->leftJoin('modules', 'modules.id', '=', 'seo_module.module_id')
+			->leftJoin('seo', 'seo.id', '=', 'seo_module.seo_id')
+			->select(
+				'static_pages.id as ID',
+				'static_pages.route_id as routeID',
+				'static_pages.title as pageTitle',
+				'static_pages.content as pageContent',
+				'static_pages.created_at AS createdAt',
+				'static_pages.created_by as createdBy',
+				'static_pages.updated_at as updatedAt',
+				'users.username as username',
+				'seo.title as seoTitle',
+				'seo.description as seoDescription',
+				'seo.head_end as seoHeadEnd',
+				'seo.body_begin as seoBodyBegin',
+				'seo.body_end as seoBodyEnd'
+				)
+			->where('routes.domain_id', '=', $domainID)
+			->get();
+
+		$pages->transform(function ($page) {
+			return $this->normalize($page);
 		});
 
 		return $pages;
@@ -92,19 +116,27 @@ class Static_PageBaseModel {
 			->first();
 
 			if ($page) {
-				$date = new \DateTime($page->createdAt);
-				$page->createdAt = $date->format(Settings::_('dateTimeFormat')[App::getLang()]);
-
-				if ($page->updatedAt !== null) {
-					$date = new \DateTime($page->updatedAt);
-					$page->updatedAt = $date->format(Settings::_('dateTimeFormat')[App::getLang()]);
-				}
-
-				$page->pageTitle = json_decode($page->pageTitle, true);
-				$page->pageContent = json_decode($page->pageContent, true);
+				$page = $this->normalize($page);
 			}
 
 			return $page;
+	}
+
+
+	private function normalize($page)
+	{
+		$date = new \DateTime($page->createdAt);
+		$page->createdAt = $date->format(Settings::_('dateTimeFormat')[App::getLang()]);
+
+		if ($page->updatedAt !== null) {
+			$date = new \DateTime($page->updatedAt);
+			$page->updatedAt = $date->format(Settings::_('dateTimeFormat')[App::getLang()]);
+		}
+
+		$page->pageTitle = json_decode($page->pageTitle, true);
+		$page->pageContent = json_decode($page->pageContent, true);
+
+		return $page;
 	}
 
 
