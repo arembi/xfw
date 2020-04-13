@@ -15,11 +15,11 @@ class Google {
   public function googleInit()
   {
     if (self::$googleSC && !IS_LOCALHOST) {
-      HEAD::addMeta([['google-site-verification', self::$searchConsoleMetaVerificationId]]);
+      Head::addMeta([['google-site-verification', self::$searchConsoleMetaVerificationId]]);
     }
 
     if (self::$googleAN && !IS_LOCALHOST) {
-      HEAD::addJS(self::$googleAN);
+      Head::addJS(self::$googleAN);
     }
 
   }
