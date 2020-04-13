@@ -104,7 +104,7 @@ abstract class App {
 		Router::getEnvironment();
 		Debug::alert('Router initialized');
 
-		// Loading scripts from the engine include directory
+		// Loading scripts from the domain's include directory
 		self::loadScriptsFromDirectory(DOMAIN_DIRECTORY . DS . 'include') ;
 
 		// Initializing sessions
