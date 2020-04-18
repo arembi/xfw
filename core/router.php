@@ -123,9 +123,8 @@ abstract class Router {
 		Checking whether it is a development environment or not
 		(assuming that dev is mainly performed on localhost)
 		*/
+		if (self::amIOnLocalhost()) {
 
-		if (in_array(self::$SERVER['REMOTE_ADDR'], Config::_('localhostIP'))
-			|| strpos(self::$SERVER['REMOTE_ADDR'], '192.168') !== false) {
 			$isLocalhost = true;
 			$uriParts = explode('/', $uriQ[0]);
 
@@ -212,6 +211,13 @@ abstract class Router {
 		}
 		App::AMP($status);
 		Debug::alert('AMP status: ' . $status . '.', 'i');
+	}
+
+
+	private static function amIOnLocalhost()
+	{
+		return (in_array(self::$SERVER['REMOTE_ADDR'], Config::_('localhostIP'))
+			|| strpos(self::$SERVER['REMOTE_ADDR'], '192.168') !== false);
 	}
 
 
@@ -454,7 +460,6 @@ abstract class Router {
 			*/
 			if (!$_SESSION['user']->allowedHere()) {
 				$match['primary'] = 'unauthorized';
-				//$match['documentLayout'] = Settings::_('defaultDocumentLayout');
 			}
 			Debug::alert('Primary module found: %' . $match['primary'], 'o');
 
@@ -648,7 +653,7 @@ abstract class Router {
 		}
 
 		// Preventing permanent redirects in development environment
-		if (APP_ENV == 'dev') {
+		if (IS_LOCALHOST) {
 			$type = 302;
 		}
 
