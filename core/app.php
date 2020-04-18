@@ -49,6 +49,8 @@ abstract class App {
 
 	public static function init()
 	{
+		error_reporting(0);
+
 		self::$coreModules = [
 			'model',
 			'settings',
@@ -77,14 +79,6 @@ abstract class App {
 		Debug::alert('Configuration loaded');
 		Debug::alert('Core loaded');
 
-		// Do not show PHP errors in production environment
-		if (!Config::_('debugMode')) {
-			error_reporting(0);
-			define('APP_ENV', 'prod');
-		} else {
-			define('APP_ENV', 'dev');
-		}
-
 		// Starting a timer to measure page load speed
 		$pageloadTimer = new Misc\Timer();
 		$pageloadTimer->mark();
@@ -102,6 +96,11 @@ abstract class App {
 		// Determine environment (protocol, domain)
 		Router::init();
 		Router::getEnvironment();
+
+		if (Config::_('debugMode') && IS_LOCALHOST) {
+			error_reporting(E_ALL);
+		}
+
 		Debug::alert('Router initialized');
 
 		// Loading scripts from the domain's include directory
@@ -176,8 +175,10 @@ abstract class App {
 		Debug::alert('Memory usage: ' . number_format(memory_get_usage() / (1024 * 1024), 4) . ' MB', 'i');
 		Debug::alert('Memory peak usage: ' . number_format(memory_get_peak_usage() / (1024 * 1024), 4) . ' MB', 'i');
 
-		// Show debug messages
-		Debug::render();
+		if (Config::_('debugMode') && IS_LOCALHOST) {
+			// Show debug messages
+			Debug::render();
+		}
 	}
 
 
