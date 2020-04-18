@@ -84,10 +84,6 @@ abstract class Debug {
 	// Shows the HTML output of the debug alerts. HTML will be escaped in the messages
 	public static function render()
 	{
-		if (!Config::_('debugMode') || (defined('IS_LOCALHOST') && !IS_LOCALHOST)) {
-			return false;
-		}
-
 		$HTML = '
 			<style>' . self::$style . '</style>
 			<div id="debugArea">
