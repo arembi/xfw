@@ -23,7 +23,6 @@ their own operating area
 */
 
 
-
 class Control_PanelBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	public function main(&$options)
@@ -76,7 +75,7 @@ class Control_PanelBase extends \Arembi\Xfw\Core\ModuleCore {
 			if (method_exists($controller, $task)) {
 				// The module addons use the same model as the main modules
 				$controller->loadModel();
-				// The output of the module addons will be strored in $main
+				// The output of the module addons will be stored in $main
 				ob_start();
 				$controller->$task();
 				$main = ob_get_clean();
