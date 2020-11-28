@@ -138,6 +138,8 @@ abstract class App {
 
 		Debug::alert('URI parsed');
 
+		Debug::alert('Active user: ' . $_SESSION['user']->get('username'));
+
 		// Initializing inner autoincrementing ID
 		self::$registeredModuleID = 0;
 
@@ -148,6 +150,7 @@ abstract class App {
 		$documentModuleOptions = [
 			'layout'=>$matchedRoute['documentLayout'],
 			'primaryModule'=>$matchedRoute['primary'],
+			'primaryModuleOptions'=>$matchedRoute['options'],
 			'parentModule'=>null
 			];
 

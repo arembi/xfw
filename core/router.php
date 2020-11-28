@@ -311,8 +311,7 @@ abstract class Router {
 			return [
 				'primary'=>'unauthorized',
 				'action'=>'default',
-				'documentLayout'=>
-				Settings::_('defaultDocumentLayout')
+				'documentLayout'=>Settings::_('defaultDocumentLayout')
 			];
 		}
 
@@ -378,6 +377,7 @@ abstract class Router {
 				$match['primary'] = self::$primaryModuleRoutes[$rootID]->moduleName;
 				$match['action'] = self::$primaryModuleRoutes[$rootID]->moduleConfig['action']
 					?? null;
+				$match['options'] = self::$primaryModuleRoutes[$rootID]->moduleConfig['options'] ?? [];
 
 				self::$matchedRoute = self::$primaryModuleRoutes[$rootID];
 			} else {
@@ -439,6 +439,7 @@ abstract class Router {
 				self::$matchedRoute = $bestMatch['match'];
 				$match['primary'] = $bestMatch['match']->moduleName;
 				$match['action'] = $bestMatch['match']->moduleConfig['action'] ?? null;
+				$match['options'] = $bestMatch['match']->moduleConfig['options'] ?? [];
 				$match['documentLayout'] = empty($bestMatch['match']->moduleConfig['documentLayout'])
 					? Settings::_('defaultDocumentLayout')
 					: $bestMatch['match']->moduleConfig['documentLayout'];
@@ -563,29 +564,30 @@ abstract class Router {
 	{
 		// Files are identified by the file extensions
 		$extension = Misc\getFileExtension(self::$pathMain);
+		if ($extension !== false) {
+			$allowedExtensionsByDefault = Config::_('fileTypesServed');
+			$allowedExtensionsOnSite = Settings::_('fileTypesServed');
 
-		$allowedExtensionsByDefault = Config::_('fileTypesServed');
-		$allowedExtensionsOnSite = Settings::_('fileTypesServed');
-
-		if (is_array($allowedExtensionsOnSite)) {
-			$allowedExtensions = array_merge($allowedExtensionsByDefault, $allowedExtensionsOnSite);
-		} else {
-			$allowedExtensions = $allowedExtensionsByDefault;
-		}
-
-		if ($extension !== false && in_array($extension, $allowedExtensions)) {
-			$file = DOMAIN_DIRECTORY . DS . self::$pathMain;
-			if (file_exists($file)) {
-				$mime = Misc\getMimeType($file);
-				if (!$mime) {
-					// Fallback to plain text if the MIME has not been found
-					$mime = 'text/plain';
-				}
-				header('Content-Type: ' . $mime);
-				readfile($file);
-				exit;
+			if (is_array($allowedExtensionsOnSite)) {
+				$allowedExtensions = array_merge($allowedExtensionsByDefault, $allowedExtensionsOnSite);
 			} else {
-				App::hcf('Requested file could not be found.');
+				$allowedExtensions = $allowedExtensionsByDefault;
+			}
+
+			if (in_array($extension, $allowedExtensions)) {
+				$file = DOMAIN_DIRECTORY . DS . self::$pathMain;
+				if (file_exists($file)) {
+					$mime = Misc\getMimeType($file);
+					if (!$mime) {
+						// Fallback to plain text if the MIME has not been found
+						$mime = 'text/plain';
+					}
+					header('Content-Type: ' . $mime);
+					readfile($file);
+					exit;
+				} else {
+					App::hcf('Requested file could not be found.');
+				}
 			}
 		}
 	}

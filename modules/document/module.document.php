@@ -15,6 +15,7 @@ class DocumentBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		$this->lv('lang', App::getLang());
 		$this->lv('primaryModule', $options['primaryModule']);
+		$this->lv('primaryModuleOptions', $options['primaryModuleOptions']);
 
 		Head::addMeta(['charset' => 'utf-8']);
 		Seo::init();
