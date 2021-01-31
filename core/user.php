@@ -35,6 +35,7 @@ class User {
 				// Loading default values
 				$this->data = new \stdClass();
 				$this->data->domain = DOMAIN;
+				$this->data->ID = 0;
 				$this->data->username = '_guest';
 				$this->data->firstName = 'Guest';
 				$this->data->lastName = 'User';
