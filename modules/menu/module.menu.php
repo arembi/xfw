@@ -54,9 +54,9 @@ class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 				// Otherwise it is a simple menuitem
 				if (Misc\array_keys_numeric($item)) {
 					$submenuData = [
-						'items' => $item,
-						'level' => $options['level'] + 1,
-						'showName' => false
+						'items'=>$item,
+						'level'=>$options['level'] + 1,
+						'showName'=>false
 					];
 					$submenu = new Menu($submenuData);
 					$menuItems[] = $submenu->processLayout()->getLayoutHTML();
@@ -92,7 +92,7 @@ class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 							'title' => $item['title'],
 							'target' => $item['target']
 						];
-						
+
 						$link = new Link($linkData);
 
 						$menuItems[] = $link->processLayout()->getLayoutHTML();

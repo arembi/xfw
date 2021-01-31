@@ -27,6 +27,7 @@ class CP_Control_PanelBase extends Control_panel {
 			]
 		]
 	];
+	
 
 	public function home()
 	{?>
@@ -35,7 +36,6 @@ class CP_Control_PanelBase extends Control_panel {
 		</div>
 		<?php
 	}
-
 
 
 	public function route_list()
@@ -87,7 +87,6 @@ class CP_Control_PanelBase extends Control_panel {
 	}
 
 
-
 	public function route_new()
 	{
 		$modules = App::getPrimaryModules();
@@ -117,7 +116,6 @@ class CP_Control_PanelBase extends Control_panel {
 		$form->build();
 		$form->render();
 	}
-
 
 
 	public function route_edit()
