@@ -125,18 +125,18 @@ abstract class ModuleCore {
 	protected $layoutProcessed;
 
 	// Constructor options
-	protected $options = [];
+	protected $options;
 
 	// Variables that can be accessed in layouts
-	protected $layoutVariables = [];
+	protected $layoutVariables;
 
 	// The array of embedded modules in the layout
-	protected $embeddedModules = [];
+	protected $embeddedModules;
 
 	protected $reflector; // instance of ReflectionClass
 
 	// embedID is used for ordering of embedded modules within a layout
-	private $embedID = 0;
+	private $embedID;
 
 	// Whether the loop should continue through the current layout
 	protected $recursive;
@@ -150,7 +150,12 @@ abstract class ModuleCore {
 
 	final public function __construct(array $options = [])
 	{
+		// Setting default values
 		$this->layoutProcessed = false;
+		$this->options = [];
+		$this->layoutVariables = [];
+		$this->embeddedModules = [];
+		$this->embedID = 0;
 
 		$this->reflector = new \ReflectionClass($this);
 
@@ -376,7 +381,11 @@ abstract class ModuleCore {
 						'priority' => $module->priority,
 						'params' => $params,
 						];
+
+					// Set placeholder in the layout
 					echo '{%' . $this->embedID . '%}';
+
+					// Adjust embedID
 					$this->embedID ++;
 				} else {
 					Debug::alert('Embedded module %' . $params['name'] . ' is not active on this domain.', 'f');
@@ -427,7 +436,6 @@ abstract class ModuleCore {
 		if (in_array(strtolower($parts[0]), array_keys(Config::_('moduleAddons')))) {
 			$moduleModel = $parts[1];
 		}
-
 		// Adding namespace
 		$moduleModel = '\\Arembi\\Xfw\\Module\\' . $moduleModel;
 
