@@ -6,7 +6,7 @@
     'aliases' => 
     array (
     ),
-    'reference' => '717a7a79d88a67586229b86a4d8efbad4ab9b5be',
+    'reference' => '397bdef55c6761d8ebabdc4729b7fdcb95deec3f',
     'name' => '__root__',
   ),
   'versions' => 
@@ -18,16 +18,16 @@
       'aliases' => 
       array (
       ),
-      'reference' => '717a7a79d88a67586229b86a4d8efbad4ab9b5be',
+      'reference' => '397bdef55c6761d8ebabdc4729b7fdcb95deec3f',
     ),
     'doctrine/inflector' => 
     array (
-      'pretty_version' => '1.4.3',
-      'version' => '1.4.3.0',
+      'pretty_version' => '2.0.3',
+      'version' => '2.0.3.0',
       'aliases' => 
       array (
       ),
-      'reference' => '4650c8b30c753a76bf44fb2ed00117d6f367490c',
+      'reference' => '9cf661f4eb38f7c881cac67c75ea9b00bf97b210',
     ),
     'guzzlehttp/guzzle' => 
     array (
@@ -58,39 +58,39 @@
     ),
     'illuminate/container' => 
     array (
-      'pretty_version' => 'v5.8.36',
-      'version' => '5.8.36.0',
+      'pretty_version' => 'v6.20.15',
+      'version' => '6.20.15.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'b42e5ef939144b77f78130918da0ce2d9ee16574',
+      'reference' => 'aa6e7030cba7458bbeeddfb1ddb54b3c2f7ba113',
     ),
     'illuminate/contracts' => 
     array (
-      'pretty_version' => 'v5.8.36',
-      'version' => '5.8.36.0',
+      'pretty_version' => 'v6.20.15',
+      'version' => '6.20.15.0',
       'aliases' => 
       array (
       ),
-      'reference' => '00fc6afee788fa07c311b0650ad276585f8aef96',
+      'reference' => '89dc8d7ac32cdfa254461cdd4da5d692b44169a4',
     ),
     'illuminate/database' => 
     array (
-      'pretty_version' => 'v5.8.36',
-      'version' => '5.8.36.0',
+      'pretty_version' => 'v6.20.15',
+      'version' => '6.20.15.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'ac9ae2d82b8a6137400f17b3eea258be3518daa9',
+      'reference' => '00b016a6d770c5c01bcce3fbe7df5d67eac75bae',
     ),
     'illuminate/support' => 
     array (
-      'pretty_version' => 'v5.8.36',
-      'version' => '5.8.36.0',
+      'pretty_version' => 'v6.20.15',
+      'version' => '6.20.15.0',
       'aliases' => 
       array (
       ),
-      'reference' => 'df4af6a32908f1d89d74348624b57e3233eea247',
+      'reference' => '338777190c1169087e1d8f61a0fb7b1255310c74',
     ),
     'lullabot/amp' => 
     array (

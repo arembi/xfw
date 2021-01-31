@@ -28,6 +28,5 @@ return array(
     'FastImageSize\\tests\\' => array($vendorDir . '/marc1706/fast-image-size/tests'),
     'FastImageSize\\' => array($vendorDir . '/marc1706/fast-image-size/lib'),
     'Doctrine\\Inflector\\' => array($vendorDir . '/doctrine/inflector/lib/Doctrine/Inflector'),
-    'Doctrine\\Common\\Inflector\\' => array($vendorDir . '/doctrine/inflector/lib/Doctrine/Common/Inflector'),
     'Carbon\\' => array($vendorDir . '/nesbot/carbon/src/Carbon'),
 );
