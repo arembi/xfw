@@ -5,6 +5,7 @@ namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
+use Arembi\Xfw\Seo;
 
 /*
 URL path parameters
@@ -88,8 +89,8 @@ class Control_PanelBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		$this->lv('cpMenuItems', $cpMenuItems);
 		$this->lv('main', $main);
-		HEAD::setTitle($task . ' - Control Panel', __CLASS__);
-		HEAD::setMetaDescription($task . ' task of ' . $module . ' module', __CLASS__);
+		Seo::title($task . ' - Control Panel', __CLASS__);
+		Seo::metaDescription($task . ' task of ' . $module . ' module', __CLASS__);
 	}
 
 }
