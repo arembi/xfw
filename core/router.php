@@ -345,10 +345,7 @@ abstract class Router {
 	{
 		// In case a 404 error previously occured
 		if (self::$hit404) {
-			$match['primary'] = 'fourohfour';
-			$match['action'] = 'default';
-			$match['documentLayout'] = Settings::_('defaultDocumentLayout');
-			return $match;
+			return self :: assemble404Module();
 		}
 
 		$match = [];
@@ -381,10 +378,7 @@ abstract class Router {
 
 				self::$matchedRoute = self::$primaryModuleRoutes[$rootID];
 			} else {
-				$match['primary'] = 'fourohfour';
-				$match['action'] = 'default';
-				$match['documentLayout'] = Settings::_('defaultDocumentLayout');
-				return $match;
+				return self :: assemble404Module();
 			}
 		} else {
 			/*
@@ -450,9 +444,7 @@ abstract class Router {
 
 		if (!isset($match['primary'])) {
 			// Primary module match not found
-			$match['primary'] = 'fourohfour';
-			$match['action'] = 'default';
-			$match['documentLayout'] = Settings::_('defaultDocumentLayout');
+			$match = self :: assemble404Module();
 			Debug::alert('Primary module not found.', 'f');
 		} else {
 			/*
@@ -624,6 +616,17 @@ abstract class Router {
 		if (isset($result['status']['data'])) {
 			Input_Handler::setProcessResult($result['status']['data']);
 		}
+	}
+
+
+	private static function assemble404Module()
+	{
+		return [
+			'primary'=>'fourohfour',
+			'action'=>'default',
+			'documentLayout'=>Settings::_('defaultDocumentLayout'),
+			'options'=>[]
+		];
 	}
 
 
