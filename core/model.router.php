@@ -10,7 +10,6 @@ use Arembi\Xfw\Misc;
 
 class RouterModel {
 
-
 	public function getDomains()
 	{
 		$domains = [];
@@ -24,6 +23,12 @@ class RouterModel {
 		}
 
 		return $domains;
+	}
+
+
+	public function getDomainByID($id)
+	{
+		return Domain::find($id);
 	}
 
 
@@ -62,7 +67,7 @@ class RouterModel {
 				$item->path = Misc\decodeIfJSON($item->path, true);
 
 				if (is_string($item->path) && $item->path != '/') {
-					$item->path = [Settings::_('defaultLanguage') => $item->path];
+					$item->path = [Settings::get('defaultLanguage') => $item->path];
 				}
 
 				$item->pathParams = json_decode($item->pathParams, true);
@@ -136,7 +141,7 @@ class RouterModel {
 				$item->path = Misc\decodeIfJSON($item->path, true);
 
 				if (is_string($item->path) && $item->path != '/') {
-					$item->path = [Settings::_('defaultLanguage') => $item->path];
+					$item->path = [Settings::get('defaultLanguage') => $item->path];
 				}
 
 				$item->modulePpo = json_decode($item->modulePpo, true);
@@ -159,7 +164,7 @@ class RouterModel {
 			// If the route is a string instead of an array, we use it with the default language
 			// There is no point to store the root for every language, so it will be left the way it was
 			if (is_string($route->path) && $route->path != '/') {
-				$route->path = [Settings::_('defaultLanguage') => $route->path];
+				$route->path = [Settings::get('defaultLanguage') => $route->path];
 			}
 		}
 		return $route;
