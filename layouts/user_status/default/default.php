@@ -2,7 +2,7 @@
 <?php if($user->isLoggedIn()): ?>
   <div>
     Hi, <?php $this->print($firstName . ' ' . $lastName . ' (' . $username . ')')?><br>
-    Group: <?php $this->print($userGroup) ?>
+    Group: <?php $this->print($userGroup) ?> (CL: <?php $this->print($clearanceLevel) ?>)
   </div>
   <div>
     <?php $this->embed('form', ['ID' => 2]);?>
