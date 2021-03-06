@@ -196,7 +196,7 @@ abstract class ModuleCore {
 		if (App::AMP() == 'on') {
 			$this->options['layout'] = 'amp';
 		} else {
-			$this->options['layout'] = Settings::_('defaultModuleLayout');
+			$this->options['layout'] = Settings::get('defaultModuleLayout');
 		}
 
 		/*
@@ -210,7 +210,7 @@ abstract class ModuleCore {
 		If you want to use a model, create a class in the model.modulename.php file,
 		and call the loadModel() in the controllers main() function
 
-		Need the URL parameters? Call the loadPathParams()
+		To access URL parameters call the loadPathParams()
 		*/
 
 		if ($this->addonType === null && method_exists($this, 'main')) {
@@ -220,7 +220,7 @@ abstract class ModuleCore {
 		if (is_array($options)) {
 			$this->options = array_merge($this->options, $options);
 
-			// If the ID has not been set, we will use 0
+			// If not set, ID will be 0
 			if (!isset($this->options['ID'])) {
 				$this->options['ID'] = 0;
 			}
@@ -275,7 +275,7 @@ abstract class ModuleCore {
 
 		// If the requested layout could't be loaded, we try to load the default
 		if ($layout['layoutFile'] === null) {
-			$layout = $this->loadLayoutFile(Settings::read('defaultModuleLayout'));
+			$layout = $this->loadLayoutFile(Settings::get('defaultModuleLayout'));
 		}
 
 		$layoutFile = $layout['layoutFile'];
