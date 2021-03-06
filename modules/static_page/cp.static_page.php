@@ -41,8 +41,8 @@ class CP_Static_PageBase extends Static_Page {
 	public function page_list()
 	{
 		$pages = $this->model->getPagesByDomainID(DOMAIN_ID);
-		
-		$avLangs = \Arembi\Xfw\Core\Settings::_('availableLanguages');
+
+		$avLangs = \Arembi\Xfw\Core\Settings::get('availableLanguages');
 
 		foreach ($pages as &$page) {
 			$editLink = new Link(['anchor' => 'edit', 'href' => '?task=page_edit&id=' . $page->ID]);
@@ -114,20 +114,17 @@ class CP_Static_PageBase extends Static_Page {
 
 	public function page_new()
 	{
-		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_new'], false);
+		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_add'], false);
 
-		// pageTitle
-		foreach (\Arembi\Xfw\Core\Settings::_('availableLanguages') as $lang) {
+		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
 			$form->addField('pageTitle-' . $lang[0]);
 			$form->setFieldLabel('pageTitle-' . $lang[0], 'Cím (' . $lang[0] . ')');
 		}
-		// pageContent
-		foreach (\Arembi\Xfw\Core\Settings::_('availableLanguages') as $lang) {
+		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
 			$form->addField('pageContent-' . $lang[0], 'textarea');
 			$form->setFieldLabel('pageContent-' . $lang[0], 'Content (' . $lang[0] . ')');
 		}
 
-		// createdBy
 		$createdBySelectOptions = [];
 		foreach (App::getUsersByDomain() as $user) {
 			$createdBySelectOptions[$user->username] = ['value' => $user->ID];
@@ -137,8 +134,9 @@ class CP_Static_PageBase extends Static_Page {
 		$form->setFieldOptions('createdBy', $createdBySelectOptions);
 
 
-		// routeID
-		$routeIDSelectOptions = [];
+		$routeIDSelectOptions = [
+			"[unpublished]"=>['value'=>0]
+		];
 		foreach (Router::getRoutes('primary') as $id => $route) {
 			$option = is_array($route->path) ? implode(' | ', $route->path) : $route->path;
 			$routeIDSelectOptions[$option] = ['value' => $id];
@@ -158,7 +156,7 @@ class CP_Static_PageBase extends Static_Page {
 	{
 		$page = $this->model->getPageByID(Router::$GET['id']);
 
-		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_edit'], false);
+		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_update'], false);
 
 		// ID
 		$form->addField('ID');
@@ -166,7 +164,7 @@ class CP_Static_PageBase extends Static_Page {
 		$form->setFieldLabel('ID', 'ID');
 
 		// pageTitle
-		foreach (\Arembi\Xfw\Core\Settings::_('availableLanguages') as $lang) {
+		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
 			$form->addField('pageTitle-' . $lang[0]);
 			$form->setFieldLabel('pageTitle-' . $lang[0], 'Cím (' . $lang[0] . ')');
 			$pageTitle = $page->pageTitle[$lang[0]] ?? '';
@@ -174,7 +172,7 @@ class CP_Static_PageBase extends Static_Page {
 		}
 
 		// pageContent
-		foreach (\Arembi\Xfw\Core\Settings::_('availableLanguages') as $lang) {
+		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
 			$form->addField('pageContent-' . $lang[0], 'textarea');
 			$form->setFieldLabel('pageContent-' . $lang[0], 'Tartalom (' . $lang[0] . ')');
 			$pageContent = $page->pageContent[$lang[0]] ?? '';

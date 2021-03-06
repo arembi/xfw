@@ -126,11 +126,11 @@ class Static_PageBaseModel {
 	private function normalize($page)
 	{
 		$date = new \DateTime($page->createdAt);
-		$page->createdAt = $date->format(Settings::_('dateTimeFormat')[App::getLang()]);
+		$page->createdAt = $date->format(Settings::get('dateTimeFormat')[App::getLang()]);
 
 		if ($page->updatedAt !== null) {
 			$date = new \DateTime($page->updatedAt);
-			$page->updatedAt = $date->format(Settings::_('dateTimeFormat')[App::getLang()]);
+			$page->updatedAt = $date->format(Settings::get('dateTimeFormat')[App::getLang()]);
 		}
 
 		$page->pageTitle = json_decode($page->pageTitle, true);
@@ -140,7 +140,7 @@ class Static_PageBaseModel {
 	}
 
 
-	public function newPage(array $pageData)
+	public function addPage(array $pageData)
 	{
 		$page = new Static_Page();
 

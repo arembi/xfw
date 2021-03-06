@@ -20,7 +20,6 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		if (!empty($options['ID'])) {
 			// User generated forms
-
 			$form = $this->model->getForm($options['ID']);
 			if (!$form) {
 				return false;
@@ -35,7 +34,6 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 			$this->setFieldAttribute('formID', 'value' , $options['ID']);
 		} elseif (!empty($options['handlerModule']) && !empty($options['handlerMethod'])) {
 			// Standard forms
-
 			$options['layout'] = $options['handlerMethod'];
 
 			$this->fields = $options['fields'] ?? [];
@@ -164,6 +162,8 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		$this->lv('fields', $this->fields);
 		$this->lv('action', $actionUrl);
+
+		return $this;
 	}
 
 

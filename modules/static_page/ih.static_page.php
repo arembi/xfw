@@ -9,13 +9,13 @@ class IH_Static_PageBase extends Static_Page {
 
 	public $formData;
 
-	public function page_new()
+	public function page_add()
 	{
 		$this->loadModel();
-		$routeID = Router::$POST['routeID'];
+		$routeID = Router::$POST['routeID'] === 0 ? null : Router::$POST['routeID'];
 		$pageTitle = [];
 		$pageContent = [];
-		foreach (\Arembi\Xfw\Core\Settings::_('availableLanguages') as $lang) {
+		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
 			if (isset(Router::$POST['pageTitle-' . $lang[0]])) {
 				$pageTitle[$lang[0]] = Router::$POST['pageTitle-' . $lang[0]];
 			}
@@ -32,16 +32,17 @@ class IH_Static_PageBase extends Static_Page {
 			'createdBy'=>$createdBy
 		];
 
-		if ($this->model->newPage($data)) {
-			return ['OK', 'Page has been added.'];
+
+		if ($this->model->addPage($data)) {
+			return [Router::IH_RESULT['ok'], 'Page has been added.'];
 		} else {
-			return ['NOK', 'Page couldn\'t be added.'];
+			return [Router::IH_RESULT['error'], 'Page couldn\'t be added.'];
 		}
 	}
 
 
 
-	public function page_edit()
+	public function page_update()
 	{
 		$this->loadModel();
 		$ID = Router::$POST['ID'];
@@ -50,7 +51,7 @@ class IH_Static_PageBase extends Static_Page {
 		$pageTitle = [];
 		$pageContent = [];
 
-		foreach (\Arembi\Xfw\Core\Settings::_('availableLanguages') as $lang) {
+		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
 			if (isset(Router::$POST['pageTitle-' . $lang[0]])) {
 				$pageTitle[$lang[0]] = Router::$POST['pageTitle-' . $lang[0]];
 			}
@@ -70,9 +71,9 @@ class IH_Static_PageBase extends Static_Page {
 		];
 
 		if ($this->model->updatePage($pageData)) {
-			return ['OK', 'Page has been added.'];
+			return [Router::IH_RESULT['ok'], 'Page has been added.'];
 		} else {
-			return ['NOK', 'Page couldn\'t be added.'];
+			return [Router::IH_RESULT['error'], 'Page couldn\'t be added.'];
 		}
 	}
 
@@ -83,9 +84,9 @@ class IH_Static_PageBase extends Static_Page {
 		$this->loadModel();
 
 		if ($this->model->deletePage(Router::$POST['ID']) ) {
-			return 'Route has been deleted.';
+			return [Router::IH_RESULT['ok'], 'Route has been deleted.'];
 		} else {
-			return 'Route couldn\'t be deleted.';
+			return [Router::IH_RESULT['error']'Route couldn\'t be deleted.'];
 		}
 	}
 
