@@ -49,7 +49,7 @@ class User {
 
 	public function get($field)
 	{
-		return isset($this->data->$field) ? $this->data->$field : null;
+		return $this->data->$field ?? null;
 	}
 
 
@@ -76,6 +76,12 @@ class User {
 
 	public function allowedToSendInput()
 	{
-		return $this->data->clearanceLevel >= Settings::_('inputClearance');
+		return $this->data->clearanceLevel >= Settings::get('inputClearance');
+	}
+
+
+	public function isSuperuser()
+	{
+		return $this->get('userGroup') == 'superuser';
 	}
 }
