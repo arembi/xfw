@@ -1,7 +1,7 @@
 <form method="POST" action="<?php $this->print($action) ?>">
   <table>
     <tbody>
-      <?php foreach (\Arembi\Xfw\Core\Settings::_('availableLanguages') as $lang): ?>
+      <?php foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang): ?>
       <tr>
         <td>
           <label for="pageTitle-<?php echo $lang[0]?>"><?php $this->print($fields['pageTitle-' . $lang[0]]['label']) ?></label>
@@ -11,7 +11,7 @@
         </td>
       </tr>
       <?php endforeach; ?>
-      <?php foreach (\Arembi\Xfw\Core\Settings::_('availableLanguages') as $lang): ?>
+      <?php foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang): ?>
       <tr>
         <td>
           <label for="pageContent-<?php echo $lang[0]?>"><?php $this->print($fields['pageContent-' . $lang[0]]['label']) ?></label>
