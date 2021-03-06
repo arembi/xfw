@@ -86,6 +86,12 @@ abstract class Router {
 	public static $FILES = [];
 
 
+	public const IH_RESULT = [
+		'ok'=>0,
+		'warning'=>1,
+		'error'=>2
+	];
+
 
 	// Initialization
 	public static function init()
@@ -269,11 +275,11 @@ abstract class Router {
 		both are possible
 		*/
 
-		if (Settings::_('URLTrailingSlash') == 'remove') {
+		if (Settings::get('URLTrailingSlash') == 'remove') {
 			if (self::$pathMain != '/' && substr(self::$pathMain, -1) == '/') {
 				self::redirect(substr(self::$fullUrl, 0, -1));
 			}
-		} elseif (Settings::_('URLTrailingSlash') == 'force') {
+		} elseif (Settings::get('URLTrailingSlash') == 'force') {
 			if (substr(self::$pathMain, -1) != '/') {
 				self::redirect(self::$fullUrl . '/');
 			}
@@ -297,10 +303,10 @@ abstract class Router {
 		 * If the site is multilingual, we have to detect which language
 		 * the user wants to load, doing that by calling matchLanguage()
 		 * */
-		if (Settings::read('multiLang') == 'true') {
+		if (Settings::get('multiLang') == 'true') {
 			$lang = self::matchLanguage($pathNodes, $pathMain);
 		} else {
-			$lang = Settings::read('defaultLanguage');
+			$lang = Settings::get('defaultLanguage');
 		}
 
 		App::setLang($lang);
@@ -311,7 +317,7 @@ abstract class Router {
 			return [
 				'primary'=>'unauthorized',
 				'action'=>'default',
-				'documentLayout'=>Settings::_('defaultDocumentLayout')
+				'documentLayout'=>Settings::get('defaultDocumentLayout')
 			];
 		}
 
@@ -326,7 +332,7 @@ abstract class Router {
 		unset($r);
 
 		// Setting up pagination
-		self::$paginationParams = Settings::_('paginationParam');
+		self::$paginationParams = Settings::get('paginationParam');
 		self::$paginationParam = self::$paginationParams[$lang];
 		self::$pageNumber = !empty(self::$GET[self::$paginationParam]) ? self::$GET[self::$paginationParam] : null;
 
@@ -370,7 +376,7 @@ abstract class Router {
 
 			if ($rootID !== false) {
 				$match['documentLayout'] = self::$primaryModuleRoutes[$rootID]->moduleConfig['documentLayout']
-					?? Settings::_('defaultDocumentLayout');
+					?? Settings::get('defaultDocumentLayout');
 				$match['primary'] = self::$primaryModuleRoutes[$rootID]->moduleName;
 				$match['action'] = self::$primaryModuleRoutes[$rootID]->moduleConfig['action']
 					?? null;
@@ -435,10 +441,10 @@ abstract class Router {
 				$match['action'] = $bestMatch['match']->moduleConfig['action'] ?? null;
 				$match['options'] = $bestMatch['match']->moduleConfig['options'] ?? [];
 				$match['documentLayout'] = empty($bestMatch['match']->moduleConfig['documentLayout'])
-					? Settings::_('defaultDocumentLayout')
+					? Settings::get('defaultDocumentLayout')
 					: $bestMatch['match']->moduleConfig['documentLayout'];
 			} else {
-				$match['documentLayout'] = Settings::_('defaultDocumentLayout');
+				$match['documentLayout'] = Settings::get('defaultDocumentLayout');
 			}
 		}
 
@@ -481,7 +487,7 @@ abstract class Router {
 
 		// Searching through the available languages
 		$langIndex = 0;
-		$avLangs = Settings::_('availableLanguages');
+		$avLangs = Settings::get('availableLanguages');
 		$l = count($avLangs);
 		while (!$langSetInURL && $langIndex < $l) {
 			if ($pathNodes[0] == $avLangs[$langIndex][0]) {
@@ -558,7 +564,7 @@ abstract class Router {
 		$extension = Misc\getFileExtension(self::$pathMain);
 		if ($extension !== false) {
 			$allowedExtensionsByDefault = Config::_('fileTypesServed');
-			$allowedExtensionsOnSite = Settings::_('fileTypesServed');
+			$allowedExtensionsOnSite = Settings::get('fileTypesServed');
 
 			if (is_array($allowedExtensionsOnSite)) {
 				$allowedExtensions = array_merge($allowedExtensionsByDefault, $allowedExtensionsOnSite);
@@ -599,7 +605,7 @@ abstract class Router {
 		}
 
 		// Case everything went fine
-		if ($result['status'][0] == 'OK') {
+		if ($result['status'][0] == self::IH_RESULT['ok']) {
 			if (isset($result['status'][1])) {
 				Debug::alert('Form processing result: ' . $result['status'][1], 'o');
 			}
@@ -624,7 +630,7 @@ abstract class Router {
 		return [
 			'primary'=>'fourohfour',
 			'action'=>'default',
-			'documentLayout'=>Settings::_('defaultDocumentLayout'),
+			'documentLayout'=>Settings::get('defaultDocumentLayout'),
 			'options'=>[]
 		];
 	}
@@ -913,7 +919,7 @@ abstract class Router {
 			}
 
 			// If the site is multilingual, we add the language marker to the URL
-			if (Settings::_('multiLang')) {
+			if (Settings::get('multiLang')) {
 				if (isset(self::$links[$data]['linkLang'])) {
 					$lang = self::$links[$data]['linkLang'];
 				} else {
@@ -935,7 +941,7 @@ abstract class Router {
 				$lang = App::getLang();
 				$langMarker = '';
 				if (self::$links[$data]['path'] != '/') {
-					$route = self::$links[$data]['path'][Settings::_('defaultLanguage')];
+					$route = self::$links[$data]['path'][Settings::get('defaultLanguage')];
 				} else {
 					$route = '/';
 				}
@@ -981,7 +987,7 @@ abstract class Router {
 			/*
 			* If the language has not been set, we use the deafult language on the domain
 			* */
-			if (empty($data['lang']) || !Settings::_('multiLang')) {
+			if (empty($data['lang']) || !Settings::get('multiLang')) {
 				$lang = App::getLang();
 			} else {
 				$lang = $data['lang'];
@@ -1015,7 +1021,7 @@ abstract class Router {
 				}
 			}
 
-			$langMarker = Settings::_('multiLang') ? (DS . $lang) : '';
+			$langMarker = Settings::get('multiLang') ? (DS . $lang) : '';
 
 			// A queryString array has to be returned, but we do not use when
 			// builing hrefs based on routes, so an empty array is returned
