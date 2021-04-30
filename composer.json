@@ -1,7 +1,7 @@
 {
     "require": {
         "lullabot/amp": "^2.0",
-        "illuminate/database": "^8.28",
-        "illuminate/filesystem": "^8.28"
+        "illuminate/database": "^8.40",
+        "illuminate/filesystem": "^8.40"
     }
 }
