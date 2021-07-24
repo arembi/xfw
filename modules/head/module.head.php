@@ -42,14 +42,14 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	protected function main(&$options)
 	{
-		$meta = '';
-		$link = '';
-		$css = '';
-		$js = '';
-		$custom = '';
+		$metaHtml = '';
+		$linkHtml = '';
+		$cssHtml = '';
+		$jsHtml = '';
+		$customHtml = '';
 
 		// Creating title tag
-		$title = '<title>' . self::$title . '</title>';
+		$titleHtml = '<title>' . self::$title . '</title>';
 		if(!empty(self::$setBy['title'])){
 			Debug::alert('The title was set by ' . self::$setBy['title'] . '.', 'n');
 		}
@@ -61,16 +61,16 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 		}
 
 		// Creating the <base>
-		$base = self::$baseUrl !== null
+		$baseHtml = self::$baseUrl !== null
 			? '<base href="' . self::$baseUrl . '">'
 			: '';
 
 		// Creating the favicon <link>
 		if (self::$faviconUrl !== null) {
 			$iconType = \Arembi\Xfw\Misc\getFileExtension(self::$faviconUrl);
-			$favicon = '<link rel="icon" type="image/' . $iconType . '" href="' . self::$faviconUrl . '">';
+			$faviconHtml = '<link rel="icon" type="image/' . $iconType . '" href="' . self::$faviconUrl . '">';
 		} else {
-			$favicon = '';
+			$faviconHtml = '';
 		}
 
 		// Get the robots meta tag contents
@@ -79,25 +79,25 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		// Adding meta HTML entities to the code
 		if (!empty(self::$meta['charset'])) {
-			$meta .= '<meta charset="' . self::$meta['charset'] . '">' . PHP_EOL;
+			$metaHtml .= '<meta charset="' . self::$meta['charset'] . '">' . PHP_EOL;
 		}
 
 		if (!empty(self::$meta['name'])) {
 			foreach (self::$meta['name'] as $name => $content) {
-				$metatag= '<meta name="' . $name . '"' . ' content="' . $content . '">' . PHP_EOL;
-				$meta .= $metatag;
+				$metaTag= '<meta name="' . $name . '"' . ' content="' . $content . '">' . PHP_EOL;
+				$metaHtml .= $metaTag;
 			}
 		}
 
 		if (!empty(self::$meta['http-equiv'])) {
 			foreach (self::$meta['http-equiv'] as $name => $content) {
-				$metatag= '<meta http-equiv="' . $name . '"' . ' content="' . $content . '">' . PHP_EOL;
-				$meta .= $metatag;
+				$metaTag= '<meta http-equiv="' . $name . '"' . ' content="' . $content . '">' . PHP_EOL;
+				$metaHtml .= $metaTag;
 			}
 		}
 
-		if (empty($meta)) {
-			$meta = '';
+		if (empty($metaHtml)) {
+			$metaHtml = '';
 		}
 
 		// Adding link HTML entities to the code
@@ -110,38 +110,38 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 			$linkTag .= '>' . PHP_EOL;
 
-			$link .= $linkTag;
+			$linkHtml .= $linkTag;
 		}
 
 		// Adding the canonical link
 		if (!empty(self::$canonicalUrl)) {
 			$l = new Link(['href'=>self::$canonicalUrl]);
-			$link .= '<link rel="canonical" href="' . $l->getHref() . '">' . PHP_EOL;
+			$linkHtml .= '<link rel="canonical" href="' . $l->getHref() . '">' . PHP_EOL;
 		}
 
 		// Adding JavaScript HTML entities to the code
 		foreach (self::$js as $cjs) {
-			// $js[0] is the js code or src, $js[1] is the async attribute
+			// $cjs[0] is the JS code or src, $js[1] is the async attribute
 			if (strpos($cjs[0], '<script') !== false) {
-				if (strpos($cjs[0], '</script>') == strlen($js[0]) - 9) {
-					$js .= $cjs[0] . PHP_EOL;
+				if (strpos($cjs[0], '</script>') == strlen($cjs[0]) - 9) {
+					$jsHtml .= $cjs[0] . PHP_EOL;
 				} else {
 					Debug::alert('Some JavaScript code is missing due to incorrect embedding.');
 				}
 			} else {
-				$js .= '<script';
-				$js .= $cjs[1] ? ' async' : '';
-				$js .= ' src="' . (strpos($cjs[0], '//') !== false ? '' : Router::$hostURL) . htmlspecialchars($cjs[0]) . '"';
-				$js .= '></script>' . PHP_EOL;
+				$jsHtml .= '<script';
+				$jsHtml .= $cjs[1] ? ' async' : '';
+				$jsHtml .= ' src="' . (strpos($cjs[0], '//') !== false ? '' : Router::$hostURL) . htmlspecialchars($cjs[0]) . '"';
+				$jsHtml .= '></script>' . PHP_EOL;
 			}
 		}
 
 		/*
-		Adding css HTML entities to the code
+		Adding CSS HTML entities to the code
 		*/
 
 		foreach (self::$css as $css) {
-			$css .= '<link rel="stylesheet" href="' . (strpos($css, '//') !== false ? '' : Router::getHostUrl()) . htmlspecialchars($css) . '" type="text/css">' . PHP_EOL;
+			$cssHtml .= '<link rel="stylesheet" href="' . (strpos($css, '//') !== false ? '' : Router::getHostUrl()) . htmlspecialchars($css) . '" type="text/css">' . PHP_EOL;
 		}
 
 		/*
@@ -149,17 +149,17 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 		*/
 
 		foreach (self::$custom as $c) {
-			$custom .= $c . PHP_EOL;
+			$customHtml .= $c . PHP_EOL;
 		}
 
-		$this->lv('title', $title);
-		$this->lv('meta', $meta);
-		$this->lv('css', $css);
-		$this->lv('js', $js);
-		$this->lv('custom', $custom);
-		$this->lv('link', $link);
-		$this->lv('base', $base);
-		$this->lv('favicon', $favicon);
+		$this->lv('title', $titleHtml);
+		$this->lv('meta', $metaHtml);
+		$this->lv('css', $cssHtml);
+		$this->lv('js', $jsHtml);
+		$this->lv('custom', $customHtml);
+		$this->lv('link', $linkHtml);
+		$this->lv('base', $baseHtml);
+		$this->lv('favicon', $faviconHtml);
 	}
 
 
@@ -217,7 +217,7 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public static function addCss($css)
+	public static function addCSS($css)
 	{
 		if (is_array($css)) {
 			foreach ($css as $ccss) {
