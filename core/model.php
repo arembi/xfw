@@ -12,18 +12,21 @@ class Database {
 	{
 		self::$capsule = new Capsule;
 
-		self::connect('sys');
+		self::connect('sys', 'default');
 
-		// Make this Capsule instance available globally via static methods... (optional)
 		self::$capsule->setAsGlobal();
 
-		// Setup the Eloquent ORM... (optional; unless you've used setEventDispatcher())
 		self::$capsule->bootEloquent();
 	}
 
 
 	public static function connect(string $databaseKey, string $name = 'default')
 	{
+		if (empty(Config::_('databases')[$databaseKey])) {
+			Debug::alert("Could not connect to database {$databaseKey}.", "f");
+			return;
+		}
+
 		$dbc = Config::_('databases')[$databaseKey];
 
 		self::$capsule->addConnection([
@@ -36,5 +39,7 @@ class Database {
 			'collation' => $dbc['collation'],
 			'prefix'    => $dbc['prefix']
 		], $name);
+
+		Debug::alert("Connected to database {$databaseKey}, connection name is {$name}.", "o");
 	}
 }
