@@ -88,7 +88,7 @@ abstract class App {
 		mb_internal_encoding(Config::_('mbInternalEncoding'));
 
 		// Establishing database connection and interface
-		new Database('sys');
+		Database::init();
 
 		// Initializing the language module
 		Language::init();
@@ -121,6 +121,15 @@ abstract class App {
 		// Loading Settings (settings stored in the database)
 		Settings::init();
 		Debug::alert('Settings loaded');
+
+		$websiteDatabase = Settings::get('database');
+
+		// Connecting to the websites database if necessary
+		if (isset($websiteDatabase['name'], $websiteDatabase['connection'])) {
+			Database::connect($websiteDatabase['name'], $websiteDatabase['connection']);
+		} elseif (!empty($websiteDatabase)) {
+			Debug::alert('Missing website database info, cannot connect.', 'f');
+		}
 
 		// Load the modules with ModuleCore
 		self::loadInstalledModules();
