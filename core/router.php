@@ -100,7 +100,7 @@ abstract class Router {
 		self::$model = new RouterModel();
 
 		if(!self::getDomains()){
-			App::hcf();
+			App::hcf('Could not retrieve domains.');
 		}
 	}
 
