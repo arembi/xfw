@@ -37,6 +37,7 @@ return array(
     'Lullabot\\AMP\\Spec\\ValidatorInfo' => $vendorDir . '/lullabot/amp/src/Spec/validator-generated.php',
     'Lullabot\\AMP\\Spec\\ValidatorRules' => $vendorDir . '/lullabot/amp/src/Spec/validator-generated.php',
     'Normalizer' => $vendorDir . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
+    'PhpToken' => $vendorDir . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
     'SebastianBergmann\\Diff\\Chunk' => $vendorDir . '/sebastian/diff/src/Chunk.php',
     'SebastianBergmann\\Diff\\ConfigurationException' => $vendorDir . '/sebastian/diff/src/Exception/ConfigurationException.php',
     'SebastianBergmann\\Diff\\Diff' => $vendorDir . '/sebastian/diff/src/Diff.php',

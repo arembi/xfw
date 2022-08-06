@@ -7,9 +7,9 @@ namespace Composer\Autoload;
 class ComposerStaticInit987f9e445263527baaa7f3b619a97411
 {
     public static $files = array (
-        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
-        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
         '6e3fae29631ef280660b3cdad06f25a8' => __DIR__ . '/..' . '/symfony/deprecation-contracts/function.php',
+        'a4a119a56e50fbb293281d9a48007e0e' => __DIR__ . '/..' . '/symfony/polyfill-php80/bootstrap.php',
+        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         'e69f7f6ee287b969198c3c9d6777bd38' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/bootstrap.php',
         '8825ede83f2f289127722d4e842cf7e8' => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme/bootstrap.php',
         '320cde22f66dd4f5d3fd621d3e88b98f' => __DIR__ . '/..' . '/symfony/polyfill-ctype/bootstrap.php',
@@ -23,8 +23,8 @@ class ComposerStaticInit987f9e445263527baaa7f3b619a97411
         'a0edc8309cc5e1d60e3047b5df6b7052' => __DIR__ . '/..' . '/guzzlehttp/psr7/src/functions_include.php',
         '72579e7bd17821bb1321b87411366eae' => __DIR__ . '/..' . '/illuminate/support/helpers.php',
         'f598d06aa772fa33d905e87be6398fb1' => __DIR__ . '/..' . '/symfony/polyfill-intl-idn/bootstrap.php',
-        '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         'e9b046393eb3376a21bcc1a30bd2fe64' => __DIR__ . '/..' . '/querypath/querypath/src/qp_functions.php',
+        '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -48,6 +48,7 @@ class ComposerStaticInit987f9e445263527baaa7f3b619a97411
             'Symfony\\Component\\String\\' => 25,
             'Symfony\\Component\\Finder\\' => 25,
             'Symfony\\Component\\Console\\' => 26,
+            'Sabberworm\\CSS\\' => 15,
         ),
         'P' => 
         array (
@@ -79,7 +80,6 @@ class ComposerStaticInit987f9e445263527baaa7f3b619a97411
         ),
         'F' => 
         array (
-            'FastImageSize\\tests\\' => 20,
             'FastImageSize\\' => 14,
         ),
         'D' => 
@@ -153,6 +153,10 @@ class ComposerStaticInit987f9e445263527baaa7f3b619a97411
         array (
             0 => __DIR__ . '/..' . '/symfony/console',
         ),
+        'Sabberworm\\CSS\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/sabberworm/php-css-parser/src',
+        ),
         'Psr\\SimpleCache\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/simple-cache/src',
@@ -207,10 +211,6 @@ class ComposerStaticInit987f9e445263527baaa7f3b619a97411
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/guzzle/src',
         ),
-        'FastImageSize\\tests\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/marc1706/fast-image-size/tests',
-        ),
         'FastImageSize\\' => 
         array (
             0 => __DIR__ . '/..' . '/marc1706/fast-image-size/lib',
@@ -226,13 +226,6 @@ class ComposerStaticInit987f9e445263527baaa7f3b619a97411
     );
 
     public static $prefixesPsr0 = array (
-        'S' => 
-        array (
-            'Sabberworm\\CSS' => 
-            array (
-                0 => __DIR__ . '/..' . '/sabberworm/php-css-parser/lib',
-            ),
-        ),
         'Q' => 
         array (
             'QueryPath' => 
@@ -274,6 +267,7 @@ class ComposerStaticInit987f9e445263527baaa7f3b619a97411
         'Lullabot\\AMP\\Spec\\ValidatorInfo' => __DIR__ . '/..' . '/lullabot/amp/src/Spec/validator-generated.php',
         'Lullabot\\AMP\\Spec\\ValidatorRules' => __DIR__ . '/..' . '/lullabot/amp/src/Spec/validator-generated.php',
         'Normalizer' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
+        'PhpToken' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
         'SebastianBergmann\\Diff\\Chunk' => __DIR__ . '/..' . '/sebastian/diff/src/Chunk.php',
         'SebastianBergmann\\Diff\\ConfigurationException' => __DIR__ . '/..' . '/sebastian/diff/src/Exception/ConfigurationException.php',
         'SebastianBergmann\\Diff\\Diff' => __DIR__ . '/..' . '/sebastian/diff/src/Diff.php',
