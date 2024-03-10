@@ -97,7 +97,6 @@ from their main modules.
 
 namespace Arembi\Xfw\Core;
 
-use Arembi\Xfw\Filter\LayoutFilter;
 use Arembi\Xfw\Misc;
 
 abstract class ModuleCore {

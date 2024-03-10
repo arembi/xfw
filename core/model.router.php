@@ -158,7 +158,6 @@ class RouterModel {
 	public function getRouteByID(int $routeID)
 	{
 		$route = Route::find($routeID);
-		$module = $route->module;
 
 		if ($route) {
 			// If the route is a string instead of an array, we use it with the default language

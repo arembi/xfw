@@ -10,23 +10,23 @@ class Session {
 
 	public static function init()
 	{
-		if(IS_LOCALHOST) {
-			session_name('x0_sess_' . str_replace('.', '_', DOMAIN));
+		if (IS_LOCALHOST) {
+			session_name('xfw_sess_' . str_replace('.', '_', DOMAIN));
 		}
 
 		self::$lifeTime = get_cfg_var("session.gc_maxlifetime");
 
 		// Setting up database session handler if necessary
-		if (Config::_('sessionStorage') == 'database'){
+		if (Config::_('sessionStorage') == 'database') {
 			self::$model = new SessionModel();
 
 			session_set_save_handler(
-				array(__CLASS__, "_open"),
-				array(__CLASS__, "_close"),
-				array(__CLASS__, "_read"),
-				array(__CLASS__, "_write"),
-				array(__CLASS__, "_destroy"),
-				array(__CLASS__, "_gc")
+				[__CLASS__, "_open"],
+				[__CLASS__, "_close"],
+				[__CLASS__, "_read"],
+				[__CLASS__, "_write"],
+				[__CLASS__, "_destroy"],
+				[__CLASS__, "_gc"]
 			);
 		}
 
@@ -67,9 +67,9 @@ class Session {
 	}
 
 
-	public static function _destroy($id)
+	public static function _destroy()
 	{
-		return self::$model->destroy($id);
+		return self::$model->destroy(session_id());
 	}
 
 }

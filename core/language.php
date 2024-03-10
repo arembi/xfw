@@ -5,7 +5,6 @@ namespace Arembi\Xfw\Core;
 abstract class Language {
 
 	private static $model = NULL;
-
 	public static $alphabets = [];
 
 
@@ -36,6 +35,8 @@ abstract class Language {
 	// Converts a roman number to integer
 	public static function romanToInt($roman)
 	{
+		$roman = strtoupper($roman);
+
 		$romanNumbers = [
 			'M' => 1000,
 			'D' => 500,
@@ -49,8 +50,8 @@ abstract class Language {
 		$l = strlen($roman);
 
 		// Validating letters
-		for($i = 0; $i < $l; $i++){
-			if(!isset($romanNumbers[$roman[$i]])){
+		for ($i = 0; $i < $l; $i++) {
+			if (!isset($romanNumbers[$roman[$i]])) {
 				return false;
 			}
 		}
@@ -58,8 +59,8 @@ abstract class Language {
 		// The last one can be added automatically
 		$sum = $romanNumbers[$roman[$l - 1]];
 
-		for($i = 0; $i < $l - 1; $i++){
-			if($romanNumbers[$roman[$i]] < $romanNumbers[$roman[$i + 1]]){
+		for ($i = 0; $i < $l - 1; $i++) {
+			if ($romanNumbers[$roman[$i]] < $romanNumbers[$roman[$i + 1]]) {
 				$sum -= $romanNumbers[$roman[$i]];
 			} else {
 				$sum += $romanNumbers[$roman[$i]];
@@ -73,7 +74,7 @@ abstract class Language {
 
 	public static function intToRoman($integer, $upcase = true)
 	{
-    $romanNumbers = [
+    	$romanNumbers = [
 			'M' => 1000,
 			'CM' => 900,
 			'D' => 500,
@@ -89,20 +90,18 @@ abstract class Language {
 			'I' => 1
 		];
 
-    $return = '';
-    while($integer > 0){
-      foreach($romanNumbers as $rom => $arb){
-        if($integer >= $arb){
-            $integer -= $arb;
-            $return .= $rom;
-            break;
-        }
-      }
-    }
+    	$return = '';
 
-    return $return;
+		while ($integer > 0) {
+			foreach ($romanNumbers as $rom => $arb) {
+				if ($integer >= $arb) {
+					$integer -= $arb;
+					$return .= $rom;
+					break;
+				}
+			}
+		}
+
+		return $return;
 	}
-
-
-
 }

@@ -69,7 +69,7 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		// First character in the href determines what to do
 		$href1 = $options['href'][0];
-
+		
 		// Handling special hrefs
 		if (in_array($href1, ['@', '+', '/'])) {
 
@@ -134,8 +134,8 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 					'queryString' => $queryString
 					];
 			}
-
-			if ($href['base']) {
+			
+			if (is_array($href) && $href['base']) {
 				// Adding the page number to the query string
 				if (!empty($options['pageNumber'])) {
 					$queryString[Router::getPaginationParams()[$href['lang']]] = $options['pageNumber'];
@@ -161,6 +161,7 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 				}
 				$options['href'] = $href['base'] . $queryString;
 			} else {
+				Debug::alert('href ' . $options['href'] . ' does not exist in the system.', 'w');
 				$this->layoutHTML = false;
 			}
 		}

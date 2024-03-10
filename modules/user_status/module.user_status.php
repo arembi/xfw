@@ -15,5 +15,6 @@ class User_StatusBase extends \Arembi\Xfw\Core\ModuleCore {
     $this->lv('lastName', $_SESSION['user']->get('lastName'));
     $this->lv('userGroup', $_SESSION['user']->get('userGroup'));
     $this->lv('clearanceLevel', $_SESSION['user']->get('clearanceLevel'));
+    $this->lv('sessionId', session_id());
   }
 }

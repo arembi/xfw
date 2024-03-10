@@ -49,7 +49,7 @@ class CP_Control_PanelBase extends Control_panel {
 				}
 				$routeData->pathLabel = $cell;
 			} else {
-				$routeData->pathLabel = Settings::_('defaultLanguage') . ': ' . $routeData->path;
+				$routeData->pathLabel = Settings::get('defaultLanguage') . ': ' . $routeData->path;
 			}
 
 		$editLink = new Link(['anchor'=>'edit', 'href'=>'?task=route_edit&id=' . $ID]);
@@ -90,7 +90,7 @@ class CP_Control_PanelBase extends Control_panel {
 	public function route_new()
 	{
 		$modules = App::getPrimaryModules();
-		$avLangs = \Arembi\Xfw\Core\Settings::_('availableLanguages');
+		$avLangs = \Arembi\Xfw\Core\Settings::get('availableLanguages');
 
 		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'route_new'], false);
 
@@ -125,7 +125,7 @@ class CP_Control_PanelBase extends Control_panel {
 
 		$modules = App::getPrimaryModules();
 
-		$avLangs = \Arembi\Xfw\Core\Settings::_('availableLanguages');
+		$avLangs = \Arembi\Xfw\Core\Settings::get('availableLanguages');
 
 		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'route_edit']);
 
@@ -136,7 +136,7 @@ class CP_Control_PanelBase extends Control_panel {
 
 		// Route
 		if ($route->path === '/') {
-			$route->path = [Settings::_('defaultLanguage')=>$route->path] ;
+			$route->path = [Settings::get('defaultLanguage')=>$route->path] ;
 		}
 
 		foreach ($avLangs as $l) {

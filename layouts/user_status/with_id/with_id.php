@@ -2,7 +2,8 @@
 <?php if($user->isLoggedIn()): ?>
   <div>
     Hi, <?php $this->print($firstName . ' ' . $lastName . ' (' . $username . ')')?><br>
-    Group: <?php $this->print($userGroup) ?> (CL: <?php $this->print($clearanceLevel) ?>)
+    Group: <?php $this->print($userGroup) ?> (CL: <?php $this->print($clearanceLevel) ?>)<br>
+    Session ID: <?php $this->print($sessionId); ?>
   </div>
   <div>
     Log out: <?php $this->embed('form', ['ID' => 2]);?>

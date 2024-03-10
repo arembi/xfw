@@ -1,6 +1,7 @@
 <?php
 
 namespace Arembi\Xfw\Module;
+use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\User;
 use Arembi\Xfw\Core\Router;
 
@@ -10,15 +11,16 @@ class IH_DocumentBase extends Document {
 	{
 		$user = new User(Router::$POST['username']);
 		$passwordHash = $user->get('password');
+		
 		if (null !== $passwordHash) {
 			if (password_verify(Router::$POST['password'], $passwordHash)) {
 				$_SESSION['user'] = $user;
-				$result = ['OK', 'User `' . Router::$POST['username'] . '` successfully logged in.'];
+				$result = [0, 'User `' . Router::$POST['username'] . '` successfully logged in.'];
 			} else {
-				$result = ['NOK', 'User `' . Router::$POST['username'] . '` couldn\'t log in.'];
+				$result = [2, 'User `' . Router::$POST['username'] . '` couldn\'t log in.'];
 			}
 		} else {
-			$result = ['NOK', 'User `' . Router::$POST['username'] . '` couldn\'t log in.'];
+			$result = [2, 'User `' . Router::$POST['username'] . '` couldn\'t log in.'];
 		}
 
 		return $result;
@@ -26,8 +28,12 @@ class IH_DocumentBase extends Document {
 
 	public function logout()
 	{
-		$_SESSION['user'] = new User('_guest');
+		$id = session_id();
+		
+		session_destroy();
 
-		return ['OK', 'User successfully logged out.'];
+		Debug::alert('Session destoryed. (ID: ' . $id . ')');
+
+		return [0, 'User successfully logged out. Session ' . $id . ' destroyed.'];
 	}
 }
