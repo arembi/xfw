@@ -16,7 +16,7 @@ class Module extends Model {
 
     protected function getPathParamOrderAttribute($value)
     {
-      return json_decode($value, true);
+      return json_decode($value ?? '', true);
     }
 
 

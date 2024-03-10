@@ -38,7 +38,7 @@ class AmpLayoutLayout {
  const CONTAINER = 'CONTAINER';
  const FILL = 'FILL';
  const FLEX_ITEM = 'FLEX_ITEM';
-
+ const INTRINSIC = 'INTRINSIC';
 }
 class AtRuleSpec {
   public $name = null;
@@ -721,12 +721,12 @@ class ValidationRulesFactory {
   $o_95->mandatory_alternatives = 'head > style[amp-boilerplate]';
   $o_95->unique = true;
   $o_95->mandatory_parent = 'head';
-  $o_95->spec_url = 'https://github.com/ampproject/amphtml/blob/master/spec/amp-boilerplate.md';
+  $o_95->spec_url = 'https://github.com/ampproject/amphtml/blob/main/docs/spec/amp-boilerplate.md';
   $o_96 = new CdataSpec();
   $o_96->cdata_regex = 'body ?{opacity: ?0}';
   $o_95->cdata = $o_96;
   $o_95->deprecation = 'head > style[amp-boilerplate]';
-  $o_95->deprecation_url = 'https://github.com/ampproject/amphtml/blob/master/spec/amp-boilerplate.md';
+  $o_95->deprecation_url = 'https://github.com/ampproject/amphtml/blob/main/docs/spec/amp-boilerplate.md';
   $o_0->tags[] = $o_95;
   $o_97 = new TagSpec();
   $o_97->tag_name = 'style';
@@ -734,12 +734,12 @@ class ValidationRulesFactory {
   $o_97->mandatory_alternatives = 'noscript > style[amp-boilerplate]';
   $o_97->unique = true;
   $o_97->mandatory_parent = 'noscript';
-  $o_97->spec_url = 'https://github.com/ampproject/amphtml/blob/master/spec/amp-boilerplate.md';
+  $o_97->spec_url = 'https://github.com/ampproject/amphtml/blob/main/docs/spec/amp-boilerplate.md';
   $o_98 = new CdataSpec();
   $o_98->cdata_regex = 'body ?{opacity: ?1}';
   $o_97->cdata = $o_98;
   $o_97->deprecation = 'noscript > style[amp-boilerplate]';
-  $o_97->deprecation_url = 'https://github.com/ampproject/amphtml/blob/master/spec/amp-boilerplate.md';
+  $o_97->deprecation_url = 'https://github.com/ampproject/amphtml/blob/main/docs/spec/amp-boilerplate.md';
   $o_0->tags[] = $o_97;
   $o_99 = new TagSpec();
   $o_99->tag_name = 'style';
@@ -753,7 +753,7 @@ class ValidationRulesFactory {
   $o_100->value = '';
   $o_100->dispatch_key = true;
   $o_99->attrs[] = $o_100;
-  $o_99->spec_url = 'https://github.com/ampproject/amphtml/blob/master/spec/amp-boilerplate.md';
+  $o_99->spec_url = 'https://github.com/ampproject/amphtml/blob/main/docs/spec/amp-boilerplate.md';
   $o_101 = new CdataSpec();
   $o_101->cdata_regex = '\\s*body{-webkit-animation:-amp-start\\s+8s\\s+steps\\(1,end\\)\\s+0s\\s+1\\s+normal\\s+both;-moz-animation:-amp-start\\s+8s\\s+steps\\(1,end\\)\\s+0s\\s+1\\s+normal\\s+both;-ms-animation:-amp-start\\s+8s\\s+steps\\(1,end\\)\\s+0s\\s+1\\s+normal\\s+both;animation:-amp-start\\s+8s\\s+steps\\(1,end\\)\\s+0s\\s+1\\s+normal\\s+both}@-webkit-keyframes\\s+-amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes\\s+-amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes\\s+-amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes\\s+-amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes\\s+-amp-start{from{visibility:hidden}to{visibility:visible}}\\s*';
   $o_99->cdata = $o_101;
@@ -771,7 +771,7 @@ class ValidationRulesFactory {
   $o_103->value = '';
   $o_103->dispatch_key = true;
   $o_102->attrs[] = $o_103;
-  $o_102->spec_url = 'https://github.com/ampproject/amphtml/blob/master/spec/amp-boilerplate.md';
+  $o_102->spec_url = 'https://github.com/ampproject/amphtml/blob/main/docs/spec/amp-boilerplate.md';
   $o_104 = new CdataSpec();
   $o_104->cdata_regex = '\\s*body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}\\s*';
   $o_102->cdata = $o_104;
@@ -2308,7 +2308,7 @@ class ValidationRulesFactory {
   $o_549->mandatory = true;
   $o_549->unique = true;
   $o_549->mandatory_parent = 'head';
-  $o_549->spec_url = 'https://github.com/ampproject/amphtml/blob/master/spec/amp-boilerplate.md';
+  $o_549->spec_url = 'https://github.com/ampproject/amphtml/blob/main/docs/spec/amp-boilerplate.md';
   $o_0->tags[] = $o_549;
   $o_550 = new TagSpec();
   $o_550->tag_name = 'noscript';
@@ -2379,7 +2379,7 @@ class ValidationRulesFactory {
   $o_565->attr_lists = ['extended-amp-global'];
   $o_565->spec_url = 'https://www.ampproject.org/docs/reference/amp-ad.html';
   $o_571 = new AmpLayout();
-  $o_571->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_571->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_565->amp_layout = $o_571;
   $o_565->disallowed_ancestor = ['amp-sidebar'];
   $o_0->tags[] = $o_565;
@@ -2405,7 +2405,7 @@ class ValidationRulesFactory {
   $o_572->attr_lists = ['extended-amp-global'];
   $o_572->spec_url = 'https://www.ampproject.org/docs/reference/amp-embed.html';
   $o_578 = new AmpLayout();
-  $o_578->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_578->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_572->amp_layout = $o_578;
   $o_572->disallowed_ancestor = ['amp-sidebar'];
   $o_0->tags[] = $o_572;
@@ -2423,7 +2423,7 @@ class ValidationRulesFactory {
   $o_579->attr_lists = ['extended-amp-global', 'mandatory-src-or-srcset'];
   $o_579->spec_url = 'https://www.ampproject.org/docs/reference/amp-img.html';
   $o_583 = new AmpLayout();
-  $o_583->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_583->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_579->amp_layout = $o_583;
   $o_0->tags[] = $o_579;
   $o_584 = new TagSpec();
@@ -2489,7 +2489,7 @@ class ValidationRulesFactory {
   $o_588->attr_lists = ['extended-amp-global'];
   $o_588->spec_url = 'https://www.ampproject.org/docs/reference/amp-video.html';
   $o_600 = new AmpLayout();
-  $o_600->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_600->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_588->amp_layout = $o_600;
   $o_588->disallowed_ancestor = ['amp-sidebar'];
   $o_0->tags[] = $o_588;
@@ -2750,7 +2750,7 @@ class ValidationRulesFactory {
   $o_654->attr_lists = ['extended-amp-global', 'mandatory-src-or-srcset'];
   $o_654->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-anim.html';
   $o_659 = new AmpLayout();
-  $o_659->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_659->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_654->amp_layout = $o_659;
   $o_654->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_654->also_requires_tag = ['amp-anim extension .js script'];
@@ -2845,7 +2845,7 @@ class ValidationRulesFactory {
   $o_679->name = 'type';
   $o_679->value = 'text/javascript';
   $o_675->attrs[] = $o_679;
-  $o_675->spec_url = 'https://github.com/ampproject/amphtml/blob/master/extensions/amp-brid-player/amp-brid-player.md';
+  $o_675->spec_url = 'https://github.com/ampproject/amphtml/blob/main/extensions/amp-brid-player/amp-brid-player.md';
   $o_680 = new CdataSpec();
   $o_681 = new BlackListedCDataRegex();
   $o_681->regex = '.';
@@ -2876,9 +2876,9 @@ class ValidationRulesFactory {
   $o_686->value_regex = '[0-9]+';
   $o_682->attrs[] = $o_686;
   $o_682->attr_lists = ['extended-amp-global'];
-  $o_682->spec_url = 'https://github.com/ampproject/amphtml/blob/master/extensions/amp-brid-player/amp-brid-player.md';
+  $o_682->spec_url = 'https://github.com/ampproject/amphtml/blob/main/extensions/amp-brid-player/amp-brid-player.md';
   $o_687 = new AmpLayout();
-  $o_687->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_687->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_682->amp_layout = $o_687;
   $o_682->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_682->also_requires_tag = ['amp-brid-player extension .js script'];
@@ -2936,7 +2936,7 @@ class ValidationRulesFactory {
   $o_695->attr_lists = ['extended-amp-global'];
   $o_695->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-brightcove.html';
   $o_701 = new AmpLayout();
-  $o_701->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_701->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_695->amp_layout = $o_701;
   $o_695->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_695->also_requires_tag = ['amp-brightcove extension .js script'];
@@ -3005,7 +3005,7 @@ class ValidationRulesFactory {
   $o_709->attr_lists = ['extended-amp-global'];
   $o_709->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-carousel.html';
   $o_717 = new AmpLayout();
-  $o_717->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_717->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_709->amp_layout = $o_717;
   $o_709->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_709->also_requires_tag = ['amp-carousel extension .js script'];
@@ -3080,7 +3080,7 @@ class ValidationRulesFactory {
   $o_725->attr_lists = ['extended-amp-global'];
   $o_725->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-dailymotion.html';
   $o_734 = new AmpLayout();
-  $o_734->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::RESPONSIVE];
+  $o_734->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_725->amp_layout = $o_734;
   $o_725->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_725->also_requires_tag = ['amp-dailymotion extension .js script'];
@@ -3158,7 +3158,7 @@ class ValidationRulesFactory {
   $o_749->attr_lists = ['extended-amp-global'];
   $o_749->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-facebook.html';
   $o_751 = new AmpLayout();
-  $o_751->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_751->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_749->amp_layout = $o_751;
   $o_749->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_749->also_requires_tag = ['amp-facebook extension .js script'];
@@ -3206,7 +3206,7 @@ class ValidationRulesFactory {
   $o_759->attr_lists = ['extended-amp-global'];
   $o_759->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-fit-text.html';
   $o_762 = new AmpLayout();
-  $o_762->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_762->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_759->amp_layout = $o_762;
   $o_759->disallowed_ancestor = ['head'];
   $o_759->also_requires_tag = ['amp-fit-text extension .js script'];
@@ -3354,7 +3354,7 @@ class ValidationRulesFactory {
   $o_788->attr_lists = ['extended-amp-global'];
   $o_788->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-iframe.html';
   $o_798 = new AmpLayout();
-  $o_798->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_798->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_788->amp_layout = $o_798;
   $o_788->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_788->also_requires_tag = ['amp-iframe extension .js script'];
@@ -3462,7 +3462,7 @@ class ValidationRulesFactory {
   $o_816->attr_lists = ['extended-amp-global'];
   $o_816->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-instagram.html';
   $o_822 = new AmpLayout();
-  $o_822->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_822->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_816->amp_layout = $o_822;
   $o_816->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_816->also_requires_tag = ['amp-instagram extension .js script'];
@@ -3540,7 +3540,7 @@ class ValidationRulesFactory {
   $o_838->name = 'type';
   $o_838->value = 'text/javascript';
   $o_834->attrs[] = $o_838;
-  $o_834->spec_url = 'https://github.com/ampproject/amphtml/blob/master/extensions/amp-jwplayer/amp-jwplayer.md';
+  $o_834->spec_url = 'https://github.com/ampproject/amphtml/blob/main/extensions/amp-jwplayer/amp-jwplayer.md';
   $o_839 = new CdataSpec();
   $o_840 = new BlackListedCDataRegex();
   $o_840->regex = '.';
@@ -3565,9 +3565,9 @@ class ValidationRulesFactory {
   $o_844->value_regex_casei = '[0-9a-z]{8}';
   $o_844->mandatory_oneof = 'data-media-id or data-playlist-id';
   $o_841->attrs[] = $o_844;
-  $o_841->spec_url = 'https://github.com/ampproject/amphtml/blob/master/extensions/amp-jwplayer/amp-jwplayer.md';
+  $o_841->spec_url = 'https://github.com/ampproject/amphtml/blob/main/extensions/amp-jwplayer/amp-jwplayer.md';
   $o_845 = new AmpLayout();
-  $o_845->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_845->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_841->amp_layout = $o_845;
   $o_841->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_841->also_requires_tag = ['amp-jwplayer extension .js script'];
@@ -3613,7 +3613,7 @@ class ValidationRulesFactory {
   $o_853->attr_lists = ['extended-amp-global'];
   $o_853->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-kaltura-player.html';
   $o_855 = new AmpLayout();
-  $o_855->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_855->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_853->amp_layout = $o_855;
   $o_853->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_853->also_requires_tag = ['amp-kaltura-player extension .js script'];
@@ -3717,7 +3717,7 @@ class ValidationRulesFactory {
   $o_874->attr_lists = ['extended-amp-global'];
   $o_874->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-list.html';
   $o_879 = new AmpLayout();
-  $o_879->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_879->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_874->amp_layout = $o_879;
   $o_874->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_874->also_requires_tag = ['amp-list extension .js script'];
@@ -3806,7 +3806,7 @@ class ValidationRulesFactory {
   $o_896->attr_lists = ['extended-amp-global'];
   $o_896->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-pinterest.html';
   $o_898 = new AmpLayout();
-  $o_898->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_898->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_896->amp_layout = $o_898;
   $o_896->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_896->also_requires_tag = ['amp-pinterest extension .js script'];
@@ -3851,7 +3851,7 @@ class ValidationRulesFactory {
   $o_906->attrs[] = $o_907;
   $o_906->attr_lists = ['extended-amp-global'];
   $o_908 = new AmpLayout();
-  $o_908->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::RESPONSIVE];
+  $o_908->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_906->amp_layout = $o_908;
   $o_906->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_906->also_requires_tag = ['amp-reach-player extension .js script'];
@@ -3897,7 +3897,7 @@ class ValidationRulesFactory {
   $o_917->value_regex = '(left|right)';
   $o_916->attrs[] = $o_917;
   $o_916->attr_lists = ['extended-amp-global'];
-  $o_916->spec_url = 'https://github.com/ampproject/amphtml/blob/master/extensions/amp-sidebar/amp-sidebar.md';
+  $o_916->spec_url = 'https://github.com/ampproject/amphtml/blob/main/extensions/amp-sidebar/amp-sidebar.md';
   $o_918 = new AmpLayout();
   $o_918->supported_layouts = [AmpLayoutLayout::NODISPLAY];
   $o_916->amp_layout = $o_918;
@@ -3984,7 +3984,7 @@ class ValidationRulesFactory {
   $o_933->attr_lists = ['extended-amp-global'];
   $o_933->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-social-share.html';
   $o_937 = new AmpLayout();
-  $o_937->supported_layouts = [AmpLayoutLayout::CONTAINER, AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_937->supported_layouts = [AmpLayoutLayout::CONTAINER, AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_933->amp_layout = $o_937;
   $o_933->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_933->also_requires_tag = ['amp-social-share extension .js script'];
@@ -4068,7 +4068,7 @@ class ValidationRulesFactory {
   $o_954->name = 'type';
   $o_954->value = 'text/javascript';
   $o_950->attrs[] = $o_954;
-  $o_950->spec_url = 'https://github.com/ampproject/amphtml/blob/master/extensions/amp-springboard-player/amp-springboard-player.html';
+  $o_950->spec_url = 'https://github.com/ampproject/amphtml/blob/main/extensions/amp-springboard-player/amp-springboard-player.html';
   $o_955 = new CdataSpec();
   $o_956 = new BlackListedCDataRegex();
   $o_956->regex = '.';
@@ -4106,9 +4106,9 @@ class ValidationRulesFactory {
   $o_963->value_regex = '[0-9]+';
   $o_957->attrs[] = $o_963;
   $o_957->attr_lists = ['extended-amp-global'];
-  $o_957->spec_url = 'https://github.com/ampproject/amphtml/blob/master/extensions/amp-springboard-player/amp-springboard-player.html';
+  $o_957->spec_url = 'https://github.com/ampproject/amphtml/blob/main/extensions/amp-springboard-player/amp-springboard-player.html';
   $o_964 = new AmpLayout();
-  $o_964->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::RESPONSIVE];
+  $o_964->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_957->amp_layout = $o_964;
   $o_957->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_957->also_requires_tag = ['amp-springboard-player extension .js script'];
@@ -4209,7 +4209,7 @@ class ValidationRulesFactory {
   $o_982->attr_lists = ['extended-amp-global'];
   $o_982->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-twitter.html';
   $o_986 = new AmpLayout();
-  $o_986->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_986->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_982->amp_layout = $o_986;
   $o_982->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_982->also_requires_tag = ['amp-twitter extension .js script'];
@@ -4298,14 +4298,14 @@ class ValidationRulesFactory {
   $o_1003->attr_lists = ['extended-amp-global'];
   $o_1003->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-vimeo.html';
   $o_1005 = new AmpLayout();
-  $o_1005->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::RESPONSIVE];
+  $o_1005->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_1003->amp_layout = $o_1005;
   $o_1003->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_1003->also_requires_tag = ['amp-vimeo extension .js script'];
   $o_0->tags[] = $o_1003;
   $o_1006 = new TagSpec();
   $o_1006->tag_name = 'script';
-  $o_1006->spec_name = 'amp-vine extension .js script';
+  $o_1006->spec_name = 'amp-tiktok extension .js script';
   $o_1006->mandatory_parent = 'head';
   $o_1007 = new AttrSpec();
   $o_1007->name = 'async';
@@ -4315,19 +4315,19 @@ class ValidationRulesFactory {
   $o_1008 = new AttrSpec();
   $o_1008->name = 'custom-element';
   $o_1008->mandatory = true;
-  $o_1008->value = 'amp-vine';
+  $o_1008->value = 'amp-tiktok';
   $o_1008->dispatch_key = true;
   $o_1006->attrs[] = $o_1008;
   $o_1009 = new AttrSpec();
   $o_1009->name = 'src';
   $o_1009->mandatory = true;
-  $o_1009->value_regex = 'https://cdn\\.ampproject\\.org/v0/amp-vine-(latest|0\\.1).js';
+  $o_1009->value_regex = 'https://cdn\\.ampproject\\.org/v0/amp-tiktok-(latest|0\\.1).js';
   $o_1006->attrs[] = $o_1009;
   $o_1010 = new AttrSpec();
   $o_1010->name = 'type';
   $o_1010->value = 'text/javascript';
   $o_1006->attrs[] = $o_1010;
-  $o_1006->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-vine.html';
+  $o_1006->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-tiktok.html';
   $o_1011 = new CdataSpec();
   $o_1012 = new BlackListedCDataRegex();
   $o_1012->regex = '.';
@@ -4336,18 +4336,18 @@ class ValidationRulesFactory {
   $o_1006->cdata = $o_1011;
   $o_0->tags[] = $o_1006;
   $o_1013 = new TagSpec();
-  $o_1013->tag_name = 'amp-vine';
+  $o_1013->tag_name = 'amp-tiktok';
   $o_1014 = new AttrSpec();
-  $o_1014->name = 'data-vineid';
+  $o_1014->name = 'data-src';
   $o_1014->mandatory = true;
   $o_1013->attrs[] = $o_1014;
   $o_1013->attr_lists = ['extended-amp-global'];
-  $o_1013->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-vine.html';
+  $o_1013->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-tiktok.html';
   $o_1015 = new AmpLayout();
-  $o_1015->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_1015->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_1013->amp_layout = $o_1015;
   $o_1013->disallowed_ancestor = ['head', 'amp-sidebar'];
-  $o_1013->also_requires_tag = ['amp-vine extension .js script'];
+  $o_1013->also_requires_tag = ['amp-tiktok extension .js script'];
   $o_0->tags[] = $o_1013;
   $o_1016 = new TagSpec();
   $o_1016->tag_name = 'script';
@@ -4404,7 +4404,7 @@ class ValidationRulesFactory {
   $o_1023->attr_lists = ['extended-amp-global'];
   $o_1023->spec_url = 'https://www.ampproject.org/docs/reference/extended/amp-youtube.html';
   $o_1028 = new AmpLayout();
-  $o_1028->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE];
+  $o_1028->supported_layouts = [AmpLayoutLayout::FILL, AmpLayoutLayout::FIXED, AmpLayoutLayout::FIXED_HEIGHT, AmpLayoutLayout::FLEX_ITEM, AmpLayoutLayout::NODISPLAY, AmpLayoutLayout::RESPONSIVE, AmpLayoutLayout::INTRINSIC];
   $o_1023->amp_layout = $o_1028;
   $o_1023->disallowed_ancestor = ['head', 'amp-sidebar'];
   $o_1023->also_requires_tag = ['amp-youtube extension .js script'];

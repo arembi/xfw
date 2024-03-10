@@ -11,6 +11,7 @@ class User {
 	private static $instantiated = false;
 
 	private $data = [];
+	
 	/*
 	 * Users can be constructed with their ID, or username
 	 * The constructor loads the user data,
@@ -46,12 +47,10 @@ class User {
 	}
 
 
-
 	public function get($field)
 	{
 		return $this->data->$field ?? null;
 	}
-
 
 
 	public function set($field, $value)
@@ -60,12 +59,10 @@ class User {
 	}
 
 
-
 	public function isLoggedIn()
 	{
 		return $this->data->clearanceLevel > 0;
 	}
-
 
 
 	public function allowedHere()

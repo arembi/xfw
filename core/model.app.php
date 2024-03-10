@@ -39,7 +39,7 @@ class AppModel {
 			->distinct()
 			->get()
 			->transform(function ($item, $key) {
-				$item->pathParamOrder = json_decode($item->pathParamOrder, true);
+				$item->pathParamOrder = json_decode($item->pathParamOrder ?? '', true);
 				return $item;
 			});
 

@@ -70,11 +70,11 @@ class RouterModel {
 					$item->path = [Settings::get('defaultLanguage') => $item->path];
 				}
 
-				$item->pathParams = json_decode($item->pathParams, true);
-				$item->moduleConfig = json_decode($item->moduleConfig, true);
+				$item->pathParams = json_decode($item->pathParams ?? '', true);
+				$item->moduleConfig = json_decode($item->moduleConfig ?? '', true);
 
 				$item->ppo = $item->moduleConfig->ppo
-					?? json_decode($item->ppo, true)
+					?? json_decode($item->ppo ?? '', true)
 					?? [];
 
 				// JSON decoding the query string
@@ -144,9 +144,9 @@ class RouterModel {
 					$item->path = [Settings::get('defaultLanguage') => $item->path];
 				}
 
-				$item->modulePpo = json_decode($item->modulePpo, true);
+				$item->modulePpo = json_decode($item->modulePpo ?? '', true);
 
-				$item->moduleConfig = json_decode($item->moduleConfig, true);
+				$item->moduleConfig = json_decode($item->moduleConfig ?? '', true);
 
 				return $item;
 			});

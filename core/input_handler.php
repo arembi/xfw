@@ -67,23 +67,24 @@ class Input_Handler {
 		// If you want to use a form globally, do not assign it to a module,
 		// just put the form's handler function in the fh.document.php file
 
-		$controller = $form->moduleName ?? 'document';
+		$controllerModule = $form->moduleName ?? 'document';
 
-		$loaded = App::loadModuleAddon($controller, 'ih');
+		$loaded = App::loadModuleAddon($controllerModule, 'ih');
 
 		if (!$loaded) {
-			$process['ihError'] = 'Missing form handler file for ' . $controller . '.';
+			$process['ihError'] = 'Missing form handler addon for ' . $controllerModule . '.';
 			return $process;
 		}
 
-		$controller = '\\Arembi\\Xfw\\Module\\' . 'IH_' . $controller;
+		$controllerClass = '\\Arembi\\Xfw\\Module\\' . 'IH_' . $controllerModule;
 
-		if (!class_exists($controller)) {
-			$process['ihError'] = 'Missing form handler class "' . $controller . ' for form "' . $form->formName . '".';
+		if (!class_exists($controllerClass)) {
+			$process['ihError'] = 'Missing form handler class "' . $controllerClass . ' for form "' . $form->formName . '".';
 			return $process;
 		} else {
-			$controller = new $controller();
-			$controller->formData = $formData;
+			$controller = new $controllerClass();
+
+			$controller->setFormData($formData);
 
 			$handlerMethod = $form->formName;
 			if (method_exists($controller, $handlerMethod)) {
@@ -99,7 +100,7 @@ class Input_Handler {
 	}
 
 
-	public static function processStandard($controller, $handlerMethod)
+	public static function processStandard($controllerModule, $handlerMethod)
 	{
 		$process['success'] = false;
 
@@ -108,20 +109,20 @@ class Input_Handler {
 			return $process;
 		}
 
-		$loaded = App::loadModuleAddon($controller, 'ih');
+		$loaded = App::loadModuleAddon($controllerModule, 'ih');
 
 		if (!$loaded) {
-			$process['ihError'] = 'Missing input handler file for ' . $controller . '.';
+			$process['ihError'] = 'Missing input handler file for ' . $controllerModule . '.';
 			return $process;
 		}
 
-		$controllerName = '\\Arembi\Xfw\\Module\\' . 'IH_' . $controller;
+		$controllerClass = '\\Arembi\Xfw\\Module\\' . 'IH_' . $controllerModule;
 
-		if (!class_exists($controllerName)) {
-			$process['ihError'] = 'Missing input handler class "' . $controller . ' for form "' . $form['formName'] . '".';
+		if (!class_exists($controllerClass)) {
+			$process['ihError'] = 'Missing input handler class "' . $controllerModule . '".';
 		} else {
-			$controller = new $controllerName();
-
+			$controller = new $controllerClass();
+			
 			if (method_exists($controller, $handlerMethod)) {
 				$process['status'] = $controller->$handlerMethod();
 				Debug::alert('Input processed with function ' . get_class($controller) . '->' . $handlerMethod . '()', 'o');

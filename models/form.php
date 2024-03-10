@@ -6,7 +6,7 @@ use \Illuminate\Database\Eloquent\Model;
 class Form extends Model {
   protected function getFieldsAttribute($value)
   {
-    return json_decode($value, true);
+    return json_decode($value ?? '', true);
   }
 
 

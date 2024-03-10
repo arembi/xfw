@@ -9,7 +9,7 @@ class Static_Page extends Model {
 
   protected function getTitleAttribute($value)
   {
-    return json_decode($value, true);
+    return json_decode($value ?? '', true);
   }
 
 
@@ -21,7 +21,7 @@ class Static_Page extends Model {
 
   protected function getContentAttribute($value)
   {
-    return json_decode($value, true);
+    return json_decode($value ?? '', true);
   }
 
 

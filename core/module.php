@@ -4,15 +4,16 @@
 
 Modules are the controllers in the MVC model.
 The modules are divided the following groups (classes):
-Primary
-	These modules will generate the response with the content that you want to bind to a specific URL
-		Examaple: static page, blog post
-Secondary
-	These modules are independent from the URL (though they can use it), everything is set in their parent module
-		Example: comments box, latest news
-Backend
-	These modules require no respone
-		Example: backup
+	Primary
+		These modules will generate the response with the content that you want to bind to a specific URL
+			Examaple: static page, blog post
+	Secondary
+		These modules are independent from the URL (though they can use it), everything is set in their parent module
+			Example: comments box, latest news
+	Backend
+		These modules require no respone
+			Example: backup
+
 Module extensions
 	FH - Form Handler (see Form handling)
 	CP - Control Panel (see Control panel)
@@ -141,11 +142,8 @@ abstract class ModuleCore {
 	// Whether the loop should continue through the current layout
 	protected $recursive;
 
-
-	public static function hasModel()
-	{
-		return static::$hasModel;
-	}
+	// data sent by forms defined within the system, used by IH module extensions
+	protected $formData;
 
 
 	final public function __construct(array $options = [])
@@ -259,6 +257,11 @@ abstract class ModuleCore {
 
 	}
 
+	public static function hasModel()
+	{
+		return static::$hasModel;
+	}
+
 
 	/*
 	* The layout processing covers the followings:
@@ -273,23 +276,20 @@ abstract class ModuleCore {
 		// Load the module's layout
 		$layout = $this->loadLayoutFile($this->options['layout']);
 
-		// If the requested layout could't be loaded, we try to load the default
+		// If the requested layout could not be loaded, we try to load the default
 		if ($layout['layoutFile'] === null) {
 			$layout = $this->loadLayoutFile(Settings::get('defaultModuleLayout'));
 		}
 
-		$layoutFile = $layout['layoutFile'];
-		$layoutDir = $layout['layoutDir'];
-
 		// Loading layout file
-		if ($layoutFile) {
+		if ($layout['layoutFile']) {
 			// Extract the variabless to local namespace
 			extract($this->layoutVariables);
 
 			// Start output buffering
 			ob_start();
 
-			include($layoutFile);
+			include($layout['layoutFile']);
 
 			// Get the contents of the buffer
 			$this->layoutHTML = ob_get_contents();
@@ -300,9 +300,9 @@ abstract class ModuleCore {
 
 		// CSS, JS autoload
 		// Adding the module layout's assets to the head
-		if (!empty($layoutDir)) {
-			$this->JSAutoload($layoutDir);
-			$this->CSSAutoload($layoutDir);
+		if (!empty($layout['layoutDir'])) {
+			$this->JSAutoload($layout['layoutDir']);
+			$this->CSSAutoload($layout['layoutDir']);
 		}
 
 		if (!empty($this->layoutHTML)) {
@@ -361,11 +361,11 @@ abstract class ModuleCore {
 		}
 
 		if (empty($name)) {
-			// Case the module has not been set
+			// Case the module had not been set
 			Debug::alert('Unidentified module detected, will be ignored','n');
 		} else {
 			$params['name'] = $name;
-			// Case the module has been set
+			// Case the module had been set
 			// Preventing infinite loop: the embedded module with the same name as its parent has to have a different ID from the parent
 			if ($this->options['name'] != $params['name']
 				|| !array_key_exists($params['name'] . '#' . (isset($params['ID']) ? $params['ID'] : '0') , App::getRegisteredModules())) {
@@ -386,7 +386,7 @@ abstract class ModuleCore {
 					echo '{%' . $this->embedID . '%}';
 
 					// Adjust embedID
-					$this->embedID ++;
+					$this->embedID++;
 				} else {
 					Debug::alert('Embedded module %' . $params['name'] . ' is not active on this domain.', 'f');
 				}
@@ -439,9 +439,12 @@ abstract class ModuleCore {
 		// Adding namespace
 		$moduleModel = '\\Arembi\\Xfw\\Module\\' . $moduleModel;
 
-		// Instantiating the module's model
+		// Instantiating and initialising the module's model
 		if (class_exists($moduleModel)) {
 			$this->model = new $moduleModel();
+			if (method_exists($this->model, 'init')) {
+				$this->model->init();
+			}
 		}
 	}
 
@@ -449,8 +452,9 @@ abstract class ModuleCore {
 	// Prints $str in the layouts after applying the layoutFilters
 	// $layoutFilters can be given as a single or an array of strings or
 	// LayoutFilter objects
-	protected function print(string $str, $layoutFilter = null)
+	protected function print($str, $layoutFilter = null)
 	{
+		$str = strval($str);
 		$filters = [];
 
 		if (is_array($layoutFilter)) {
@@ -646,6 +650,18 @@ abstract class ModuleCore {
 
 		$lvInfo = array_merge($lvInfo, $layoutVariables);
 		Debug::alert($lvInfo, 'i');
+	}
+
+
+	public function getFormData()
+	{
+		return $this->formData;
+	}
+
+
+	public function setFormData($data)
+	{
+		$this->formData = $data;
 	}
 
 

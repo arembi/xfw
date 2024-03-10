@@ -23,7 +23,7 @@ class Route extends Model {
 
   protected function getModuleConfigAttribute($value)
   {
-    return json_decode($value, true);
+    return json_decode($value ?? '', true);
   }
 
 

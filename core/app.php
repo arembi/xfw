@@ -92,7 +92,7 @@ abstract class App {
 
 		// Initializing the language module
 		Language::init();
-
+		
 		// Determine environment (protocol, domain)
 		Router::init();
 		Router::getEnvironment();
@@ -161,7 +161,7 @@ abstract class App {
 			'primaryModule'=>$matchedRoute['primary'],
 			'primaryModuleOptions'=>$matchedRoute['options'],
 			'parentModule'=>null
-			];
+		];
 
 		// The response is simply an instance of a document module
 		$response = new Document($documentModuleOptions);
@@ -432,7 +432,6 @@ abstract class App {
 		// Retrieving the modules stored in the database
 		self::$installedModules = array_merge(self::$installedModules, self::$model->getInstalledModules());
 	}
-
 
 
 	public static function loadModuleAddon(string $module, string $addon)

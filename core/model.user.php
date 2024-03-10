@@ -33,8 +33,8 @@ class UserModel {
 				'user_groups.clearance_level as clearanceLevel',
 				'domains.id as domainID'
 				)
-			->where('users.id', $userID)
-			->where('user_domain_user_group.domain_id', $domain)
+			->where('users.id', $id)
+			->where('user_domain_user_group.domain_id', $domainID)
 			->first();
 
 		return $user();

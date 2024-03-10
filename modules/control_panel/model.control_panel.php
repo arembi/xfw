@@ -28,7 +28,7 @@ class Control_PanelBaseModel {
 			$data['moduleConfig'] = null;
 		}
 
-		$avLangs = Settings::_('availableLanguages');
+		$avLangs = Settings::get('availableLanguages');
 		$takenRoutes = Router::getRoutes()
 			->pluck('path')
 			->map(function ($path) use ($avLangs){
@@ -132,7 +132,7 @@ class Control_PanelBaseModel {
 			$data['moduleConfig'] = null;
 		}
 
-		$avLangs = \Arembi\Xfw\Core\Settings::_('availableLanguages');
+		$avLangs = \Arembi\Xfw\Core\Settings::get('availableLanguages');
 
 		$la = count($avLangs);
 

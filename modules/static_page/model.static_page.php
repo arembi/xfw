@@ -133,8 +133,8 @@ class Static_PageBaseModel {
 			$page->updatedAt = $date->format(Settings::get('dateTimeFormat')[App::getLang()]);
 		}
 
-		$page->pageTitle = json_decode($page->pageTitle, true);
-		$page->pageContent = json_decode($page->pageContent, true);
+		$page->pageTitle = json_decode($page->pageTitle ?? '', true);
+		$page->pageContent = json_decode($page->pageContent ?? '', true);
 
 		return $page;
 	}

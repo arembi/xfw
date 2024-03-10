@@ -64,7 +64,7 @@ abstract class Router {
 	private static $hit404 = false;
 
 	// The matched routes record
-	private static $matchedRoute = [];
+	private static $matchedRoute;
 
 	// The number of the page used by the pagination
 	private static $pageNumber;
@@ -144,7 +144,7 @@ abstract class Router {
 			 *
 			 * INSTALL MEMO
 			 * 	You have to put your app in a subdirectory in your
-			 *  localhost folder, for example: /var/www/html/myDir
+			 *  below your root folder, for example: /var/www/html/myDir
 			 *
 			 * */
 			if (!empty($uriParts[2])) {

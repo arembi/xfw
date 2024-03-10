@@ -21,7 +21,7 @@ class Input_HandlerModel {
 			->first();
 
 		if ($form) {
-			$form->formFields = json_decode($form->formFields, true);
+			$form->formFields = json_decode($form->formFields ?? '', true);
 		}
 
 		return $form;
@@ -45,7 +45,7 @@ class Input_HandlerModel {
 			->first();
 
 		if ($form) {
-			$form->formFields = json_decode($form->formFields, true);
+			$form->formFields = json_decode($form->formFields ?? '', true);
 		}
 
 		return $form;
