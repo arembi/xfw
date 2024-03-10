@@ -16,5 +16,5 @@ define('SITES', BASE . DS . '..' . DS . 'xfw_sites');
 // Loading application engine
 require_once(CORE . DS .'app.php');
 
-// Launching initialization script
+// Launching initialisation script
 App::init();
