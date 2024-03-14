@@ -43,9 +43,6 @@ abstract class App {
 	// Language
 	private static $lang = '';
 
-	// AMP enabled
-	private static $AMP = 'off';
-
 
 	public static function init()
 	{
@@ -59,8 +56,7 @@ abstract class App {
 			'module',
 			'input_handler',
 			'router',
-			'user',
-			'amp'
+			'user'
 		];
 
 		// Loading configuration
@@ -154,7 +150,6 @@ abstract class App {
 
 		/*
 		The module options for the document have to be set manually
-		note: the layout may be overridden by AMP
 		*/
 		$documentModuleOptions = [
 			'layout'=>$matchedRoute['documentLayout'],
@@ -170,12 +165,6 @@ abstract class App {
 
 		// Start the layout loop and show the result
 		$response->processLayout();
-
-		// If AMP is enabled the output needs to be cleaned to meet the AMP
-		// standards
-		if (self::AMP() == 'on') {
-			$response->HTMLToAMP(true);
-		}
 
 		$response->render();
 
@@ -611,16 +600,6 @@ abstract class App {
 		print_r($message);
 		Debug::render();
 		exit;
-	}
-
-
-	public static function AMP($value = null)
-	{
-		if (!empty($value)) {
-			self::$AMP = $value;
-		} else {
-			return self::$AMP;
-		}
 	}
 
 

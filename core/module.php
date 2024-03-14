@@ -186,15 +186,7 @@ abstract class ModuleCore {
 		}
 
 		// Layout setup
-
-		// Detecting AMP version
-		// You can set it via the module options
-		// The document modules layout can be set for each route
-		if (App::AMP() == 'on') {
-			$this->options['layout'] = 'amp';
-		} else {
-			$this->options['layout'] = Settings::get('defaultModuleLayout');
-		}
+		$this->options['layout'] = Settings::get('defaultModuleLayout');
 
 		/*
 		Code that should run every time the module is instantiated
@@ -509,24 +501,6 @@ abstract class ModuleCore {
 		} else {
 			Debug::alert('Couldn\'t retrieve layout for ' . __CLASS__ . '.', 'f');
 		}
-	}
-
-
-	public function HTMLToAMP($fullHTML = false)
-	{
-		// External AMP module
-		$eamp = new \Lullabot\AMP\AMP();
-
-		if ($fullHTML) {
-			$eamp->loadHtml($this->layoutHTML, ['scope' => \Lullabot\AMP\Validate\Scope::HTML_SCOPE]);
-		} else {
-			$eamp->loadHtml($this->layoutHTML);
-		}
-		$this->layoutHTML = $eamp->convertToAmpHtml();
-
-		// Print validation issues and fixes made to HTML provided in the $html string
-		Debug::alert($eamp->warningsHumanText());
-		return $this;
 	}
 
 

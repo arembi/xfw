@@ -208,15 +208,6 @@ abstract class Router {
 		if (isset($uriQ[1])) {
 			parse_str($uriQ[1], self::$pathQueryString);
 		}
-
-		// Detecting AMP
-		if (isset(self::$REQUEST['amp']) && self::$REQUEST['amp'] == 1) {
-			$status = 'on';
-		} else {
-			$status = 'off';
-		}
-		App::AMP($status);
-		Debug::alert('AMP status: ' . $status . '.', 'i');
 	}
 
 
@@ -462,12 +453,6 @@ abstract class Router {
 			}
 			Debug::alert('Primary module found: %' . $match['primary'], 'o');
 
-		}
-
-		// When AMP is enabled, it will override the documents layout
-		if (App::AMP() == 'on') {
-			AMP::init();
-			$match['documentLayout'] = 'amp';
 		}
 
 		return $match;

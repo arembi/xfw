@@ -48,8 +48,7 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 		'follow' => true,
 		'rel' => null, // HTML attribute
 		'anchor' => null, // the anchor text
-		'pageNumber' => null,
-		'amp' => null
+		'pageNumber' => null
 		];
 
 	protected function main(&$options)
@@ -81,11 +80,6 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 			// Getting data already present in the query string
 			if (isset($hrefParts[1])) {
 				parse_str($hrefParts[1], $queryString);
-			}
-
-			// Adding AMP to the query string
-			if(isset(Router::$REQUEST['amp']) && Router::$REQUEST['amp'] === 'on'){
-				$queryString['amp'] = 'on';
 			}
 
 			// Assembling the href part
