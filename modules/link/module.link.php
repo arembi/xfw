@@ -25,8 +25,6 @@ namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
-use Arembi\Xfw\Core\Settings;
-use Arembi\Xfw\Module\HEAD;
 use function Arembi\Xfw\Misc\parseHtmlAttributes;
 
 class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
@@ -45,9 +43,10 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 		'class' => null, // HTML attribute
 		'title' => null, // HTML attribute
 		'target' => null, // HTML attribute
-		'follow' => true,
+		'follow' => true, // HTML rel nofollow attribute
 		'rel' => null, // HTML attribute
 		'anchor' => null, // the anchor text
+		'queryParams'=>null,
 		'pageNumber' => null
 		];
 
@@ -61,7 +60,8 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 		}
 
 		$this->hrefRaw = $options['href'];
-
+		
+		
 		if (substr($options['href'], 0 ,2) === '//') {
 			$options['href'] = Router::getProtocol() . substr($options['href'], 2);
 		}
@@ -69,45 +69,44 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 		// First character in the href determines what to do
 		$href1 = $options['href'][0];
 		
-		// Handling special hrefs
+		// Constructing the href
 		if (in_array($href1, ['@', '+', '/'])) {
 
 			$hrefParts = explode('?', $options['href'], 2);
 
 			// Converting the queryString to an array
-			$queryString = [];
+			$queryStringParts = [];
 
 			// Getting data already present in the query string
 			if (isset($hrefParts[1])) {
-				parse_str($hrefParts[1], $queryString);
+				parse_str($hrefParts[1], $queryStringParts);
 			}
 
 			// Assembling the href part
 			if ($href1 == '@') {
-				/*
-				System link mode
+				//System link mode
 
-				The link will be generated based on the information stored in the
-				database.
+				//The link will be generated based on the information stored in the
+				//database.
 
-				Required values
-					ID: the id of the link record in the database
-				*/
+				//Required values
+				//	ID: the id of the link record in the database
+				
 				$linkID = substr($hrefParts[0], 1);
 				$href = Router::href('link', $linkID);
 			} elseif ($href1 == '+') {
-				/*
-				Route mode
+				
+				//Route mode
 
-				Required values
-					route: the route ID
-				Optional values
-					lang: language marker (en, hu etc.), the current language will be used if not given
-						(if a route is not available, a 404 error will be thrown)
-				Usage example:
-					href = "+route=19+lang=hu+pathParam1=abc+pathParam2=xyz"
-					anchor = "sometext"
-				*/
+				//Required values
+				//	route: the route ID
+				//Optional values
+				//	lang: language marker (en, hu etc.), the current language will be used if not given
+				//		(if a route is not available, a 404 error will be thrown)
+				//Usage example:
+				//	href = "+route=19+lang=hu+pathParam1=abc+pathParam2=xyz"
+				//	anchor = "sometext"
+				//
 				$data = [];
 
 				$params = explode('+', substr($hrefParts[0], 1));
@@ -125,29 +124,29 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 				$href = [
 					'lang' => $lang,
 					'base' => Router::gethostURL() . $hrefParts[0],
-					'queryString' => $queryString
+					'queryStringParts' => $queryStringParts
 					];
 			}
 			
 			if (is_array($href) && $href['base']) {
 				// Adding the page number to the query string
 				if (!empty($options['pageNumber'])) {
-					$queryString[Router::getPaginationParams()[$href['lang']]] = $options['pageNumber'];
+					$queryStringParts[Router::getPaginationParams()[$href['lang']]] = $options['pageNumber'];
 				}
 
-				$queryString = array_merge($queryString, $href['queryString']);
+				$queryStringParts = array_merge($queryStringParts, $href['queryStringParts']);
 
 				if (isset($options['queryParams']) && is_array($options['queryParams'])) {
-					$queryString = array_merge($queryString, $options['queryParams']);
+					$queryStringParts = array_merge($queryStringParts, $options['queryParams']);
 				}
 
 				// Elements in the query string can be removed with the remove moduleVar
 				if (isset($options['remove']) && is_array($options['remove'])) {
-					$queryString = array_diff_key($queryString, array_flip($options['remove']));
+					$queryStringParts = array_diff_key($queryStringParts, array_flip($options['remove']));
 				}
 
 				// The directly given parameters will override the saved ones
-				$queryString = http_build_query($queryString);
+				$queryString = http_build_query($queryStringParts);
 
 				// Adding the questionmark if it was not present
 				if ($queryString && strpos($href['base'], '?') === false) {
@@ -162,7 +161,7 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		$this->href = $options['href'];
 
-		if (Router::getFullURL() == $options['href']) {
+		if (Router::getFullURL() == $this->href) {
 			$class = 'origo ';
 		} else {
 			$class = null;
@@ -193,7 +192,7 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 		}
 
 		$attributes = parseHtmlAttributes([
-			'href'=>htmlspecialchars($options['href']),
+			'href'=>htmlspecialchars($this->href),
 			'style'=>$options['style'] ?? null,
 			'id'=>$options['id'] ?? null,
 			'class'=>$class,

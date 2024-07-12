@@ -1,7 +1,7 @@
 <?php
 
-/* Attributes can be overridden in the controllers
- * If you want to use a dynamically created form inputs, you can use the
+/* 
+ * Attributes can be overridden in the controllers
  * */
 namespace Arembi\Xfw\Module;
 
@@ -13,7 +13,7 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 	private $fields = [];
 	private $actionUrl = '';
 
-
+	
 	public function main(&$options, $autoBuild = true)
 	{
 		$this->loadModel();
@@ -227,6 +227,12 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 			Debug::alert('Trying to set options for a non-select form field', 'w');
 		}
 		return $this;
+	}
+
+
+	public function setLayout(string $layout)
+	{
+
 	}
 
 

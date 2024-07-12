@@ -2,8 +2,8 @@
 
 namespace Arembi\Xfw\Module;
 
-use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
+use Arembi\Xfw\Core\Settings;
 
 class IH_Control_PanelBase extends Control_Panel {
 
@@ -15,7 +15,7 @@ class IH_Control_PanelBase extends Control_Panel {
 		$this->loadModel();
 
 		$path = [];
-		foreach (\Arembi\Xfw\Core\Settings::_('availableLanguages') as $lang) {
+		foreach (Settings::get('availableLanguages') as $lang) {
 			if (isset(Router::$POST['path-' . $lang[0]])) {
 				$path[$lang[0]] = Router::$POST['path-' . $lang[0]];
 			}
@@ -44,7 +44,7 @@ class IH_Control_PanelBase extends Control_Panel {
 		$this->loadModel();
 
 		$path = [];
-		foreach (\Arembi\Xfw\Core\Settings::_('availableLanguages') as $lang) {
+		foreach (Settings::get('availableLanguages') as $lang) {
 			if (isset(Router::$POST['path-' . $lang[0]])) {
 				$path[$lang[0]] = Router::$POST['path-' . $lang[0]];
 			}

@@ -11,6 +11,14 @@ class Input_Handler {
 
 	private static $processResult = null;
 
+	private static $formDataTypes = [
+		'string',
+		'int',
+		'float',
+		'array',
+		'file'
+	];
+
 
 	public static function processForm($formID)
 	{
@@ -32,11 +40,9 @@ class Input_Handler {
 		// Sanitizing posted values
 		$formData = [];
 
-		$formDataTypes = ['string', 'int', 'float', 'array', 'file'];
-
 		if (isset($form->formFields)) {
 			foreach ($form->formFields as $key => $value) {
-				if (!(isset($value['type']) && in_array($value['type'], $formDataTypes))) {
+				if (!(isset($value['type']) && in_array($value['type'], self::$formDataTypes))) {
 					$process['ihError'] .= 'Wrong type has been set for ' . $form->formFields[$key] . ' in form ' . $process['formName'] . '.';
 				} else {
 					$formData[$key] = $value['type'];
@@ -65,7 +71,7 @@ class Input_Handler {
 		// - global (document module handles them)
 		// - module specific (control panel included)
 		// If you want to use a form globally, do not assign it to a module,
-		// just put the form's handler function in the fh.document.php file
+		// just put the form's handler function in the ih.document.php file
 
 		$controllerModule = $form->moduleName ?? 'document';
 

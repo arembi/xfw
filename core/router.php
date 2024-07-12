@@ -254,16 +254,16 @@ abstract class Router {
 		Check whether the given URL needs to be redirected
 		The script will be stopped at this point, if a redirect has been set to the current route
 		and a new request will be made immediately
-		*/
-		// TODO self::autoRedirect();
 
+		TODO self::autoRedirect();
+		*/
 
 		/*
 		TRAILING SLASHES
 		all 3 types are supported:
 		every URL ends with a slash
 		none of them ends with a slash
-		both are possible
+		both are allowed
 		*/
 
 		if (Settings::get('URLTrailingSlash') == 'remove') {
@@ -292,7 +292,7 @@ abstract class Router {
 
 		/*
 		 * If the site is multilingual, we have to detect which language
-		 * the user wants to load, doing that by calling matchLanguage()
+		 * the user wants to load, doing that by calling self::matchLanguage()
 		 * */
 		if (Settings::get('multiLang') == 'true') {
 			$lang = self::matchLanguage($pathNodes, $pathMain);
@@ -333,12 +333,12 @@ abstract class Router {
 		matchRoute will do just that
 		*/
 
-		return self::matchRoute($pathNodes, $pathMain);
+		return self::matchRoute($pathMain);
 	}
 
 
 	// Returns the corresponding document layout, the primary module and its action to execute, based on th URI
-	public static function matchRoute($pathNodes, $pathMain)
+	public static function matchRoute($pathMain)
 	{
 		// In case a 404 error previously occured
 		if (self::$hit404) {
@@ -355,7 +355,7 @@ abstract class Router {
 		// The root route is a special URI, works rather different form the 'normal' ones
 		if ($pathMain == '/' || $pathMain == '') {
 			/*
-			We cannot set module parameters via SEF URLs for the primary module at the root route,
+			We cannot set module parameters via URLs for the primary module at the root route,
 			everything for it has to be set somewhere else (i.e. default vaules in the sys_config table
 			This is why: consider the URL mysite.com/contact-me
 				/ is a blog module
@@ -642,7 +642,7 @@ abstract class Router {
 	}
 
 
-	public static function redirect($to = '', $type = '301')
+	public static function redirect(string $to = '', int $type = 301)
 	{
 		if (!$to) {
 			$to = self::$fullUrl;
@@ -656,18 +656,17 @@ abstract class Router {
 		switch ($type) {
 			case '301':
 				header('HTTP/1.1 301 Moved Permanently');
-				header('Location: ' . $to );
 				break;
 			case '302':
 				header('HTTP/1.1 302 Found');
-				header('Location: ' . $to);
 				break;
 			case '307':
 				header('HTTP/1.1 307 Moved Temporarily');
-				header('Location: ' . $to);
 				break;
 			default:
 				break;
+			
+			header('Location: ' . $to);
 		}
 		// Stop further code execution
 		exit;
@@ -677,11 +676,11 @@ abstract class Router {
 	// This function loads the active redirects from the database and redirects if the requested URI has been matched
 	public static function autoRedirect()
 	{
-		foreach (self::$redirects as $redirect) {
+		/*foreach (self::$redirects as $redirect) {
 			if (preg_match('/' . $redirect['rule'] . '/', substr(self::$path, 1))) {
 				self::redirect($redirect['destination'], $redirect['type']);
 			}
-		}
+		}*/
 	}
 
 
@@ -943,9 +942,9 @@ abstract class Router {
 
 			// The query string is stored in an array at this point
 			if (!empty(self::$links[$data]['queryString'])) {
-				$queryString = self::$links[$data]['queryString'];
+				$queryStringParts = self::$links[$data]['queryString'];
 			} else {
-				$queryString = [];
+				$queryStringParts = [];
 			}
 
 			$domain = self::$links[$data]['domain'];
@@ -1008,9 +1007,9 @@ abstract class Router {
 
 			$langMarker = Settings::get('multiLang') ? (DS . $lang) : '';
 
-			// A queryString array has to be returned, but we do not use when
-			// builing hrefs based on routes, so an empty array is returned
-			$queryString = [];
+			// A queryStringParts array has to be returned, but we do not use it when
+			// builing hrefs based on routes, so it'll be empty
+			$queryStringParts = [];
 
 			$domain = self::getDomainByID($record->domainID);
 
@@ -1027,7 +1026,7 @@ abstract class Router {
 		$ret = [
 			'lang' => $lang,
 			'base' => $href,
-			'queryString' => $queryString
+			'queryStringParts' => $queryStringParts
 		];
 
 		return $ret;

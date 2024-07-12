@@ -31,7 +31,7 @@ class CP_Control_PanelBase extends Control_panel {
 
 	public function home()
 	{?>
-		<div>
+		<div style="font-weight:bold;font-size:2em;text-align:center;">
 			Control panel home page
 		</div>
 		<?php
@@ -41,6 +41,7 @@ class CP_Control_PanelBase extends Control_panel {
 	public function route_list()
 	{
 		$routes = Router::getRoutes('primary');
+		
 		foreach ($routes as $ID=>&$routeData) {
 			if (is_array($routeData->path)) {
 				$cell = '';
@@ -58,7 +59,9 @@ class CP_Control_PanelBase extends Control_panel {
 		$routeData->deleteLink = $deleteLink->processLayout()->getLayoutHTML();
 
 		}
+
 		unset($routeData); ?>
+		
 		<table>
 			<thead>
 				<tr>

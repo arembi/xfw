@@ -115,11 +115,11 @@ class Static_PageBaseModel {
 			->where('static_pages.route_id', $routeID)
 			->first();
 
-			if ($page) {
-				$page = $this->normalize($page);
-			}
+		if ($page) {
+			$page = $this->normalize($page);
+		}
 
-			return $page;
+		return $page;
 	}
 
 

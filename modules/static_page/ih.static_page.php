@@ -2,7 +2,6 @@
 
 namespace Arembi\Xfw\Module;
 
-use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
 
 class IH_Static_PageBase extends Static_Page {
@@ -86,7 +85,7 @@ class IH_Static_PageBase extends Static_Page {
 		if ($this->model->deletePage(Router::$POST['ID']) ) {
 			return [Router::IH_RESULT['ok'], 'Route has been deleted.'];
 		} else {
-			return [Router::IH_RESULT['error']'Route couldn\'t be deleted.'];
+			return [Router::IH_RESULT['error'], 'Route couldn\'t be deleted.'];
 		}
 	}
 

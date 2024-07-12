@@ -19,7 +19,6 @@ Module extensions
 	CP - Control Panel (see Control panel)
 
 Module options
-	Are automatically assigned to views (templates)
 	Can be passed on as constructor parameters
 	parentModule->name f.i.: static_page
 	parentModule->ID f.i.: 19 means the static_page with the ID 19 (not the sys_module ID)
@@ -147,7 +146,6 @@ abstract class ModuleCore {
 
 	final public function __construct(array $options = [])
 	{
-		// Setting default values
 		$this->layoutProcessed = false;
 		$this->options = [];
 		$this->layoutVariables = [];
@@ -181,9 +179,7 @@ abstract class ModuleCore {
 			$options['name'] = $this->name;
 		}
 
-		if (isset($options['parentModule'])) {
-			$this->parentModule = $options['parentModule'];
-		}
+		$this->parentModule = $options['parentModule'] ?? null;
 
 		// Layout setup
 		$this->options['layout'] = Settings::get('defaultModuleLayout');
@@ -206,47 +202,46 @@ abstract class ModuleCore {
 			$mainResult = $this->main($options);
 		}
 
-		if (is_array($options)) {
-			$this->options = array_merge($this->options, $options);
+		$this->options = array_merge($this->options, $options);
 
-			// If not set, ID will be 0
-			if (!isset($this->options['ID'])) {
-				$this->options['ID'] = 0;
-			}
-
-			/*
-			 * Triggering an action if requested
-			 * Default actions will only be triggered for the primary module matched by the router
-			 * */
-
-			if (isset($this->parentModule) && $this->parentModule->name === 'document') {
-				// actions set via GET will override default actions
-				if (isset(Router::$GET['_action'])) {
-					$action = Router::$GET['_action'];
-				} else {
-					$action = Router::getMatchedRouteAction();
-				}
-
-				if ($action) {
-					$actionMethod = $action . 'Action';
-					if (method_exists($this, $actionMethod)) {
-						$this->$actionMethod();
-						Debug::alert('Action ' . $action . ' for %' . $class . ' successfully triggered.', 'o');
-					} else {
-						Debug::alert('Action ' . $action . ' for %' . $class . ' could not be triggered.' , 'f');
-					}
-				} else {
-					Debug::alert('No action was triggered for %' . $class . '.');
-				}
-			}
-			$this->recursive = !isset($this->options['recursive']) || $this->options['recursive'] != "no";
+		// If not set, ID will be 0
+		if (!isset($this->options['ID'])) {
+			$this->options['ID'] = 0;
 		}
 
+		/*
+			* Triggering an action if requested
+			* Default actions will only be triggered for the primary module matched by the router
+			* */
+
+		if ($this->parentModule !== null && $this->parentModule->name === 'document') {
+			// actions set via GET will override default actions
+			if (isset(Router::$GET['_action'])) {
+				$action = Router::$GET['_action'];
+			} else {
+				$action = Router::getMatchedRouteAction();
+			}
+
+			if ($action) {
+				$actionMethod = $action . 'Action';
+				if (method_exists($this, $actionMethod)) {
+					$this->$actionMethod();
+					Debug::alert('Action ' . $action . ' for %' . $class . ' successfully triggered.', 'o');
+				} else {
+					Debug::alert('Action ' . $action . ' for %' . $class . ' could not be triggered.' , 'f');
+				}
+			} else {
+				Debug::alert('No action was triggered for %' . $class . '.');
+			}
+		}
+		$this->recursive = !isset($this->options['recursive']) || $this->options['recursive'] != "no";
+
 		if (isset($mainResult) && $mainResult !== false) {
-			Debug::alert('Error during execution of main() at module' . $this->name . '#' . $this->options['ID'], 'e');
+			Debug::alert('Error during execution of main() at module %' . $this->name . '#' . $this->options['ID'], 'e');
 		}
 
 	}
+
 
 	public static function hasModel()
 	{
@@ -259,6 +254,7 @@ abstract class ModuleCore {
 	* - put the layoutVariables into the layout
 	* - if recursive, load embedded modules
 	* */
+
 	public function processLayout()
 	{
 		// Register the module in the system
@@ -328,8 +324,8 @@ abstract class ModuleCore {
 
 	protected function loadLayoutFile(string $layout)
 	{
-		if (file_exists(SITES . DS . DOMAIN . DS . 'layouts' . DS . $this->options['name'] . DS . $layout . DS . $layout . '.php')) {
-			$layoutDir = SITES . DS . DOMAIN . DS . 'layouts' . DS . $this->options['name'] . DS . $layout;
+		if (file_exists(DOMAIN_DIRECTORY . DS . 'layouts' . DS . $this->options['name'] . DS . $layout . DS . $layout . '.php')) {
+			$layoutDir = DOMAIN_DIRECTORY . DS . 'layouts' . DS . $this->options['name'] . DS . $layout;
 			$layoutFile = $layoutDir . DS . $layout . '.php';
 		} elseif (file_exists(ENGINE . DS . 'layouts' . DS . $this->options['name'] . DS . $layout . DS . $layout . '.php')) {
 			// Trying to fallback to the base module layout
@@ -353,7 +349,7 @@ abstract class ModuleCore {
 
 		if (empty($name)) {
 			// Case the module had not been set
-			Debug::alert('Unidentified module detected, will be ignored','n');
+			Debug::alert('Trying to embed empty module, will be ignored','n');
 		} else {
 			$params['name'] = $name;
 			// Case the module had been set
@@ -441,25 +437,28 @@ abstract class ModuleCore {
 
 
 	// Prints $str in the layouts after applying the layoutFilters
-	// $layoutFilters can be given as a single or an array of strings or
-	// LayoutFilter objects
-	protected function print($str, $layoutFilter = null)
+	// $layoutFilters can be given as a single or an array of strings
+	// A module can impose the layout filters via the module options
+	protected function print(string $str, $layoutFilter = null)
 	{
 		$str = strval($str);
 		$filters = [];
 
 		if (is_array($layoutFilter)) {
 			$filters = $layoutFilter;
-		} elseif ($layoutFilter !== null) {
+		} elseif (is_string($layoutFilter)) {
 			$filters[] = $layoutFilter;
 		}
 
+		// Inheriting the filter demands from the module
+		if (isset($this->options['layoutFilters'])) {
+			$filters = array_merge($filters, $this->options['layoutFilters']);
+		}
+
 		foreach ($filters as $filter) {
-			if (is_string($filter)) {
-				$filterClass = "\\Arembi\\Xfw\\Filter\\$filter";
-				if (class_exists($filterClass)) {
-					$filter = new $filterClass();
-				}
+			$filterClass = "\\Arembi\\Xfw\\Filter\\$filter";
+			if (class_exists($filterClass)) {
+				$filter = new $filterClass();
 			}
 			$str = $filter->filter($str);
 		}
@@ -532,9 +531,6 @@ abstract class ModuleCore {
 
 	public function render()
 	{
-		if (!$this->layoutProcessed) {
-			$this->processLayout();
-		}
 		echo $this->layoutHTML;
 	}
 
@@ -543,7 +539,7 @@ abstract class ModuleCore {
    * Transfers the parameters set in the URI to the moduleVars
    * Pass the constructor parameter to it and everything will work
    *
-   * !!! Has to be called in every derived module class !!!
+   * Has to be called in every derived module class!
    * */
   protected function loadPathParams()
 	{

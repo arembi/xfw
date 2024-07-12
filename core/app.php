@@ -34,20 +34,12 @@ abstract class App {
 	// Path parameter translation rules for modules
 	private static $pathParamOrders = [];
 
-	/*
-	 * Whenever the system loads a layout blueprint from a file, it keeps it here for possible reusage,
-	 * so no further file operations will be required
-	 * */
-	private static $layoutBlueprints = [];
-
 	// Language
 	private static $lang = '';
 
 
 	public static function init()
 	{
-		error_reporting(0);
-
 		self::$coreModules = [
 			'model',
 			'settings',
@@ -104,6 +96,8 @@ abstract class App {
 
 		// Initializing sessions
 		Session::init();
+		Session::start();
+		
 		Debug::alert('Session started');
 
 		// Setting the model of the App class
@@ -148,9 +142,7 @@ abstract class App {
 		// Initializing inner autoincrementing ID
 		self::$registeredModuleID = 0;
 
-		/*
-		The module options for the document have to be set manually
-		*/
+		//Setting the module option for the document module
 		$documentModuleOptions = [
 			'layout'=>$matchedRoute['documentLayout'],
 			'primaryModule'=>$matchedRoute['primary'],
@@ -166,6 +158,7 @@ abstract class App {
 		// Start the layout loop and show the result
 		$response->processLayout();
 
+		// Generate HTML output
 		$response->render();
 
 		// Final time marker
@@ -262,9 +255,11 @@ abstract class App {
 					}
 				}
 			}
+
 			foreach ($includes as $file) {
 				include($file);
 			}
+
 		} else {
 			Debug::alert('Include directory does not exists at' . $directory, 'n');
 		}
@@ -335,8 +330,8 @@ abstract class App {
 						}
 
 						// Looking for overrides
-						if (file_exists(SITES . DS . DOMAIN . DS . $modelFilePath)) {
-							include(SITES . DS . DOMAIN . DS . $modelFilePath);
+						if (file_exists(DOMAIN_DIRECTORY . DS . $modelFilePath)) {
+							include(DOMAIN_DIRECTORY . DS . $modelFilePath);
 							Debug::alert('Override for model of module %' . $moduleName . ' successfully loaded and activated.', 'o');
 							$loaded = true;
 						} elseif($loaded) {
@@ -426,7 +421,7 @@ abstract class App {
 	public static function loadModuleAddon(string $module, string $addon)
 	{
 		$addon = strtolower($addon);
-		$moodule = strtolower($module);
+		$module = strtolower($module);
 
 		$addons = Config::_('moduleAddons');
 
@@ -521,7 +516,7 @@ abstract class App {
 
 
 	// Function to check whether a module is installed for on the current domain
-	public static function isInstalledModule($module)
+	public static function isInstalledModule(string $module)
 	{
 		$isInstalled = false;
 		foreach (self::$installedModules as $m) {
@@ -535,7 +530,7 @@ abstract class App {
 	}
 
 
-	public static function getActiveModules($attribute = false)
+	public static function getActiveModules(string $attribute = '')
 	{
 		return $attribute ? array_column(self::$activeModules, $attribute) : self::$activeModules;
 	}

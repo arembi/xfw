@@ -223,7 +223,7 @@ function concatenate($to, $what, $after = false)
 
 
 
-function parseHtmlAttributes($input1, $input2 = false)
+function parseHtmlAttributes($input1, $input2 = [])
 {
 	$ret = '';
 

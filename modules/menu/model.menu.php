@@ -2,7 +2,6 @@
 
 namespace Arembi\Xfw\Module;
 use Illuminate\Database\Capsule\Manager as DB;
-use Arembi\Xfw\Misc;
 use Arembi\Xfw\Core\Models\Menu;
 use Arembi\Xfw\Core\Models\Menuitem;
 
@@ -11,11 +10,6 @@ class MenuBaseModel {
 	public function getMenuByMenuID(int $menuID)
 	{
 		$menu = Menu::with(['menuitems', 'domains'])->find($menuID);
-		$menu->menuitems = $menu->menuitems
-			->map(function ($item) {
-				return $item['item'];
-			})
-			->toArray();
 
 		return $menu;
 	}
@@ -49,6 +43,30 @@ class MenuBaseModel {
 				->toArray();
 
 			return $menu;
+	}
+
+
+	public function getMenusByDomainID($domainID = null)
+	{
+		if ($domainID === null) {
+			$domainID = DOMAIN_ID;
+		}
+
+		$menus = DB::table('menus')
+			->join('menu_domain', 'menu_domain.menu_id', '=', 'menus.id')
+			->select(
+				'menus.id as ID',
+				'menus.name as name',
+				'menus.type as type',
+				'menus.created_at as createdAt',
+				'menus.updated_at as updatedAt', 
+				'menu_domain.domain_id as domainID'
+			)
+			->where('menu_domain.domain_id', $domainID)
+			->get();
+		return $menus;
+		
+
 	}
 
 }

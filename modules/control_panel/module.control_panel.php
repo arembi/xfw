@@ -2,7 +2,6 @@
 
 namespace Arembi\Xfw\Module;
 
-use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Seo;
@@ -49,7 +48,7 @@ class Control_PanelBase extends \Arembi\Xfw\Core\ModuleCore {
 				$addon = 'Arembi\Xfw\Module\CP_' . $module;
 
 				// Module integration to CP menu
-				if(!empty($addon::$cpMenu)) {
+				if (!empty($addon::$cpMenu)) {
 					$addonMenuData = [
 						'showTitle' => true,
 						'title' => $addon::$cpMenu['title'][$lang] ?? array_values($addon::$cpMenu['title'])[0] ?? $addon::$cpMenu,

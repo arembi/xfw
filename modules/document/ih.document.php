@@ -4,6 +4,7 @@ namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\User;
 use Arembi\Xfw\Core\Router;
+use Arembi\Xfw\Core\Session;
 
 class IH_DocumentBase extends Document {
 
@@ -28,12 +29,15 @@ class IH_DocumentBase extends Document {
 
 	public function logout()
 	{
+		$username = $_SESSION['user']->get('name');
 		$id = session_id();
 		
-		session_destroy();
+		if ($username == '_guest') {
+			return [1, 'User _guest cannot log out.'];
+		}
+		
+		Session::reset();
 
-		Debug::alert('Session destoryed. (ID: ' . $id . ')');
-
-		return [0, 'User successfully logged out. Session ' . $id . ' destroyed.'];
+		return [0, 'User ' . $username . ' successfully logged out.'];
 	}
 }
