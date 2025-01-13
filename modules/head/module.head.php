@@ -222,14 +222,14 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 		if (is_array($css)) {
 			foreach ($css as $ccss) {
 				$ccss = trim($ccss);
-				$ccss = str_replace(SITES, Router::getHostUrl(), $ccss);
+				$ccss = str_replace(SITES_DIR, Router::getHostUrl(), $ccss);
 				if (!in_array($ccss, self::$css)) {
 					self::$css[] = $ccss;
 				}
 			}
 		} elseif (is_string($css)) {
 			$css = trim($css);
-			$css = str_replace(SITES, Router::getHostUrl(), $css);
+			$css = str_replace(SITES_DIR, Router::getHostUrl(), $css);
 			if (!in_array($css, self::$css)) {
 				self::$css[] = $css;
 			}
@@ -301,9 +301,9 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 		$meta['index'] = Seo::isIndexable() ? 'index' : 'noindex';
 		$meta['follow'] = Seo::isFollowable() ? 'follow' : 'nofollow';
 		$meta['noArchive'] = Seo::isArchivable() ? false : 'noarchive';
-		$meta['maxSnippet'] = 'max-snippet:' . Seo::getMaxSnippet();
-		$meta['maxImagePreview'] = 'max-image-preview:' . Seo::getMaxImagePreview();
-		$meta['max-video-preview'] = 'max-video-preview:' . Seo::getMaxVideoPreview();
+		$meta['maxSnippet'] = 'max-snippet:' . Seo::maxSnippet();
+		$meta['maxImagePreview'] = 'max-image-preview:' . Seo::maxImagePreview();
+		$meta['max-video-preview'] = 'max-video-preview:' . Seo::maxVideoPreview();
 		$meta['noTranslate'] = Seo::isTranslatable() ? false : 'notranslate';
 		$meta['noImageIndex'] = Seo::areImagesIndexable() ? false : 'noimageindex';
 

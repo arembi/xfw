@@ -6,26 +6,29 @@ use Arembi\Xfw\Core\Router;
 
 class CP_Static_PageBase extends Static_Page {
 
-	public static $cpMenu = [
-		'title' => [
-			'hu' => 'Statikus Oldalak',
-			'en' => 'Static Pages'
-		],
-		'items' => [
-			['home', [
-				'hu' => 'Info',
-				'en' => 'Info']
+	public static function menu()
+	{
+		return [
+			'title' => [
+				'hu' => 'Statikus Oldalak',
+				'en' => 'Static Pages'
 			],
-			['page_list', [
-				'hu' => 'Lista',
-				'en' => 'List']
-			],
-			['page_new', [
-				'hu' => 'Új',
-				'en' => 'New']
+			'items' => [
+				['home', [
+					'hu' => 'Info',
+					'en' => 'Info']
+				],
+				['page_list', [
+					'hu' => 'Lista',
+					'en' => 'List']
+				],
+				['page_new', [
+					'hu' => 'Új',
+					'en' => 'New']
+				]
 			]
-		]
-	];
+		];
+	}
 
 	public function home()
 	{
@@ -40,14 +43,14 @@ class CP_Static_PageBase extends Static_Page {
 
 	public function page_list()
 	{
-		$pages = $this->model->getPagesByDomainID(DOMAIN_ID);
+		$pages = $this->model->getPagesByDomainId(DOMAIN_ID);
 
 		$avLangs = \Arembi\Xfw\Core\Settings::get('availableLanguages');
 
 		foreach ($pages as &$page) {
-			$editLink = new Link(['anchor' => 'edit', 'href' => '?task=page_edit&id=' . $page->ID]);
+			$editLink = new Link(['anchor' => 'edit', 'href' => '?task=page_edit&id=' . $page->id]);
 			$page->editLink = $editLink->processLayout()->getLayoutHTML();
-			$deleteLink = new Link(['anchor' => 'delete', 'href' => '?task=page_delete&id=' . $page->ID]);
+			$deleteLink = new Link(['anchor' => 'delete', 'href' => '?task=page_delete&id=' . $page->id]);
 			$page->deleteLink = $deleteLink->processLayout()->getLayoutHTML();
 		}
 		unset($page);
@@ -72,8 +75,8 @@ class CP_Static_PageBase extends Static_Page {
 			<tbody>
 			<?php foreach($pages as $i => $page):?>
 				<tr>
-					<td title="ID"><?php echo $page->ID;?></td>
-					<td title="routeID"><?php echo $page->routeID?></td>
+					<td title="ID"><?php echo $page->id;?></td>
+					<td title="route ID"><?php echo $page->routeId?></td>
 					<td title="content">
 						<table>
 							<tr>
@@ -86,7 +89,7 @@ class CP_Static_PageBase extends Static_Page {
 							<tr>
 								<td><?php echo $lang[0] ?>:</td>
 								<td>
-									<?php echo Router::getRouteByID($page->routeID, $lang[0]) ?? 'not set'?>
+									<?php echo Router::getRouteById($page->routeId, $lang[0]) ?? 'not set'?>
 								</td>
 								<td>
 									<?php echo !empty($page->pageTitle[$lang[0]]) ? $page->pageTitle[$lang[0]] : 'not set'?>
@@ -117,117 +120,126 @@ class CP_Static_PageBase extends Static_Page {
 		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_add'], false);
 
 		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
-			$form->addField('pageTitle-' . $lang[0]);
-			$form->setFieldLabel('pageTitle-' . $lang[0], 'Cím (' . $lang[0] . ')');
+			$form->addField('pageTitle-' . $lang[0])
+				->label('Cím (' . $lang[0] . ')');
 		}
 		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
-			$form->addField('pageContent-' . $lang[0], 'textarea');
-			$form->setFieldLabel('pageContent-' . $lang[0], 'Content (' . $lang[0] . ')');
+			$form->addField('pageContent-' . $lang[0], 'textarea')
+				->label('Content (' . $lang[0] . ')');
 		}
 
 		$createdBySelectOptions = [];
 		foreach (App::getUsersByDomain() as $user) {
-			$createdBySelectOptions[$user->username] = ['value' => $user->ID];
+			$createdBySelectOptions[$user->username] = ['value' => $user->id];
 		}
-		$form->addField('createdBy', 'select');
-		$form->setFieldLabel('createdBy', 'Creator');
-		$form->setFieldOptions('createdBy', $createdBySelectOptions);
+		$form->addField('createdBy', 'select')
+			->label('Creator')
+			->options($createdBySelectOptions);
 
 
-		$routeIDSelectOptions = [
+		$routeIdSelectOptions = [
 			"[unpublished]"=>['value'=>0]
 		];
 		foreach (Router::getRoutes('primary') as $id => $route) {
 			$option = is_array($route->path) ? implode(' | ', $route->path) : $route->path;
-			$routeIDSelectOptions[$option] = ['value' => $id];
+			$routeIdSelectOptions[$option] = ['value' => $id];
 		}
 
-		$form->addField('routeID', 'select');
-		$form->setFieldLabel('routeID', 'Path');
-		$form->setFieldOptions('routeID', $routeIDSelectOptions);
+		$form->addField('routeId', 'select')
+			->label('Path')
+			->options($routeIdSelectOptions);
 
-		$form->build();
-		$form->render();
+		$form
+			->build()
+			->processLayout()
+			->render();
 	}
 
 
 
 	public function page_edit()
 	{
-		$page = $this->model->getPageByID(Router::$GET['id']);
+		$page = $this->model->getPageById(Router::$GET['id']);
 
 		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_update'], false);
 
 		// ID
-		$form->addField('ID');
-		$form->setFieldAttributes('ID', ['value' => $page->ID, 'readonly' => true]);
-		$form->setFieldLabel('ID', 'ID');
+		$form->addField('id')
+			->attributes(['value' => $page->id, 'readonly' => true])
+			->label('ID');
 
 		// pageTitle
 		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
-			$form->addField('pageTitle-' . $lang[0]);
-			$form->setFieldLabel('pageTitle-' . $lang[0], 'Cím (' . $lang[0] . ')');
 			$pageTitle = $page->pageTitle[$lang[0]] ?? '';
-			$form->setFieldAttribute('pageTitle-' . $lang[0], 'value', $pageTitle);
+			
+			$form->addField('pageTitle-' . $lang[0])
+				->label('Cím (' . $lang[0] . ')')
+				->attribute('value', $pageTitle);
 		}
 
 		// pageContent
 		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
-			$form->addField('pageContent-' . $lang[0], 'textarea');
-			$form->setFieldLabel('pageContent-' . $lang[0], 'Tartalom (' . $lang[0] . ')');
 			$pageContent = $page->pageContent[$lang[0]] ?? '';
-			$form->setFieldText('pageContent-' . $lang[0], $pageContent);
+			
+			$form->addField('pageContent-' . $lang[0], 'textarea')
+				->label('Tartalom (' . $lang[0] . ')')
+				->text($pageContent);
 		}
 
 		// createdBy
 		$createdBySelectOptions = [];
 		foreach (App::getUsersByDomain() as $user) {
-			$attributes = ['value' => $user->ID];
-			if ($user->ID === $page->createdBy) {
+			$attributes = ['value' => $user->id];
+			if ($user->id === $page->createdBy) {
 				$attributes['selected'] = 'selected';
 			}
 			$createdBySelectOptions[$user->username] = $attributes;
 		}
-		$form->addField('createdBy', 'select');
-		$form->setFieldLabel('createdBy', 'Szerző');
-		$form->setFieldOptions('createdBy', $createdBySelectOptions);
+		$form->addField('createdBy', 'select')
+			->label('Szerző')
+			->options($createdBySelectOptions);
 
 		// routeID
-		$routeIDSelectOptions = ['none' => ['value' => 0]];
+		$routeIdSelectOptions = ['none' => ['value' => 0]];
 		foreach (Router::getRoutes('primary') as $id => $route) {
 			$option = is_array($route->path) ? implode(' | ', $route->path) : $route->path;
 			$attributes = ['value' => $id];
-			if ($page->routeID == $id) {
+			if ($page->routeId == $id) {
 				$attributes['selected'] = 'selected';
 			}
-			$routeIDSelectOptions[$option] = $attributes;
+			$routeIdSelectOptions[$option] = $attributes;
 		}
 
-		$form->addField('routeID', 'select');
-		$form->setFieldLabel('routeID', 'Útvonal');
-		$form->setFieldOptions('routeID', $routeIDSelectOptions);
+		$form->addField('routeId', 'select')
+			->label('Útvonal')
+			->options($routeIdSelectOptions);
 
 		// Created At
-		$form->addField('createdAt');
-		$form->setFieldAttribute('createdAt', 'value', $page->createdAt);
-		$form->setFieldLabel('createdAt', 'CA');
+		$form->addField('createdAt')
+			->attribute('value', $page->createdAt)
+			->label('CA');
 
-		$form->build();
-		$form->render();
+		$form
+			->build()
+			->processLayout()
+			->render();
 	}
 
 
 	public function page_delete()
 	{
-		$ID = Router::$GET['id'];
+		$id = Router::$GET['id'];
 
 		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_delete']);
-		$form->addField('ID');
-		$form->setFieldAttributes('ID', ['value' => $ID, 'readonly' => true]);
-		$form->setFieldLabel('ID', 'ID');
+		
+		$form->addField('id')
+			->attributes(['value' => $id, 'readonly' => true])
+			->label('ID');
 
-		$form->build();
-		$form->render();
+		$form
+			->build()
+			->processLayout()
+			->render();
 
 	}
 }

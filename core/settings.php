@@ -16,7 +16,7 @@ class Settings {
 		self::$settings = [];
 		self::$model = null;
 
-		$domain = Router::getDomainByID(DOMAIN_ID);
+		$domain = Router::getDomainById(DOMAIN_ID);
 		$dbSettings = $domain['settings'] ?? [];
 		self::$settings = array_merge(Config::_('defaultDomainSettings'), $dbSettings);
 	}

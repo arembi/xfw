@@ -1,6 +1,14 @@
 <form method="POST" action="<?php $this->print($action) ?>">
   <table>
     <tbody>
+      <tr>
+        <td>
+          <label for="id"><?php $this->print($fields['id']->label()) ?></label>
+        </td>
+        <td>
+          <?php $this->print($fields['id']->tag()) ?>
+        </td>
+      </tr>
       <?php foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang): ?>
       <tr>
         <td>
@@ -20,7 +28,7 @@
           <?php $this->print($fields['pageContent-' . $lang[0]]->tag()) ?>
         </td>
       </tr>
-    <?php endforeach; ?>
+      <?php endforeach; ?>
       <tr>
         <td>
           <label for="createdBy"><?php $this->print($fields['createdBy']->label()) ?></label>
@@ -38,8 +46,16 @@
         </td>
       </tr>
       <tr>
+        <td>
+          <label for="createdAt"><?php $this->print($fields['createdAt']->label()) ?></label>
+        </td>
+        <td>
+          <?php $this->print($fields['createdAt']->tag()) ?>
+        </td>
+      </tr>
+      <tr>
         <td colspan="2">
-          <input type="submit" value="Létrehoz"/>
+          <input type="submit" value="Módosít"/>
         </td>
       </tr>
     </tbody>

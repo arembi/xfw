@@ -12,7 +12,7 @@ class Static_PageBaseModel {
 
 	// Returns static page records
 	// All, if $pageIds was not given, or only the records with requested IDs
-	public function getPages(array $pageIDs = [])
+	public function getPages(array $pageIds = [])
 	{
 		$pages = DB::table('static_pages')
 			->leftJoin('users', 'users.id', '=', 'static_pages.created_by')
@@ -20,8 +20,8 @@ class Static_PageBaseModel {
 			->leftJoin('modules', 'modules.id', '=', 'seo_module.module_id')
 			->leftJoin('seo', 'seo.id', '=', 'seo_module.seo_id')
 			->select(
-				'static_pages.id as ID',
-				'static_pages.route_id as routeID',
+				'static_pages.id as id',
+				'static_pages.route_id as routeId',
 				'static_pages.title as pageTitle',
 				'static_pages.content as pageContent',
 				'static_pages.created_at AS createdAt',
@@ -36,9 +36,9 @@ class Static_PageBaseModel {
 				)
 			->get();
 
-		if (count($pageIDs) > 0) {
-			$pages = $pages->filter(function ($page) use ($pageIDs){
-				return in_array($page->ID, $pageIDs) ;
+		if (count($pageIds) > 0) {
+			$pages = $pages->filter(function ($page) use ($pageIds){
+				return in_array($page->id, $pageIds) ;
 			});
 		}
 
@@ -50,7 +50,7 @@ class Static_PageBaseModel {
 	}
 
 
-	public function getPagesByDomainID(int $domainID)
+	public function getPagesByDomainId(int $domainId)
 	{
 		$pages = DB::table('static_pages')
 			->leftJoin('routes', 'routes.id', '=', 'static_pages.route_id')
@@ -59,8 +59,8 @@ class Static_PageBaseModel {
 			->leftJoin('modules', 'modules.id', '=', 'seo_module.module_id')
 			->leftJoin('seo', 'seo.id', '=', 'seo_module.seo_id')
 			->select(
-				'static_pages.id as ID',
-				'static_pages.route_id as routeID',
+				'static_pages.id as id',
+				'static_pages.route_id as routeId',
 				'static_pages.title as pageTitle',
 				'static_pages.content as pageContent',
 				'static_pages.created_at AS createdAt',
@@ -73,7 +73,7 @@ class Static_PageBaseModel {
 				'seo.body_begin as seoBodyBegin',
 				'seo.body_end as seoBodyEnd'
 				)
-			->where('routes.domain_id', '=', $domainID)
+			->where('routes.domain_id', '=', $domainId)
 			->get();
 
 		$pages->transform(function ($page) {
@@ -84,13 +84,13 @@ class Static_PageBaseModel {
 	}
 
 
-	public function getPageByID($pageID)
+	public function getPageById($pageId)
 	{
-		return $this->getPages([$pageID])->first();
+		return $this->getPages([$pageId])->first();
 	}
 
 
-	public function getPageByRouteID($routeID)
+	public function getPageByRouteId($routeId)
 	{
 		$page = DB::table('static_pages')
 			->leftJoin('users', 'users.id', '=', 'static_pages.created_by')
@@ -98,8 +98,8 @@ class Static_PageBaseModel {
 			->leftJoin('modules', 'modules.id', '=', 'seo_module.module_id')
 			->leftJoin('seo', 'seo.id', '=', 'seo_module.seo_id')
 			->select(
-				'static_pages.id as ID',
-				'static_pages.route_id as routeID',
+				'static_pages.id as id',
+				'static_pages.route_id as routeId',
 				'static_pages.title as pageTitle',
 				'static_pages.content as pageContent',
 				'static_pages.created_at as createdAt',
@@ -112,7 +112,7 @@ class Static_PageBaseModel {
 				'seo.body_begin as seoBodyBegin',
 				'seo.body_end as seoBodyEnd'
 				)
-			->where('static_pages.route_id', $routeID)
+			->where('static_pages.route_id', $routeId)
 			->first();
 
 		if ($page) {
@@ -144,7 +144,7 @@ class Static_PageBaseModel {
 	{
 		$page = new Static_Page();
 
-		$page->route_id = $pageData['routeID'];
+		$page->route_id = $pageData['routeId'];
 		$page->title = $pageData['title'];
 		$page->content = $pageData['content'];
 		$page->created_by = $pageData['createdBy'];
@@ -155,9 +155,9 @@ class Static_PageBaseModel {
 
 	public function updatePage(array $pageData)
 	{
-		$page = Static_Page::find($pageData['ID']);
+		$page = Static_Page::find($pageData['id']);
 
-		$page->route_id = $pageData['routeID'];
+		$page->route_id = $pageData['routeId'];
 		$page->title = $pageData['title'];
 		$page->content = $pageData['content'];
 		$page->created_by = $pageData['createdBy'];
@@ -166,9 +166,9 @@ class Static_PageBaseModel {
 	}
 
 
-	public function deletePage($ID)
+	public function deletePage($id)
 	{
-		$page = Static_Page::find($ID);
+		$page = Static_Page::find($id);
 
 		if ($page) {
 			return $page->delete();

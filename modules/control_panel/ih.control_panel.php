@@ -4,6 +4,7 @@ namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Settings;
+use Arembi\Xfw\Misc;
 
 class IH_Control_PanelBase extends Control_Panel {
 
@@ -22,9 +23,9 @@ class IH_Control_PanelBase extends Control_Panel {
 		}
 
 		$data = [
-			'domainID'=>DOMAIN_ID,
+			'domainId'=>DOMAIN_ID,
 			'path'=>$path,
-			'moduleID'=>Router::$POST['moduleID'],
+			'moduleId'=>Router::$POST['moduleId'],
 			'moduleConfig'=>Router::$POST['moduleConfig'],
 			'clearanceLevel'=>Router::$POST['clearanceLevel']
 		];
@@ -50,11 +51,24 @@ class IH_Control_PanelBase extends Control_Panel {
 			}
 		}
 
+		$moduleConfig = Router::$POST['moduleConfig'];
+
+		if (is_array($moduleConfig)) {
+			foreach ($moduleConfig as &$c) {
+				$c = Misc\decodeIfJson($c);
+			}
+			unset($c);
+
+			$moduleConfig = json_encode($moduleConfig);
+		} elseif (!json_validate($moduleConfig)) {
+			$moduleConfig = '{}';
+		}
+
 		$data = [
-			'ID' => Router::$POST['routeID'],
+			'id' => Router::$POST['routeId'],
 			'path' => $path,
-			'moduleID' => Router::$POST['moduleID'],
-			'moduleConfig' => Router::$POST['moduleConfig'],
+			'moduleId' => Router::$POST['moduleId'],
+			'moduleConfig' => $moduleConfig,
 			'clearanceLevel' => Router::$POST['clearanceLevel']
 		];
 
@@ -74,12 +88,12 @@ class IH_Control_PanelBase extends Control_Panel {
 
 		$delOK = true;
 
-		if (!isset(Router::$POST['routeID']) || !is_numeric(Router::$POST['routeID'])) {
+		if (!isset(Router::$POST['routeId']) || !is_numeric(Router::$POST['routeId'])) {
 			$delOK = false;
 		}
 
 		if ($delOK) {
-			$this->model->deleteRoute(Router::$POST['routeID']);
+			$this->model->deleteRoute(Router::$POST['routeId']);
 			return ['OK', 'Route has been deleted.'];
 		} else {
 			return ['NOK', 'Route couldn\'t be deleted.'];

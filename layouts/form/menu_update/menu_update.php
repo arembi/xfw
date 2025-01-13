@@ -3,15 +3,15 @@
     <tbody>
       <tr>
         <td>
-          <label for="ID"><?php $this->print($fields['ID']['label']) ?></label>
+          <label for="id"><?php $this->print($fields['id']['label']) ?></label>
         </td>
         <td>
-          <?php $this->print($fields['ID']['tag']) ?>
+          <?php $this->print($fields['id']['tag']) ?>
         </td>
       </tr>
       <tr>
         <td>
-          <label for="ID"><?php $this->print($fields['name']['label']) ?></label>
+          <label for="id"><?php $this->print($fields['name']['label']) ?></label>
         </td>
         <td>
           <?php $this->print($fields['name']['tag']) ?>

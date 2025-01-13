@@ -4,55 +4,55 @@
       <?php if (isset($fields['path-hu'])) :?>
       <tr>
         <td>
-          <label for="path-hu"><?php $this->print($fields['path-hu']['label']) ?></label>
+          <label for="path-hu"><?php $this->print($fields['path-hu']->label()) ?></label>
         </td>
         <td>
-          <?php $this->print($fields['path-hu']['tag']) ?>
+          <?php $this->print($fields['path-hu']->tag()) ?>
         </td>
       </tr>
     <?php endif; ?>
     <?php if (isset($fields['path-en'])) :?>
       <tr>
         <td>
-          <label for="path-en"><?php $this->print($fields['path-en']['label']) ?></label>
+          <label for="path-en"><?php $this->print($fields['path-en']->label()) ?></label>
         </td>
         <td>
-          <?php $this->print($fields['path-en']['tag']) ?>
+          <?php $this->print($fields['path-en']->tag()) ?>
         </td>
       </tr>
       <?php endif; ?>
       <?php if (isset($fields['path-de'])) :?>
       <tr>
         <td>
-          <label for="path-de"><?php $this->print($fields['path-de']['label']) ?></label>
+          <label for="path-de"><?php $this->print($fields['path-de']->label()) ?></label>
         </td>
         <td>
-          <?php $this->print($fields['path-de']['tag']) ?>
+          <?php $this->print($fields['path-de']->tag()) ?>
         </td>
       </tr>
       <?php endif; ?>
       <tr>
         <td>
-          <label for="moduleID"><?php $this->print($fields['moduleID']['label']) ?></label>
+          <label for="moduleId"><?php $this->print($fields['moduleId']->label()) ?></label>
         </td>
         <td>
-          <?php $this->print($fields['moduleID']['tag']) ?>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <label for="moduleConfig"><?php $this->print($fields['moduleConfig']['label']) ?></label>
-        </td>
-        <td>
-          <?php $this->print($fields['moduleConfig']['tag']) ?>
+          <?php $this->print($fields['moduleId']->tag()) ?>
         </td>
       </tr>
       <tr>
         <td>
-          <label for="clearanceLevel"><?php $this->print($fields['clearanceLevel']['label']) ?></label>
+          <label for="moduleConfig"><?php $this->print($fields['moduleConfig']->label()) ?></label>
         </td>
         <td>
-          <?php $this->print($fields['clearanceLevel']['tag']) ?>
+          <?php $this->print($fields['moduleConfig']->tag()) ?>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <label for="clearanceLevel"><?php $this->print($fields['clearanceLevel']->label()) ?></label>
+        </td>
+        <td>
+          <?php $this->print($fields['clearanceLevel']->tag()) ?>
         </td>
       </tr>
       <tr>
@@ -62,6 +62,6 @@
       </tr>
     </tbody>
   </table>
-  <?php $this->print($fields['handlerModule']['tag']) ?>
-  <?php $this->print($fields['handlerMethod']['tag']) ?>
+  <?php $this->print($fields['handlerModule']->tag()) ?>
+  <?php $this->print($fields['handlerMethod']->tag()) ?>
 </form>

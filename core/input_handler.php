@@ -20,11 +20,11 @@ class Input_Handler {
 	];
 
 
-	public static function processForm($formID)
+	public static function processForm($formId)
 	{
 		self::$model = new Input_HandlerModel();
 
-		$form = self::$model->getFormByID($formID);
+		$form = self::$model->getFormById($formId);
 
 		$process['success'] = false; // Only the handler controller should set it to true
 
@@ -32,7 +32,7 @@ class Input_Handler {
 		$process['ihError'] = '';
 
 		if (!$form) {
-			$process['ihError'] = 'Form with ID ' . $formID . 'not found.';
+			$process['ihError'] = 'Form with id ' . $formId . 'not found.';
 			return $process;
 		}
 		$process['formName'] = $form->formName;

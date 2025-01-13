@@ -11,7 +11,7 @@ abstract class Config {
 		// The debug mode switch: if set to TRUE, all debug functions will be available, including the debug panel
 		'debugMode' => true,
 
-		'logFile' => ENGINE . DS . 'sys.log',
+		'logFile' => ENGINE_DIR . DS . 'sys.log',
 
 		// The IP address of localhost
 		'localhostIP' => [
@@ -106,6 +106,7 @@ abstract class Config {
 				'de' => 'seite'
 			]
 		]
+
 	];
 
 
@@ -113,8 +114,8 @@ abstract class Config {
   // Reads data
   public static function init()
   {
-		if (file_exists(BASE . DS . self::$configFileName)) {
-    	include BASE . DS . self::$configFileName;
+		if (file_exists(BASE_DIR . DS . self::$configFileName)) {
+    	include BASE_DIR . DS . self::$configFileName;
     	self::$config = array_merge(self::$config, $config);
 		} else {
 			die('Something went wrong. Contact the administrator.');
@@ -122,17 +123,17 @@ abstract class Config {
   }
 
 
-	public static function _($record, $nullReturn = null)
+	public static function _($record, $NA = null)
 	{
-		return isset(self::$config[$record]) ? self::$config[$record] : $nullReturn;
+		return isset(self::$config[$record]) ? self::$config[$record] : $NA;
 	}
 
 
 	/*
 	 * Alias function for _()
 	 * */
-	public static function read($record)
+	public static function get($record, $NA = null)
 	{
-		return self::_($record);
+		return self::_($record, $NA);
 	}
 }

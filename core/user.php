@@ -10,7 +10,7 @@ class User {
 
 	private static $instantiated = false;
 
-	private $data = [];
+	private $data;
 	
 	/*
 	 * Users can be constructed with their ID, or username
@@ -27,8 +27,8 @@ class User {
 			self::$instantiated = true;
 		}
 
-		if ($key == 'ID') {
-			$this->data = self::$model->getUserByID($value);
+		if ($key == 'id') {
+			$this->data = self::$model->getUserById($value);
 		} elseif ($key == 'username') {
 			if ($value != '_guest') {
 				$this->data = self::$model->getUserByUsername($value);
@@ -36,7 +36,7 @@ class User {
 				// Loading default values
 				$this->data = new \stdClass();
 				$this->data->domain = DOMAIN;
-				$this->data->ID = 0;
+				$this->data->id = 0;
 				$this->data->username = '_guest';
 				$this->data->firstName = 'Guest';
 				$this->data->lastName = 'User';

@@ -26,7 +26,7 @@ class RouterModel {
 	}
 
 
-	public function getDomainByID($id)
+	public function getDomainById($id)
 	{
 		return Domain::find($id);
 	}
@@ -49,15 +49,15 @@ class RouterModel {
 			->join('domains', 'routes.domain_id', '=', 'domains.id')
 			->join('modules', 'routes.module_id', '=', 'modules.id')
 			->select(
-				'links.id as linkID',
+				'links.id as linkId',
 				'links.lang as linkLang',
 				'links.path_params as pathParams',
 				'links.query_string as queryString',
-				'routes.id as routeID',
+				'routes.id as routeId',
 				'routes.path as path',
 				'routes.module_config as moduleConfig',
 				'domains.domain as domain',
-				'domains.id as domainID',
+				'domains.id as domainId',
 				'modules.name as moduleName',
 				'modules.path_param_order as ppo'
 				)
@@ -107,27 +107,23 @@ class RouterModel {
 		}
 
 		foreach ($links as $link) {
-			$ID = $link->linkID;
-			unset($link->linkID);
-			$rlinks[$ID] = (array) $link;
+			$id = $link->linkId;
+			unset($link->linkId);
+			$rlinks[$id] = (array) $link;
 		}
 		return $rlinks;
 	}
 
 
-	public function getAvailableRoutes($domain = 'this')
+	public function getAvailableRoutes($domain = DOMAIN)
 	{
-		if ($domain == 'this') {
-			$domain = DOMAIN;
-		}
-
 		$routes = DB::table('routes')
 			->join('domains', 'routes.domain_id', '=', 'domains.id')
 			->join('modules', 'routes.module_id', '=', 'modules.id')
 			->select(
-				'routes.id as ID',
+				'routes.id as id',
 				'routes.path as path',
-				'routes.domain_id as domainID',
+				'routes.domain_id as domainId',
 				'routes.clearance_level as clearanceLevel',
 				'routes.module_config as moduleConfig',
 				'modules.name as moduleName',
@@ -155,9 +151,9 @@ class RouterModel {
 	}
 
 
-	public function getRouteByID(int $routeID)
+	public function getRouteById(int $routeId)
 	{
-		$route = Route::find($routeID);
+		$route = Route::find($routeId);
 
 		if ($route) {
 			// If the route is a string instead of an array, we use it with the default language

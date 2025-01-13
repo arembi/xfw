@@ -11,7 +11,7 @@ class IH_Static_PageBase extends Static_Page {
 	public function page_add()
 	{
 		$this->loadModel();
-		$routeID = Router::$POST['routeID'] === 0 ? null : Router::$POST['routeID'];
+		$routeId = Router::$POST['routeId'] === 0 ? null : Router::$POST['routeId'];
 		$pageTitle = [];
 		$pageContent = [];
 		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
@@ -25,7 +25,7 @@ class IH_Static_PageBase extends Static_Page {
 		$createdBy = Router::$POST['createdBy'];
 
 		$data = [
-			'routeID'=>$routeID,
+			'routeId'=>$routeId,
 			'title'=>$pageTitle,
 			'content'=>$pageContent,
 			'createdBy'=>$createdBy
@@ -44,8 +44,8 @@ class IH_Static_PageBase extends Static_Page {
 	public function page_update()
 	{
 		$this->loadModel();
-		$ID = Router::$POST['ID'];
-		$routeID = Router::$POST['routeID'];
+		$id = Router::$POST['id'];
+		$routeId = Router::$POST['routeId'];
 
 		$pageTitle = [];
 		$pageContent = [];
@@ -62,8 +62,8 @@ class IH_Static_PageBase extends Static_Page {
 		$createdBy = Router::$POST['createdBy'];
 
 		$pageData = [
-			'ID'=>$ID,
-			'routeID'=>$routeID,
+			'id'=>$id,
+			'routeId'=>$routeId,
 			'title'=>$pageTitle,
 			'content'=>$pageContent,
 			'createdBy'=>$createdBy
@@ -82,7 +82,7 @@ class IH_Static_PageBase extends Static_Page {
 	{
 		$this->loadModel();
 
-		if ($this->model->deletePage(Router::$POST['ID']) ) {
+		if ($this->model->deletePage(Router::$POST['id']) ) {
 			return [Router::IH_RESULT['ok'], 'Route has been deleted.'];
 		} else {
 			return [Router::IH_RESULT['error'], 'Route couldn\'t be deleted.'];

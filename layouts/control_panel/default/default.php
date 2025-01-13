@@ -1,12 +1,11 @@
 <header>
-  <span>Kijelentkezés</span>
   <span><?php $this->embed('user_status', ['layout'=>'with_id']); ?></span>
 </header>
-<aside>
+<div class="pure-menu pure-menu-horizontal">
   <?php foreach ($cpMenuItems as $item):
-    $item->render();
+    $item->processLayout()->render();
   endforeach; ?>
-</aside>
+</div>
 <main>
   <?php $this->print($main) ?>
 </main>

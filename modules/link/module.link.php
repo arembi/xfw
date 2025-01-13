@@ -30,12 +30,10 @@ use function Arembi\Xfw\Misc\parseHtmlAttributes;
 class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	protected static $hasModel = false;
-
-	private $href;
-
 	private $hrefRaw;
-
-	protected $options = [
+	private $href;
+	/*
+	$options = [
 		'href' => null,
 		'remove' => null, // remove parameters from the query string
 		'style' => null, // HTML attribute
@@ -48,8 +46,10 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 		'anchor' => null, // the anchor text
 		'queryParams'=>null,
 		'pageNumber' => null
-		];
-
+	]
+	*/
+	
+	
 	protected function main(&$options)
 	{
 		$lang = App::getLang();
@@ -61,106 +61,8 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		$this->hrefRaw = $options['href'];
 		
+		$this->href = Router::url($options['href'], $options);
 		
-		if (substr($options['href'], 0 ,2) === '//') {
-			$options['href'] = Router::getProtocol() . substr($options['href'], 2);
-		}
-
-		// First character in the href determines what to do
-		$href1 = $options['href'][0];
-		
-		// Constructing the href
-		if (in_array($href1, ['@', '+', '/'])) {
-
-			$hrefParts = explode('?', $options['href'], 2);
-
-			// Converting the queryString to an array
-			$queryStringParts = [];
-
-			// Getting data already present in the query string
-			if (isset($hrefParts[1])) {
-				parse_str($hrefParts[1], $queryStringParts);
-			}
-
-			// Assembling the href part
-			if ($href1 == '@') {
-				//System link mode
-
-				//The link will be generated based on the information stored in the
-				//database.
-
-				//Required values
-				//	ID: the id of the link record in the database
-				
-				$linkID = substr($hrefParts[0], 1);
-				$href = Router::href('link', $linkID);
-			} elseif ($href1 == '+') {
-				
-				//Route mode
-
-				//Required values
-				//	route: the route ID
-				//Optional values
-				//	lang: language marker (en, hu etc.), the current language will be used if not given
-				//		(if a route is not available, a 404 error will be thrown)
-				//Usage example:
-				//	href = "+route=19+lang=hu+pathParam1=abc+pathParam2=xyz"
-				//	anchor = "sometext"
-				//
-				$data = [];
-
-				$params = explode('+', substr($hrefParts[0], 1));
-
-				foreach ($params as $p) {
-					$cp = explode('=', $p, 2);
-
-					$data[trim($cp[0])] = trim($cp[1]);
-				}
-
-				$href = Router::href('route', $data);
-
-			} else {
-				// Starts with a /
-				$href = [
-					'lang' => $lang,
-					'base' => Router::gethostURL() . $hrefParts[0],
-					'queryStringParts' => $queryStringParts
-					];
-			}
-			
-			if (is_array($href) && $href['base']) {
-				// Adding the page number to the query string
-				if (!empty($options['pageNumber'])) {
-					$queryStringParts[Router::getPaginationParams()[$href['lang']]] = $options['pageNumber'];
-				}
-
-				$queryStringParts = array_merge($queryStringParts, $href['queryStringParts']);
-
-				if (isset($options['queryParams']) && is_array($options['queryParams'])) {
-					$queryStringParts = array_merge($queryStringParts, $options['queryParams']);
-				}
-
-				// Elements in the query string can be removed with the remove moduleVar
-				if (isset($options['remove']) && is_array($options['remove'])) {
-					$queryStringParts = array_diff_key($queryStringParts, array_flip($options['remove']));
-				}
-
-				// The directly given parameters will override the saved ones
-				$queryString = http_build_query($queryStringParts);
-
-				// Adding the questionmark if it was not present
-				if ($queryString && strpos($href['base'], '?') === false) {
-					$queryString = '?' . $queryString;
-				}
-				$options['href'] = $href['base'] . $queryString;
-			} else {
-				Debug::alert('href ' . $options['href'] . ' does not exist in the system.', 'w');
-				$this->layoutHTML = false;
-			}
-		}
-
-		$this->href = $options['href'];
-
 		if (Router::getFullURL() == $this->href) {
 			$class = 'origo ';
 		} else {

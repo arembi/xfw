@@ -29,7 +29,7 @@ abstract class App {
 	private static $registeredModules = [];
 
 	// Autoincrementing inner identifier for embedded modules
-	private static $registeredModuleID;
+	private static $registeredModuleId;
 
 	// Path parameter translation rules for modules
 	private static $pathParamOrders = [];
@@ -55,7 +55,7 @@ abstract class App {
 		self::loadConfigAndDebug();
 
 		// Loading scripts from the engine include directory
-		self::loadScriptsFromDirectory(ENGINE . DS . 'include') ;
+		self::loadScriptsFromDirectory(ENGINE_DIR . DS . 'include') ;
 
 		// Load libraries from other vendors
 		self::loadThirdPartyLibs();
@@ -72,8 +72,8 @@ abstract class App {
 		$pageloadTimer->mark();
 
 		// Apply charset settings
-		mb_language(Config::_('mbLanguage'));
-		mb_internal_encoding(Config::_('mbInternalEncoding'));
+		mb_language(Config::get('mbLanguage'));
+		mb_internal_encoding(Config::get('mbInternalEncoding'));
 
 		// Establishing database connection and interface
 		Database::init();
@@ -85,14 +85,14 @@ abstract class App {
 		Router::init();
 		Router::getEnvironment();
 
-		if (Config::_('debugMode') && IS_LOCALHOST) {
+		if (Config::get('debugMode') && IS_LOCALHOST) {
 			error_reporting(E_ALL);
 		}
 
 		Debug::alert('Router initialized');
 
 		// Loading scripts from the domain's include directory
-		self::loadScriptsFromDirectory(DOMAIN_DIRECTORY . DS . 'include') ;
+		self::loadScriptsFromDirectory(DOMAIN_DIR . DS . 'include') ;
 
 		// Initializing sessions
 		Session::init();
@@ -140,7 +140,7 @@ abstract class App {
 		Debug::alert('Active user: ' . $_SESSION['user']->get('username'));
 
 		// Initializing inner autoincrementing ID
-		self::$registeredModuleID = 0;
+		self::$registeredModuleId = 0;
 
 		//Setting the module option for the document module
 		$documentModuleOptions = [
@@ -169,7 +169,7 @@ abstract class App {
 		Debug::alert('Memory usage: ' . number_format(memory_get_usage() / (1024 * 1024), 4) . ' MB', 'i');
 		Debug::alert('Memory peak usage: ' . number_format(memory_get_peak_usage() / (1024 * 1024), 4) . ' MB', 'i');
 
-		if (Config::_('debugMode') && IS_LOCALHOST) {
+		if (Config::get('debugMode') && IS_LOCALHOST) {
 			// Show debug messages
 			Debug::render();
 		}
@@ -178,14 +178,14 @@ abstract class App {
 
 	private static function loadConfigAndDebug()
 	{
-		$configFile = CORE . DS .'config.php';
+		$configFile = CORE_DIR . DS .'config.php';
 		if (file_exists($configFile)) {
 			require($configFile);
 			Config::init();
 		} else {
 			die ('Inappropriate configuration, please contact the adminisrator');
 		}
-		$debugFile = CORE . DS .'debug.php';
+		$debugFile = CORE_DIR . DS .'debug.php';
 		if (file_exists($debugFile)) {
 			require($debugFile);
 		} else {
@@ -197,7 +197,7 @@ abstract class App {
 	private static function loadCore()
 	{
 		// The base models
-		$files = glob(ENGINE . DS . 'models' . DS . '*.php');
+		$files = glob(ENGINE_DIR . DS . 'models' . DS . '*.php');
 		foreach ($files as $file) {
 			include($file);
 		}
@@ -206,7 +206,7 @@ abstract class App {
 		foreach (self::$coreModules as $module) {
 			// The controller
 			$controllerFileName = $module . '.php';
-			$controllerFile = CORE . DS . $controllerFileName;
+			$controllerFile = CORE_DIR . DS . $controllerFileName;
 
 			if (file_exists($controllerFile)) {
 				include($controllerFile);
@@ -217,7 +217,7 @@ abstract class App {
 
 			// The model
 			$modelFileName = 'model.' . $module . '.php';
-			$modelFile  = CORE . DS . $modelFileName;
+			$modelFile  = CORE_DIR . DS . $modelFileName;
 
 			if (file_exists($modelFile)) {
 				require($modelFile);
@@ -228,8 +228,8 @@ abstract class App {
 		// Additionally we have to load the model of appCore here, because it extends the previously loaded ModelCore class
 		$modelFileName = 'model.app.php';
 
-		if (file_exists(CORE . DS . $modelFileName)) {
-			require(CORE . DS . $modelFileName);
+		if (file_exists(CORE_DIR . DS . $modelFileName)) {
+			require(CORE_DIR . DS . $modelFileName);
 			Debug::alert('Model for core module %app successfully loaded.', 'o');
 		} else {
 			Debug::alert('Model for core module %app could not be loaded.', 'w');
@@ -273,7 +273,7 @@ abstract class App {
 
 		/*
 		 * Module behaviour can be modified distinctly for every domain
-		 * If there is a proper file in the SITES/[domain]/modules directory, that
+		 * If there is a proper file in the SITES_DIR/[domain]/modules directory, that
 		 * class can extend the basic module
 		 * */
 		foreach (self::$installedModules as $currentModule) {
@@ -284,8 +284,8 @@ abstract class App {
 
 				$loaded = false;
 
-				if (file_exists(ENGINE . DS . $moduleFilePath)) {
-					include(ENGINE . DS . $moduleFilePath);
+				if (file_exists(ENGINE_DIR . DS . $moduleFilePath)) {
+					include(ENGINE_DIR . DS . $moduleFilePath);
 					$loaded = true;
 					Debug::alert('Base module %' . $moduleName . ' successfully loaded.', 'o');
 				} else {
@@ -293,8 +293,8 @@ abstract class App {
 				}
 
 				// Looking for overrides
-				if (file_exists(SITES . DS . DOMAIN . DS . $moduleFilePath)) {
-					include(SITES . DS . DOMAIN . DS . $moduleFilePath);
+				if (file_exists(SITES_DIR . DS . DOMAIN . DS . $moduleFilePath)) {
+					include(SITES_DIR . DS . DOMAIN . DS . $moduleFilePath);
 					Debug::alert('Override for module %' . $moduleName . ' successfully loaded and activated.', 'o');
 					$loaded = true;
 				} elseif ($loaded) {
@@ -321,8 +321,8 @@ abstract class App {
 
 						$loaded = false;
 
-						if (file_exists(ENGINE . DS . $modelFilePath)) {
-							include(ENGINE . DS . $modelFilePath);
+						if (file_exists(ENGINE_DIR . DS . $modelFilePath)) {
+							include(ENGINE_DIR . DS . $modelFilePath);
 							Debug::alert('Base model for module %' . $moduleName . ' successfully loaded and activated.', 'o');
 							$loaded = true;
 						} else {
@@ -330,8 +330,8 @@ abstract class App {
 						}
 
 						// Looking for overrides
-						if (file_exists(DOMAIN_DIRECTORY . DS . $modelFilePath)) {
-							include(DOMAIN_DIRECTORY . DS . $modelFilePath);
+						if (file_exists(DOMAIN_DIR . DS . $modelFilePath)) {
+							include(DOMAIN_DIR . DS . $modelFilePath);
 							Debug::alert('Override for model of module %' . $moduleName . ' successfully loaded and activated.', 'o');
 							$loaded = true;
 						} elseif($loaded) {
@@ -349,7 +349,7 @@ abstract class App {
 		}
 
 		// Loading domain specific models
-		$domainSpecificModels = glob(DOMAIN_DIRECTORY . DS . 'models' . DS . '*.php');
+		$domainSpecificModels = glob(DOMAIN_DIR . DS . 'models' . DS . '*.php');
 
 		foreach ($domainSpecificModels as $m) {
 			include($m);
@@ -366,7 +366,7 @@ abstract class App {
 		 * they are not listed in the db, so adding them manually
 		 * */
 		$document = new \stdClass();
-		$document->ID = 0;
+		$document->id = 0;
 		$document->name = 'document';
 		$document->class = 'system';
 		$document->active = 1;
@@ -374,7 +374,7 @@ abstract class App {
 		$document->pathParamOrder = null;
 
 		$head = new \stdClass();
-		$head->ID = 0;
+		$head->id = 0;
 		$head->name = 'head';
 		$head->class = 'system';
 		$head->active = 1;
@@ -382,7 +382,7 @@ abstract class App {
 		$head->pathParamOrder = null;
 
 		$bodyStart = new \stdClass();
-		$bodyStart->ID = 0;
+		$bodyStart->id = 0;
 		$bodyStart->name = 'body_start';
 		$bodyStart->class = 'system';
 		$bodyStart->active = 1;
@@ -390,7 +390,7 @@ abstract class App {
 		$bodyStart->pathParamOrder = null;
 
 		$bodyEnd = new \stdClass();
-		$bodyEnd->ID = 0;
+		$bodyEnd->id = 0;
 		$bodyEnd->name = 'body_end';
 		$bodyEnd->class = 'system';
 		$bodyEnd->active = 1;
@@ -398,7 +398,7 @@ abstract class App {
 		$bodyEnd->pathParamOrder = null;
 
 		$image = new \stdClass();
-		$image->ID = 0;
+		$image->id = 0;
 		$image->name = 'image';
 		$image->class = 'system';
 		$image->active = 1;
@@ -423,7 +423,7 @@ abstract class App {
 		$addon = strtolower($addon);
 		$module = strtolower($module);
 
-		$addons = Config::_('moduleAddons');
+		$addons = Config::get('moduleAddons');
 
 		// If a module has been requested which hasn't been installed, or
 		// there is no such addon, we return false
@@ -436,8 +436,8 @@ abstract class App {
 
 		$loaded = false;
 
-		if (file_exists(ENGINE . DS . $addonFilePath)) {
-			include(ENGINE . DS . $addonFilePath);
+		if (file_exists(ENGINE_DIR . DS . $addonFilePath)) {
+			include(ENGINE_DIR . DS . $addonFilePath);
 			$loaded = true;
 			Debug::alert('Base module addon ' . $addonName . ' for %' . $module . ' successfully loaded.', 'o');
 		} else {
@@ -445,8 +445,8 @@ abstract class App {
 		}
 
 		// Looking for overrides
-		if (file_exists(SITES . DS . DOMAIN . DS . $addonFilePath)) {
-			include(SITES . DS . DOMAIN . DS . $addonFilePath);
+		if (file_exists(SITES_DIR . DS . DOMAIN . DS . $addonFilePath)) {
+			include(SITES_DIR . DS . DOMAIN . DS . $addonFilePath);
 			Debug::alert('Override for module addon ' . $addonName . ' for %' . $module . ' successfully loaded and activated.', 'o');
 			$loaded = true;
 		} elseif ($loaded) {
@@ -465,7 +465,7 @@ abstract class App {
 	private static function loadThirdPartyLibs()
 	{
 		// Composer Autoload
-		$composerAutoloadFile = ENGINE . DS . 'vendor' . DS . 'autoload.php';
+		$composerAutoloadFile = ENGINE_DIR . DS . 'vendor' . DS . 'autoload.php';
 		if (file_exists($composerAutoloadFile))	{
 			require($composerAutoloadFile);
 			Debug::alert('Composer libraries loaded.', 'o');
@@ -547,8 +547,8 @@ abstract class App {
 	// Register all instantiated modules as an array
 	public static function registerModule(&$moduleObject)
 	{
-		self::$registeredModules[self::$registeredModuleID] = $moduleObject;
-		return self::$registeredModuleID ++;
+		self::$registeredModules[self::$registeredModuleId] = $moduleObject;
+		return self::$registeredModuleId ++;
 	}
 
 
@@ -559,9 +559,9 @@ abstract class App {
 	}
 
 
-	public static function getRegisteredModule($ID)
+	public static function getRegisteredModule($id)
 	{
-		return self::$registeredModules[$ID] ?? false;
+		return self::$registeredModules[$id] ?? false;
 	}
 
 
@@ -571,30 +571,20 @@ abstract class App {
 	}
 
 	// Implement it if needed
-	//public static function unlistModule(string $name, int $ID) {}
+	//public static function unlistModule(string $name, int $id) {}
 
 	// Returns the path parameter order for the requested module
 	public static function getPathParamOrder($moduleName)
 	{
-		// The extensions like control panel  (CP_) and form handler (FH_) have no different PPO
+		// The extensions like control panel  (CP_) and form handler (IH_) have no different PPO
 		// They get the basemodule's PPO
 		$parts = explode('_', $moduleName, 2);
 
-		if (in_array(strtolower($parts[0]), array_keys(Config::_('moduleAddons')))) {
+		if (in_array(strtolower($parts[0]), array_keys(Config::get('moduleAddons')))) {
 			$moduleName = $parts[1];
 		}
 
 		return self::$pathParamOrders[$moduleName];
-	}
-
-
-	// Halt & Catch Fire
-	// Stops the execution and optionally displays a message
-	public static function hcf($message = '')
-	{
-		print_r($message);
-		Debug::render();
-		exit;
 	}
 
 
@@ -609,5 +599,12 @@ abstract class App {
 		return self::$model->getUsersByDomain($domain);
 	}
 
-
+	// Halt & Catch Fire
+	// Stops the execution and optionally displays a message
+	public static function hcf($message = '')
+	{
+		Debug::alert($message, 'f');
+		Debug::render();
+		exit;
+	}
 }

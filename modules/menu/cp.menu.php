@@ -5,26 +5,29 @@ use Arembi\Xfw\Core\Router;
 
 class CP_MenuBase extends Menu {
 
-	public static $cpMenu = [
-		'title' => [
-			'hu' => 'Menük',
-			'en' => 'Menus'
-		],
-		'items' => [
-			['home', [
-				'hu' => 'Info',
-				'en' => 'Info']
+	public static function menu()
+	{
+		return [
+			'title' => [
+				'hu' => 'Menük',
+				'en' => 'Menus'
 			],
-			['menu_list', [
-				'hu' => 'Lista',
-				'en' => 'List']
-			],
-			['menu_new', [
-				'hu' => 'Új',
-				'en' => 'New']
+			'items' => [
+				['home', [
+					'hu' => 'Info',
+					'en' => 'Info']
+				],
+				['menu_list', [
+					'hu' => 'Lista',
+					'en' => 'List']
+				],
+				['menu_new', [
+					'hu' => 'Új',
+					'en' => 'New']
+				]
 			]
-		]
-	];
+		];
+	}
 
 	public function home()
 	{
@@ -39,12 +42,12 @@ class CP_MenuBase extends Menu {
 
 	public function menu_list()
 	{
-		$menus = $this->model->getMenusByDomainID();
+		$menus = $this->model->getMenusByDomainId();
 
 		foreach ($menus as &$menu) {
-			$editLink = new Link(['anchor' => 'edit', 'href' => '?task=menu_edit&id=' . $menu->ID]);
+			$editLink = new Link(['anchor' => 'edit', 'href' => '?task=menu_edit&id=' . $menu->id]);
 			$menu->editLink = $editLink->processLayout()->getLayoutHTML();
-			$deleteLink = new Link(['anchor' => 'delete', 'href' => '?task=menu_delete&id=' . $menu->ID]);
+			$deleteLink = new Link(['anchor' => 'delete', 'href' => '?task=menu_delete&id=' . $menu->id]);
 			$menu->deleteLink = $deleteLink->processLayout()->getLayoutHTML();
 		}
 		unset($menu);
@@ -68,7 +71,7 @@ class CP_MenuBase extends Menu {
 			<tbody>
 			<?php foreach($menus as $i => $menu):?>
 				<tr>
-					<td title="ID"><?php echo $menu->ID;?></td>
+					<td title="ID"><?php echo $menu->id;?></td>
 					<td title="name"><?php echo $menu->name?></td>
 					<td title="type"><?php echo $menu->type?></td>
 					<td title="created at"><?php echo $menu->createdAt?></td>
@@ -89,39 +92,41 @@ class CP_MenuBase extends Menu {
 		$form = new Form(['handlerModule' => 'menu', 'handlerMethod' => 'menu_new'], false);
 
 		// name
-        $form->addField('name');
-		$form->setFieldLabel('name', 'Name');
+        $form->addField('name')
+			->label('Name');
 
         // type
 		$typeSelectOptions = [
             'p' => ['value' => 'p'],
             's' => ['value' => 's']
         ];
-        $form->addField('type', 'select');
-		$form->setFieldLabel('type', 'Type');
-		$form->setFieldOptions('type', $typeSelectOptions);
+        $form->addField('type', 'select')
+			->label('Type')
+			->options($typeSelectOptions);
 
-		$form->build();
-		$form->render();
+		$form
+			->build()
+			->processLayout()
+			->render();
 	}
 
 
 
 	public function menu_edit()
 	{
-		$menu = $this->model->getMenuByMenuID(Router::$GET['id']);
+		$menu = $this->model->getMenuByMenuId(Router::$GET['id']);
 
 		$form = new Form(['handlerModule' => 'menu', 'handlerMethod' => 'menu_update'], false);
 
 		// ID
-		$form->addField('ID');
-		$form->setFieldAttributes('ID', ['value' => $menu->id, 'readonly' => true]);
-		$form->setFieldLabel('ID', 'ID');
+		$form->addField('id')
+			->attributes(['value' => $menu->id, 'readonly' => true])
+			->label('ID');
 
         // name
-        $form->addField('name');
-		$form->setFieldLabel('name', 'Name');
-		$form->setFieldAttribute('name', 'value', $menu->name);
+        $form->addField('name')
+			->label('Name')
+			->attribute('value', $menu->name);
 
 		// type
 		$typeSelectOptions = [
@@ -130,22 +135,24 @@ class CP_MenuBase extends Menu {
         ];
 		$typeSelectOptions[$menu->type]['selected'] = 'selected';
 
-		$form->addField('type', 'select');
-		$form->setFieldLabel('type', 'Type');
-		$form->setFieldOptions('type', $typeSelectOptions);
+		$form->addField('type', 'select')
+			->label('Type')
+			->options($typeSelectOptions);
 
 		// Created At
-		$form->addField('createdAt');
-		$form->setFieldAttributes('createdAt', ['value' => $menu->createdAt, 'readonly' => true]);
-		$form->setFieldLabel('createdAt', 'CA');
+		$form->addField('createdAt')
+			->attributes(['value' => $menu->createdAt, 'readonly' => true])
+			->label('CA');
 
         // Updated At
-		$form->addField('updatedAt');
-		$form->setFieldAttributes('updatedAt', ['value' => $menu->updatedAt, 'readonly' => true]);
-		$form->setFieldLabel('updatedAt', 'UA');
+		$form->addField('updatedAt')
+			->attributes(['value' => $menu->updatedAt, 'readonly' => true])
+			->label('UA');
 
-		$form->build();
-		$form->render();?>
+		$form
+			->build()
+			->processLayout()
+			->render();?>
 
 		<table>
 			<thead>
@@ -161,7 +168,7 @@ class CP_MenuBase extends Menu {
 				$menuitemLink = new Link(['anchor' => 'edit', 'href' => '?task=menuitem_edit&id=' . $menuitem->id]);
 				
 				if ($menuitem->item['type'] == 'menu') {
-					$menu = $this->model->getMenuByMenuID($menuitem->item['id']);
+					$menu = $this->model->getMenuByMenuId($menuitem->item['id']);
 					$label = $menu->name ?? 'submenu';
 				} else {
 					$link = new Link(['anchor'=>$menuitem->item['anchorText'], 'href'=>$menuitem->item['href']]);
@@ -173,7 +180,7 @@ class CP_MenuBase extends Menu {
 					<td><?php echo $menuitem->id ?></td>
 					<td><?php echo $menuitem->item['type'] ?></td>
 					<td><?php echo $label ?></td>
-					<td><?php $menuitemLink->render() ?></td>
+					<td><?php $menuitemLink->processLayout()->render() ?></td>
 				</tr>
 			<?php endforeach;?>
 			</tbody>
@@ -184,15 +191,17 @@ class CP_MenuBase extends Menu {
 
 	public function menu_delete()
 	{
-		$ID = Router::$GET['id'];
+		$id = Router::$GET['id'];
 
 		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_delete']);
-		$form->addField('ID');
-		$form->setFieldAttributes('ID', ['value' => $ID, 'readonly' => true]);
-		$form->setFieldLabel('ID', 'ID');
+		$form->addField('id')
+			->attributes(['value' => $id, 'readonly' => true])
+			->label('ID');
 
-		$form->build();
-		$form->render();
+		$form
+			->build()
+			->processLayout()
+			->render();
 
 	}
 
@@ -205,7 +214,7 @@ class CP_MenuBase extends Menu {
 
 	public function menuitem_edit()
 	{
-		$menu = $this->model->getMenuByMenuID(Router::$GET['id']);
+		$menu = $this->model->getMenuByMenuId(Router::$GET['id']);
 
 	}
 

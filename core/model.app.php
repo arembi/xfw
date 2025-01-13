@@ -26,7 +26,7 @@ class AppModel {
 			->leftJoin('module_module_category', 'modules.id', '=', 'module_module_category.module_id' )
 			->leftJoin('module_categories', 'module_module_category.module_category_id', '=', 'module_categories.id' )
 			->select(
-				'modules.id as ID',
+				'modules.id as id',
 				'modules.name as name',
 				'modules.class as class',
 				'modules.priority as priority',
@@ -59,14 +59,14 @@ class AppModel {
 			->join('user_groups', 'user_domain_user_group.user_group_id', '=', 'user_groups.id')
 			->join('domains', 'user_domain_user_group.domain_id', '=', 'domains.id')
 			->select(
-				'users.id as ID',
+				'users.id as id',
 				'users.username as username',
 				'users.first_name as firstName',
 				'users.last_name as lastName',
 				'users.email as email',
 				'users.phone as phone',
 				'users.address as address',
-				'users.default_language_id as defaultLanguageID',
+				'users.default_language_id as defaultLanguageId',
 				'users.password as password',
 				'user_groups.name as userGroup',
 				'user_groups.clearance_level as clearanceLevel'
@@ -88,14 +88,14 @@ class AppModel {
 			->join('user_groups', 'user_domain_user_group.user_group_id', '=', 'user_groups.id')
 			->join('domains', 'user_domain_user_group.domain_id', '=', 'domains.id')
 			->select(
-				'users.id as ID',
+				'users.id as id',
 				'users.username as username',
 				'users.first_name as firstName',
 				'users.last_name as lastName',
 				'users.email as email',
 				'users.phone as phone',
 				'users.address as address',
-				'users.default_language_id as defaultLanguageID',
+				'users.default_language_id as defaultLanguageId',
 				'users.password as password',
 				'user_groups.name as userGroup',
 				'user_groups.clearance_level as clearanceLevel'

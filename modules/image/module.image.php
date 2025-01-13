@@ -1,12 +1,24 @@
 <?php
 
 namespace Arembi\Xfw\Module;
-use Arembi\Xfw\Core\App;
+
+use \Arembi\Xfw\Core\Router;
+use function \Arembi\Xfw\Misc\parseHtmlAttributes;
 
 class ImageBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	protected static $hasModel = false;
 	/*
+	$options = [
+		src,
+		id,
+		class,
+		alt,
+		title,
+		style,
+		width,
+		height
+	]
 	 * options
 	 * src
 	 * 	can be a href or an internal identifier
@@ -29,12 +41,8 @@ class ImageBase extends \Arembi\Xfw\Core\ModuleCore {
 		$attributes['width'] = $options['width'] ?? null;
 		$attributes['height'] = $options['height'] ?? null;
 
-		$link = new Link(['href'=> $options['src']]);
+		$attributes['src'] = Router::url($options['src']);
 
-		$attributes['src'] = $link->getHref();
-
-		$a = \Arembi\Xfw\Misc\parseHtmlAttributes($attributes);
-
-		$this->lv('attributes', $a);
+		$this->lv('attributes', parseHtmlAttributes($attributes));
 	}
 }

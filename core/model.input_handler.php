@@ -5,14 +5,14 @@ use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\Models\Form;
 
 class Input_HandlerModel {
-	public function getFormByID(int $formID)
+	public function getFormById(int $formId)
 	{
 		$form = DB::table('forms')
 			->leftJoin('form_module', 'forms.id', '=', 'form_module.form_id')
 			->leftJoin('modules', 'form_module.module_id', '=', 'modules.id')
-			->where('forms.id', $formID)
+			->where('forms.id', $formId)
 			->select(
-				'forms.id AS formID',
+				'forms.id AS formId',
 				'forms.name AS formName',
 				'forms.fields AS formFields',
 				'forms.action_url AS actionUrl',
@@ -36,7 +36,7 @@ class Input_HandlerModel {
 			->leftJoin('modules', 'form_module.module_id', '=', 'modules.id')
 			->where('forms.name', $formName)
 			->select(
-				'forms.id AS formID',
+				'forms.id AS formId',
 				'forms.name AS formName',
 				'forms.fields AS formFields',
 				'forms.action_url AS actionUrl',

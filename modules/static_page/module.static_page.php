@@ -26,12 +26,12 @@ class Static_PageBase extends \Arembi\Xfw\Core\ModuleCore {
 			]
 		];
 
-		if (empty($options['ID'])) {
-			$routeID = Router::getMatchedRouteID();
-			$page = $this->model->getPageByRouteID($routeID);
+		if (empty($options['id'])) {
+			$routeId = Router::getMatchedRouteId();
+			$page = $this->model->getPageByRouteId($routeId);
 		} else {
-			$ID = $options['ID'];
-			$page = $this->model->getPages([$ID]);
+			$id = $options['id'];
+			$page = $this->model->getPages([$id]);
 		}
 
 		$lang = App::getLang();
@@ -40,7 +40,7 @@ class Static_PageBase extends \Arembi\Xfw\Core\ModuleCore {
 			// If the page was not found
 			$contentTitle = $this->unavailableInfo[$lang]['contentTitle'] ?? '';
 			$content = $this->unavailableInfo[$lang]['content'] ?? '';
-			$ID = 0;
+			$id = 0;
 
 			$createdAt = false;
 			$createdBy = false;
@@ -48,7 +48,7 @@ class Static_PageBase extends \Arembi\Xfw\Core\ModuleCore {
 
 		} else {
 			// The page was found, preparing content and meta information
-			$ID = $page->ID;
+			$id = $page->id;
 
 			if (!empty($page->seoDescription[$lang])) {
 				Seo::metaDescription($page->seoDescription[$lang]);

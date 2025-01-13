@@ -197,10 +197,9 @@ function getFileExtension($path)
 }
 
 
-function decodeIfJSON($string, $jsonFlag)
+function decodeIfJSON($string, $associative = null, $depth = 512, $flags = 0)
 {
-	$result = json_decode($string, $jsonFlag);
-	return (json_last_error() === JSON_ERROR_NONE) ? $result : $string;
+	return json_validate($string, $depth, $flags) ? json_decode($string, $associative, $depth, $flags) : $string;
 }
 
 

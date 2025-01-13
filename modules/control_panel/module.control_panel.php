@@ -25,7 +25,7 @@ their own operating area
 
 class Control_PanelBase extends \Arembi\Xfw\Core\ModuleCore {
 
-	public function main(&$options)
+	public function main()
 	{
 		$this->loadPathParams();
 
@@ -46,18 +46,19 @@ class Control_PanelBase extends \Arembi\Xfw\Core\ModuleCore {
 		foreach (App::getActiveModules('name') as $module) {
 			if (App::loadModuleAddon($module, 'cp') === true) {
 				$addon = 'Arembi\Xfw\Module\CP_' . $module;
+				$cpMenu = $addon::menu();
 
 				// Module integration to CP menu
-				if (!empty($addon::$cpMenu)) {
+				if (!empty($cpMenu)) {
 					$addonMenuData = [
 						'showTitle' => true,
-						'title' => $addon::$cpMenu['title'][$lang] ?? array_values($addon::$cpMenu['title'])[0] ?? $addon::$cpMenu,
+						'title' => $cpMenu['title'][$lang] ?? array_values($cpMenu['title'])[0] ?? $cpMenu,
 					];
 
-					foreach ($addon::$cpMenu['items'] as $item) {
+					foreach ($cpMenu['items'] as $item) {
 						$addonMenuData['items'][] = [
 							'anchorText' => $item[1][$lang] ?? array_values($item[1])[0] ?? $item[1],
-							'href' => '+route=' . Router::getMatchedRouteID() . '+module=' . $module . '?task=' . $item[0]
+							'href' => '+route=' . Router::getMatchedRouteId() . '+module=' . $module . '?task=' . $item[0]
 						];
 					}
 

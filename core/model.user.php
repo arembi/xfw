@@ -6,13 +6,13 @@ use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\Models\User;
 
 class UserModel {
-	public function getUserByID(int $id, $domain = null)
+	public function getUserById(int $id, $domain = null)
 	{
 
 		if ($domain === null) {
-			$domainID = DOMAIN_ID;
+			$domainId = DOMAIN_ID;
 		} else {
-			$domainID = Router::getDomainID($domain);
+			$domainId = Router::getDomainId($domain);
 		}
 
 		$user = DB::table('users')
@@ -20,21 +20,21 @@ class UserModel {
 			->join('user_groups', 'user_domain_user_group.user_group_id', '=', 'user_groups.id')
 			->join('domains', 'user_domain_user_group.domain_id', '=', 'domains.id')
 			->select(
-				'users.id as ID',
+				'users.id as id',
 				'users.username',
 				'users.first_name as firstName',
 				'users.last_name as lastName',
 				'users.email',
 				'users.phone',
 				'users.address',
-				'users.default_language_id as defaultLanguageID',
+				'users.default_language_id as defaultLanguageId',
 				'users.password',
 				'user_groups.name as userGroup',
 				'user_groups.clearance_level as clearanceLevel',
-				'domains.id as domainID'
+				'domains.id as domainId'
 				)
 			->where('users.id', $id)
-			->where('user_domain_user_group.domain_id', $domainID)
+			->where('user_domain_user_group.domain_id', $domainId)
 			->first();
 
 		return $user();
@@ -44,9 +44,9 @@ class UserModel {
 	{
 
 		if ($domain === null) {
-			$domainID = DOMAIN_ID;
+			$domainId = DOMAIN_ID;
 		} else {
-			$domainID = Router::getDomainID($domain);
+			$domainId = Router::getDomainId($domain);
 		}
 
 		$user = DB::table('users')
@@ -54,21 +54,21 @@ class UserModel {
 			->join('user_groups', 'user_domain_user_group.user_group_id', '=', 'user_groups.id')
 			->join('domains', 'user_domain_user_group.domain_id', '=', 'domains.id')
 			->select(
-				'users.id as ID',
+				'users.id as id',
 				'users.username',
 				'users.first_name as firstName',
 				'users.last_name as lastName',
 				'users.email',
 				'users.phone',
 				'users.address',
-				'users.default_language_id as defaultLanguageID',
+				'users.default_language_id as defaultLanguageId',
 				'users.password',
 				'user_groups.name as userGroup',
 				'user_groups.clearance_level as clearanceLevel',
-				'domains.id as domainID'
+				'domains.id as domainId'
 				)
 			->where('users.username', $username)
-			->where('user_domain_user_group.domain_id', $domainID)
+			->where('user_domain_user_group.domain_id', $domainId)
 			->first();
 
 		return $user;

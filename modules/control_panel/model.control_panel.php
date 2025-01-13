@@ -1,7 +1,6 @@
 <?php
 namespace Arembi\Xfw\Module;
 
-use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Settings;
@@ -15,11 +14,11 @@ class Control_PanelBaseModel {
 		if (!isset($data['path']) || empty($data['path']) || !is_array($data['path'])) {
 			return false;
 		}
-		if (!isset($data['domainID']) || !is_numeric($data['domainID'])) {
-			$data['domainID'] = DOMAIN_ID;
+		if (!isset($data['domainId']) || !is_numeric($data['domainId'])) {
+			$data['domainId'] = DOMAIN_ID;
 		}
-		if (!isset($data['moduleID']) || !is_numeric($data['moduleID'])) {
-			$data['moduleID'] = App::moduleInfo('name', 'static_page')->ID;
+		if (!isset($data['moduleId']) || !is_numeric($data['moduleId'])) {
+			$data['moduleId'] = App::moduleInfo('name', 'static_page')->id;
 		}
 		if (!isset($data['clearanceLevel']) || !is_numeric($data['clearanceLevel'])) {
 			$data['clearanceLevel'] = 0;
@@ -29,6 +28,7 @@ class Control_PanelBaseModel {
 		}
 
 		$avLangs = Settings::get('availableLanguages');
+		
 		$takenRoutes = Router::getRoutes()
 			->pluck('path')
 			->map(function ($path) use ($avLangs){
@@ -41,21 +41,21 @@ class Control_PanelBaseModel {
 				return $path;
 			})
 			->toArray();
-
-		$newHasRoutes = false;
+		
 		$newOK = true;
 		$newPath = [];
 
 		// Route
 		// Checking whether there are already taken routes
+		$nofAvLangs = count($avLangs);
+		$nofTakenRoutes = count($takenRoutes);
+
 		$i = 0;
 		$j = 0;
-		$l = count($avLangs);
 
-		while ($newOK && $i < $l) {
+		while ($newOK && $i < $nofAvLangs) {
+
 			if (!empty($data['path'][$avLangs[$i][0]])) {
-				$newHasRoutes = true;
-
 				$newPath[$avLangs[$i][0]] = $data['path'][$avLangs[$i][0]];
 				if ($newPath[$avLangs[$i][0]] !== '/') {
 					// Adding the required '/' to the beginning of the route if missing
@@ -64,12 +64,10 @@ class Control_PanelBaseModel {
 					}
 
 					// Removing slashes from the end of the URL
-					if ($newPath[$avLangs[$i][0]] !== '/') {
-						$newPath[$avLangs[$i][0]] = rtrim($newPath[$avLangs[$i][0]], '/');
-					}
+					$newPath[$avLangs[$i][0]] = rtrim($newPath[$avLangs[$i][0]], '/');
 				}
 
-				while ($j < count($takenRoutes) && $newOK) {
+				while ($j < $nofTakenRoutes && $newOK) {
 					if (isset($takenRoutes[$j][$avLangs[$i][0]])
 					&& $takenRoutes[$j][$avLangs[$i][0]] == $newPath[$avLangs[$i][0]]) {
 						$newOK = false;
@@ -82,11 +80,18 @@ class Control_PanelBaseModel {
 
 		if ($newOK) {
 			$r = new Route();
-			$r->domain_id = $data['domainID'];
+			$r->domain_id = $data['domainId'];
 			$r->path = $newPath;
-			$r->module_id = $data['moduleID'];
+			$r->module_id = $data['moduleId'];
 			$r->module_config = $data['moduleConfig'];
 			$r->clearance_level = $data['clearanceLevel'];
+			/*$route = Route::create([
+				'domain_id'=>$data['domainId'],
+				'path'=>$newPath,
+				'module_id'=>$data['moduleId'],
+				'module_config'=>$data['moduleConfig'],
+				'clearance_level'=>$data['clearanceLevel']
+			]);*/
 
 			$result = $r->save();
 
@@ -104,22 +109,22 @@ class Control_PanelBaseModel {
 	public function updateRoute(array $data)
 	{
 		// Input check and default values
-		if (!isset($data['ID'], $data['path']) || empty($data['path']) || !is_array($data['path'])) {
+		if (!isset($data['id'], $data['path']) || empty($data['path']) || !is_array($data['path'])) {
 			return false;
 		} else {
-			$data['ID'] = (int) $data['ID'];
+			$data['id'] = (int) $data['id'];
 		}
 
-		if (!isset($data['domainID']) || !is_numeric($data['domainID'])) {
-			$data['domainID'] = DOMAIN_ID;
+		if (!isset($data['domainId']) || !is_numeric($data['domainId'])) {
+			$data['domainId'] = DOMAIN_ID;
 		} else {
-			$data['domainID'] = (int) $data['domainID'];
+			$data['domainId'] = (int) $data['domainId'];
 		}
 
-		if (!isset($data['moduleID']) || !is_numeric($data['moduleID'])) {
+		if (!isset($data['moduleId']) || !is_numeric($data['moduleId'])) {
 			return false;
 		} else {
-			$data['moduleID'] = (int) $data['moduleID'];
+			$data['moduleId'] = (int) $data['moduleId'];
 		}
 
 		if (!isset($data['clearanceLevel']) || !is_numeric($data['clearanceLevel'])) {
@@ -132,9 +137,7 @@ class Control_PanelBaseModel {
 			$data['moduleConfig'] = null;
 		}
 
-		$avLangs = \Arembi\Xfw\Core\Settings::get('availableLanguages');
-
-		$la = count($avLangs);
+		$avLangs = Settings::get('availableLanguages');
 
 		$takenRoutes = Router::getRoutes()
 			->map(function ($route) use ($avLangs){
@@ -148,12 +151,10 @@ class Control_PanelBaseModel {
 			})
 			->all();
 
-		$lt = count($takenRoutes);
-
-		$updateHasRoutes = false;
+		$nofAvLangs = count($avLangs);
+		$nofTakenRoutes = count($takenRoutes);
 
 		$updateOK = true;
-
 		$updatedPath = [];
 
 		// Route
@@ -161,9 +162,8 @@ class Control_PanelBaseModel {
 		$i = 0;
 		$j = 0;
 
-		while ($updateOK && $i < $la) {
+		while ($updateOK && $i < $nofAvLangs) {
 			if (!empty($data['path'][$avLangs[$i][0]])) {
-				$updateHasRoutes = true;
 
 				// Adding the required '/' to the beginning of the route if missing
 				$updatedPath[$avLangs[$i][0]] = $data['path'][$avLangs[$i][0]];
@@ -177,8 +177,8 @@ class Control_PanelBaseModel {
 				}
 
 				// Only have to check the other routes, the same routes path can be changed
-				while ($j < $lt && $updateOK) {
-					if ($takenRoutes[$j]->ID !== $data['ID']
+				while ($j < $nofTakenRoutes && $updateOK) {
+					if ($takenRoutes[$j]->id !== $data['id']
 						&& isset($takenRoutes[$j]->path[$avLangs[$i][0]])
 						&& $takenRoutes[$j]->path[$avLangs[$i][0]] == $updatedPath[$avLangs[$i][0]]) {
 						$updateOK = false;
@@ -190,10 +190,10 @@ class Control_PanelBaseModel {
 		}
 
 		if ($updateOK) {
-			$route = Route::find($data['ID']);
-			$route->domain_id = $data['domainID'];
+			$route = Route::find($data['id']);
+			$route->domain_id = $data['domainId'];
 			$route->path = $updatedPath;
-			$route->module_id = $data['moduleID'];
+			$route->module_id = $data['moduleId'];
 			$route->module_config = $data['moduleConfig'];
 			$route->clearance_level = $data['clearanceLevel'];
 
@@ -216,7 +216,7 @@ class Control_PanelBaseModel {
 		$result = $route->delete();
 
 		if ($result) {
-			Router::loadData ();
+			Router::loadData();
 		} else {
 			$result = false;
 		}

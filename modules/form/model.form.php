@@ -1,14 +1,13 @@
 <?php
 
 namespace Arembi\Xfw\Module;
-use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\Models\Form;
 
 class FormBaseModel {
 
-	public function getForm(int $formID)
+	public function getForm(int $formId)
 	{
-		return Form::find($formID);
+		return Form::find($formId);
 	}
 
 }

@@ -48,22 +48,22 @@ abstract class Seo {
 	}
 
 
-	public static function title($title = false)
+	public static function title($title = null)
 	{
-		if (!empty($title)) {
-			Head::setTitle($title);
-		} else {
+		if ($title === null) {
 			Head::getTitle();
+		} else {
+			Head::setTitle($title);	
 		}
 	}
 
 
-	public static function metaDescription($description = false)
+	public static function metaDescription($description = null)
 	{
-		if (!empty($description)) {
-			Head::setMetaDescription($description);
+		if ($description === null) {
+			Head::getMetaDescription();	
 		} else {
-			Head::getMetaDescription();
+			Head::setMetaDescription($description);
 		}
 	}
 
@@ -104,47 +104,41 @@ abstract class Seo {
 	}
 
 
-	public static function maxSnippet(int $characterCount)
+	public static function maxSnippet($characterCount = null)
 	{
-		self::$maxSnippet = $characterCount;
-	}
-
-
-	public static function getMaxSnippet()
-	{
-		return self::$maxSnippet;
-	}
-
-
-	public static function maxImagePreview(string $setting)
-	{
-		if (in_array($setting, self::$allowedmaxImagePreviewSettings)) {
-			self::$maxImagePreview = $setting;
+		if ($characterCount === null) {
+			return self::$maxSnippet;
 		} else {
-			Debug::alert('max-image-preview could not be set, invalid value given', 'f');
+			self::$maxSnippet = $characterCount;
 		}
 	}
 
 
-	public static function getMaxImagePreview()
+	public static function maxImagePreview($setting = null)
 	{
-		return self::$maxImagePreview;
-	}
-
-
-	public static function maxVideoPreview(int $seconds)
-	{
-		if ($seconds >= -1) {
-			self::$maxVideoPreview = $seconds;
+		if ($setting === null) {
+			return self::$maxImagePreview;
 		} else {
-			Debug::alert('max-video-preview could not be set, invalid value given', 'f');
+			if (in_array($setting, self::$allowedmaxImagePreviewSettings)) {
+				self::$maxImagePreview = $setting;
+			} else {
+				Debug::alert('max-image-preview could not be set, invalid value given.', 'f');
+			}
 		}
 	}
 
 
-	public static function getMaxVideoPreview()
+	public static function maxVideoPreview($seconds = null)
 	{
-		return self::$maxVideoPreview;
+		if ($seconds === null) {
+			return self::$maxVideoPreview;
+		} else {
+			if ($seconds >= -1) {
+				self::$maxVideoPreview = $seconds;
+			} else {
+				Debug::alert('max-video-preview could not be set, invalid value given.', 'f');
+			}
+		}
 	}
 
 

@@ -82,10 +82,10 @@ class PaginationBase extends \Arembi\Xfw\Core\ModuleCore {
 		 $links = '';
 
 		 $lastPage = round($options['numberOfItems'] / $options['itemsPerPage']);
-		 $routeID = Router::getMatchedRouteID();
+		 $routeId = Router::getMatchedRouteId();
 
 		 $linkData = [];
-		 $linkData['href'] = "+route=$routeID";
+		 $linkData['href'] = "+route=$routeId";
 
 		 $ppo = Router::getMatchedRoutePpo();
 		 $pathParams = Router::getPathParams();

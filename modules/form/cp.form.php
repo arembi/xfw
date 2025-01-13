@@ -3,12 +3,19 @@
 namespace Arembi\Xfw\Module;
 
 class CP_FormBase extends Form {
+
+	public static function menu()
+	{
+		return [];
+	}
+
 	public function form_new()
 	{
-		$form = new Form(['ID' => 7], FALSE);
+		$form = new Form(['id' => 7], false);
 
-		$form->build();
-
-		return $form->processLayout()->getLayoutHTML();
+		$form
+			->build()
+			->processLayout()
+			->render();
 	}
 }
