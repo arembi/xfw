@@ -11,6 +11,8 @@ use Arembi\Xfw\FormFieldSet;
 
 class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 
+	protected static $hasModel = true;
+
 	private $overrides;
 	private $fields;
 	private $actionUrl;
@@ -169,58 +171,6 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
             return $this;
         }
     }
-
-
-
-	/*public function setFieldType($fieldName, $type)
-	{
-		$this->overrides->field($fieldName)->type($type);
-		return $this;
-	}
-
-
-	public function setFieldLabel($fieldName, $label)
-	{
-		$this->overrides->field($fieldName)->label($label);
-		return $this;
-	}
-
-
-	public function setFieldAttribute($fieldName, $attribute, $value)
-	{
-		$this->overrides->field($fieldName)->attribute($attribute, $value);
-		return $this;
-	}
-
-
-	// Attributes can be passed as an array with keys = attribute names
-	// and values = attribute values
-	public function setFieldAttributes($fieldName, $attributes)
-	{
-		$this->overrides->field($fieldName)->attributes($attributes);
-		return $this;
-	}
-
-
-	public function setFieldText($fieldName, $text)
-	{
-		$this->overrides->field($fieldName)->text($text);
-		return $this;
-	}
-
-
-	
-	//TODO: implement support for datalists
-	
-	public function setFieldOptions($fieldName, $options)
-	{
-		if ($this->overrides->field($fieldName)->type() == 'select' || $this->fields->field($fieldName)->type() == 'select') {
-			$this->overrides->field($fieldName)->options($options);
-		} else {
-			Debug::alert('Trying to set options for a non-select form field', 'w');
-		}
-		return $this;
-	}*/
 
 
 	public function actionUrl(string|null $url = null)

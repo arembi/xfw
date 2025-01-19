@@ -17,7 +17,7 @@ class Session {
 		self::$lifeTime = get_cfg_var("session.gc_maxlifetime");
 
 		// Setting up database session handler if necessary
-		if (Config::_('sessionStorage') == 'database') {
+		if (Config::get('sessionStorage') == 'database') {
 			self::$model = new SessionModel();
 
 			session_set_save_handler(
@@ -88,9 +88,8 @@ class Session {
 		session_destroy();
 		
 		session_start();
-		
-		$_SESSION['user'] = new User('_guest');
 
+		App::populateSessionUser();
 	}
 
 }

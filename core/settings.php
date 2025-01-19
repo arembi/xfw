@@ -1,29 +1,23 @@
 <?php
-
-//~ The settings are the configuration parameters read from the database
-//~ They dont mix with the config class items
+// Domain-based configuration parameters from the database
 
 namespace Arembi\Xfw\Core;
 
 class Settings {
 	private static $settings;
 
-	private static $model;
-
-
 	public static function init()
 	{
 		self::$settings = [];
-		self::$model = null;
 
 		$domain = Router::getDomainById(DOMAIN_ID);
 		$dbSettings = $domain['settings'] ?? [];
-		self::$settings = array_merge(Config::_('defaultDomainSettings'), $dbSettings);
+		self::$settings = array_merge(Config::get('defaultDomainSettings'), $dbSettings);
 	}
 
 
 	public static function get($record)
 	{
-		return isset(self::$settings[$record]) ? self::$settings[$record] : NULL;
+		return isset(self::$settings[$record]) ? self::$settings[$record] : null;
 	}
 }

@@ -130,7 +130,6 @@ abstract class Router {
 		(assuming that dev is mainly performed on localhost)
 		*/
 		if (self::amIOnLocalhost()) {
-
 			$isLocalhost = true;
 			$uriParts = explode('/', $uriQ[0]);
 
@@ -164,7 +163,7 @@ abstract class Router {
 			self::$pathMain = $uriQ[0];
 			self::$path = $uri;
 		}
-
+		
 		// Defining constants
 		define('WEB_ROOT', $webRoot);
 		define('DOMAIN', $domain);
@@ -172,7 +171,7 @@ abstract class Router {
 		define('IS_LOCALHOST', $isLocalhost);
 		define('HOST_ROOT', (IS_LOCALHOST ? self::$SERVER['HTTP_HOST'] . DS . WEB_ROOT . DS : '') . DOMAIN);
 		define('DOMAIN_DIR', SITES_DIR . DS . DOMAIN);
-
+		
 		// Retrieveing domain data if registered, otherwise false
 		$domainRecord = self::getDomainById(DOMAIN_ID);
 
@@ -213,7 +212,7 @@ abstract class Router {
 
 	private static function amIOnLocalhost()
 	{
-		return (in_array(self::$SERVER['REMOTE_ADDR'], Config::_('localhostIP'))
+		return (in_array(self::$SERVER['REMOTE_ADDR'], Config::get('localhostIP'))
 			|| strpos(self::$SERVER['REMOTE_ADDR'], '192.168') !== false);
 	}
 
@@ -548,7 +547,7 @@ abstract class Router {
 		// Files are identified by the file extensions
 		$extension = Misc\getFileExtension(self::$pathMain);
 		if ($extension !== false) {
-			$allowedExtensionsByDefault = Config::_('fileTypesServed');
+			$allowedExtensionsByDefault = Config::get('fileTypesServed');
 			$allowedExtensionsOnSite = Settings::get('fileTypesServed');
 
 			if (is_array($allowedExtensionsOnSite)) {

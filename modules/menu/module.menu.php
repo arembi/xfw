@@ -8,6 +8,8 @@ use Arembi\Xfw\Misc;
 
 class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 
+	protected static $hasModel = true;
+
 	protected function main(&$options)
 	{
 		$lang = App::getLang();

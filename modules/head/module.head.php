@@ -18,7 +18,6 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	private static $title = '';
 	private static $metaDescription = '';
-	private static $metaKeywords = '';
 
 	private static $meta = [];
 	private static $link = [];
@@ -37,7 +36,7 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 		'favicon' => null,
 		'css' => null,
 		'js' => null
-		];
+	];
 
 
 	protected function main(&$options)

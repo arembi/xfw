@@ -22,12 +22,12 @@ class Database {
 
 	public static function connect(string $databaseKey, string $name = 'default')
 	{
-		if (empty(Config::_('databases')[$databaseKey])) {
+		if (empty(Config::get('databases')[$databaseKey])) {
 			Debug::alert("Could not connect to database {$databaseKey}.", "f");
 			return;
 		}
 
-		$dbc = Config::_('databases')[$databaseKey];
+		$dbc = Config::get('databases')[$databaseKey];
 
 		self::$capsule->addConnection([
 			'driver'    => $dbc['driver'],

@@ -169,7 +169,7 @@ class RouterModel {
 	public function getRedirects()
 	{
 		// Load hard coded redirects
-		$hcRedirects = Config::_('redirects', []);
+		$hcRedirects = Config::get('redirects', []);
 
 		// Load redirects from the database
 		$dbRedirects = Redirect::all()

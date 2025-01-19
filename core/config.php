@@ -123,17 +123,9 @@ abstract class Config {
   }
 
 
-	public static function _($record, $NA = null)
+	public static function get($record, $NA = null)
 	{
 		return isset(self::$config[$record]) ? self::$config[$record] : $NA;
 	}
 
-
-	/*
-	 * Alias function for _()
-	 * */
-	public static function get($record, $NA = null)
-	{
-		return self::_($record, $NA);
-	}
 }

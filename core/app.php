@@ -1,9 +1,4 @@
 <?php
-/*
-*	Loads core classes
-*	Invokes the first module
-*	Starts the processing of the layout
-*/
 
 namespace Arembi\Xfw\Core;
 
@@ -13,33 +8,38 @@ use Arembi\Xfw\Misc;
 abstract class App {
 
 	// The App's model
-	private static $model = null;
+	private static $model;
 
-	// The list of core modules, ONLY THESE WILL BE LOADED to the core
-	private static $coreModules = [];
+	// The list of core modules, ONLY THESE WILL BE LOADED with the core
+	private static $coreModules;
 
 	// Modules that have been installed to the current domain
-	private static $installedModules = [];
+	private static $installedModules;
 
 	// Active modules are the successfully installed and loaded modules
-	private static $activeModules = [];
+	private static $activeModules;
 
-	// $registeredModules keeps track of which modules have already been loaded
+	// $registeredModules keeps track of which modules have already been instantiated
 	// by the system, it holds the references to all embedded modules
-	private static $registeredModules = [];
+	private static $registeredModules;
 
 	// Autoincrementing inner identifier for embedded modules
 	private static $registeredModuleId;
 
 	// Path parameter translation rules for modules
-	private static $pathParamOrders = [];
+	private static $pathParamOrders;
 
 	// Language
-	private static $lang = '';
+	private static $lang;
+
+	// Makes it possible to manually hide the debug panel
+	private static $debugSuppressed;
 
 
 	public static function init()
 	{
+		self::$model = null;
+		
 		self::$coreModules = [
 			'model',
 			'settings',
@@ -50,19 +50,28 @@ abstract class App {
 			'router',
 			'user'
 		];
+		
+		self::$installedModules = [];
+		self::$activeModules = [];
+		self::$registeredModules = [];
+		self::$registeredModuleId = 0;
+		self::$pathParamOrders = [];
+		self::$lang = '';
+		self::$debugSuppressed = false;
+
 
 		// Loading configuration
 		self::loadConfigAndDebug();
-
+		
 		// Loading scripts from the engine include directory
 		self::loadScriptsFromDirectory(ENGINE_DIR . DS . 'include') ;
-
+		
 		// Load libraries from other vendors
 		self::loadThirdPartyLibs();
-
+		
 		// Load core controllers and models
 		self::loadCore();
-
+		
 		Debug::init();
 		Debug::alert('Configuration loaded');
 		Debug::alert('Core loaded');
@@ -74,17 +83,17 @@ abstract class App {
 		// Apply charset settings
 		mb_language(Config::get('mbLanguage'));
 		mb_internal_encoding(Config::get('mbInternalEncoding'));
-
+		
 		// Establishing database connection and interface
 		Database::init();
-
+		
 		// Initializing the language module
 		Language::init();
 		
 		// Determine environment (protocol, domain)
 		Router::init();
 		Router::getEnvironment();
-
+		
 		if (Config::get('debugMode') && IS_LOCALHOST) {
 			error_reporting(E_ALL);
 		}
@@ -103,11 +112,9 @@ abstract class App {
 		// Setting the model of the App class
 		self::$model = new AppModel();
 
-		// If the user has not logged in before, load default values
-		if (empty($_SESSION['user'])) {
-			$_SESSION['user'] = new User('_guest');
-		}
-
+		// Checking the session's user
+		self::populateSessionUser();
+		
 		// Loading Settings (settings stored in the database)
 		Settings::init();
 		Debug::alert('Settings loaded');
@@ -169,7 +176,7 @@ abstract class App {
 		Debug::alert('Memory usage: ' . number_format(memory_get_usage() / (1024 * 1024), 4) . ' MB', 'i');
 		Debug::alert('Memory peak usage: ' . number_format(memory_get_peak_usage() / (1024 * 1024), 4) . ' MB', 'i');
 
-		if (Config::get('debugMode') && IS_LOCALHOST) {
+		if (!self::isDebugSuppressed()) {
 			// Show debug messages
 			Debug::render();
 		}
@@ -263,6 +270,35 @@ abstract class App {
 		} else {
 			Debug::alert('Include directory does not exists at' . $directory, 'n');
 		}
+	}
+
+
+	public static function populateSessionUser()
+	{
+		if (!empty($_SESSION['user'])) {
+			return false;
+		}
+		
+		$autoLoginConfig = Config::get('localhostAutoLogin');
+		
+		if (IS_LOCALHOST && $autoLoginConfig['enabled']) {
+			$user = new User('xfwuser', 'generic');
+			$user->set('domain', DOMAIN)
+				->set('id', 0)
+				->set('firstName', 'User')
+				->set('lastName', 'Xfw')
+				->set('userGroup', 'xfw')
+				->set('clearanceLevel', $autoLoginConfig['clearanceLevel']);
+		} else {
+			$user = new User('_guest', 'generic');
+			$user->set('domain', DOMAIN)
+				->set('id', 0)
+				->set('firstName', 'Guest')
+				->set('lastName', 'user')
+				->set('userGroup', 'guest')
+				->set('clearanceLevel', 0);
+		}
+		$_SESSION['user'] = $user;
 	}
 
 
@@ -423,14 +459,23 @@ abstract class App {
 		$addon = strtolower($addon);
 		$module = strtolower($module);
 
-		$addons = Config::get('moduleAddons');
-
-		// If a module has been requested which hasn't been installed, or
-		// there is no such addon, we return false
-		if (!self::isInstalledModule($module) || !in_array($addon, array_keys($addons))) {
+		if (class_exists('Arembi\Xfw\Module\CP_' . $module)) {
+			Debug::alert("Cannot load module addon $addon for %$module: it has already been loaded.", 'f');
 			return false;
 		}
 
+		if (!self::isInstalledModule($module)) {
+			Debug::alert("Cannot load module addon $addon for module %$module: module is not installed on this domain,", 'f');
+			return false;
+		}
+
+		$addons = Config::get('moduleAddons');
+
+		if (!in_array($addon, array_keys($addons))) {
+			Debug::alert("Cannot load module addon $addon: addon not supported.,", 'f');
+			return false;
+		}
+		
 		$addonName = $addons[$addon];
 		$addonFilePath = 'modules' . DS . $module . DS . $addon . '.' . $module . '.php';
 
@@ -558,20 +603,8 @@ abstract class App {
 		return self::$registeredModules;
 	}
 
-
-	public static function getRegisteredModule($id)
-	{
-		return self::$registeredModules[$id] ?? false;
-	}
-
-
-	public static function getDocument()
-	{
-		return self::$registeredModules[0] ?? false;
-	}
-
 	// Implement it if needed
-	//public static function unlistModule(string $name, int $id) {}
+	public static function unlistModule() {}
 
 	// Returns the path parameter order for the requested module
 	public static function getPathParamOrder($moduleName)
@@ -603,8 +636,22 @@ abstract class App {
 	// Stops the execution and optionally displays a message
 	public static function hcf($message = '')
 	{
-		Debug::alert($message, 'f');
+		Debug::alert('HCF: ' . $message, 'f');
 		Debug::render();
 		exit;
 	}
+
+
+	private static function isDebugSuppressed()
+	{
+		return (self::$debugSuppressed || !Config::get('debugMode') || !IS_LOCALHOST);
+	}
+
+
+	public static function suppressDebug()
+	{
+		self::$debugSuppressed = true;
+	}
+
+
 }

@@ -8,6 +8,8 @@ use Arembi\Xfw\Seo;
 
 class Static_PageBase extends \Arembi\Xfw\Core\ModuleCore {
 
+	protected static $hasModel = true;
+
 	public $unavailableInfo;
 
 	protected function main(&$options)

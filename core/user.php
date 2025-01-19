@@ -16,7 +16,7 @@ class User {
 	 * Users can be constructed with their ID, or username
 	 * The constructor loads the user data,
 	 * @param $value: a username or ID
-	 * @param $key: identifying method, can be username or ID
+	 * @param $key: identifying method, can be username, ID, or generic
 	 * */
 
 	public function __construct($value, $key = 'username')
@@ -27,22 +27,17 @@ class User {
 			self::$instantiated = true;
 		}
 
-		if ($key == 'id') {
-			$this->data = self::$model->getUserById($value);
-		} elseif ($key == 'username') {
-			if ($value != '_guest') {
+		switch ($key) {
+			case 'id':
+				$this->data = self::$model->getUserById($value);
+				break;
+			case 'username':
 				$this->data = self::$model->getUserByUsername($value);
-			} else {
-				// Loading default values
+				break;
+			default:
 				$this->data = new \stdClass();
-				$this->data->domain = DOMAIN;
-				$this->data->id = 0;
-				$this->data->username = '_guest';
-				$this->data->firstName = 'Guest';
-				$this->data->lastName = 'User';
-				$this->data->userGroup = 'N/A';
-				$this->data->clearanceLevel = 0;
-			}
+				$this->data->username = $value;
+				break;
 		}
 	}
 
@@ -56,6 +51,7 @@ class User {
 	public function set($field, $value)
 	{
 		$this->data->$field = $value;
+		return $this;
 	}
 
 

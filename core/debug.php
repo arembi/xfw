@@ -7,17 +7,25 @@ abstract class Debug {
 
 	// keys are the notations
 	// values: debug message notation , message color
-	private static $alertLevels = [
-		'default' => ['&#128421;', '#FFF'],
-		'i' => ['&#128712;', '#C0C'],
-		'o' => ['&#10003;', '#0C0'],
-		'n' => ['&#128276;', '#0CC'],
-		'w' => ['&#33;', '#CC0'],
-		'f' => ['&#10060;', '#C60'],
-		'e' => ['&#9760;', '#C00']
-	];
+	private static $alertLevels;
 
-	private static $style = '
+	private static $style;
+
+	private static $alerts;
+
+	
+	public static function init()
+	{
+		self::$alertLevels = [
+			'default' => ['&#128421;', '#FFF'],
+			'i' => ['&#128712;', '#C0C'],
+			'o' => ['&#10003;', '#0C0'],
+			'n' => ['&#128276;', '#0CC'],
+			'w' => ['&#33;', '#CC0'],
+			'f' => ['&#10060;', '#C60'],
+			'e' => ['&#9760;', '#C00']
+		];
+		self::$style = '
 		div#debugArea{
 			width: 40%;
 			height: 98%;
@@ -64,21 +72,16 @@ abstract class Debug {
 		}
 		';
 
-	private static $alertNo = 1;
-	private static $alerts = [];
-
-	public static function init()
-	{
+		self::$alerts = [];
 	}
 
 
 	public static function alert($message, $alertLevel = 'default')
 	{
-		if (Config::_('debugMode') || (isset($_SESSION['debugMode']) && $_SESSION['debugMode'])) {
+		if (Config::get('debugMode') || (isset($_SESSION['debugMode']) && $_SESSION['debugMode'])) {
 			self::$alerts[] = [$message, $alertLevel];
 		}
 	}
-
 
 
 	// Shows the HTML output of the debug alerts. HTML will be escaped in the messages

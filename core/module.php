@@ -29,8 +29,7 @@ Recursion
 	you can do it by setting the $options['recursive'] to 'no'.
 
 Actions
-	Actions are methods of module classes. They can be triggered
-	triggered by HTTP requests.
+	Actions are methods of module classes. They can be triggered by HTTP requests.
 
 [LAYOUTS]
 
@@ -101,7 +100,7 @@ use Arembi\Xfw\Module\Head;
 
 abstract class ModuleCore {
 	// Whether the autoloader should look for a model
-	protected static $hasModel = true;
+	protected static $hasModel;
 
 	// Registration ID, used by the system to identify instantiated modules
 	protected $rId;
@@ -155,7 +154,6 @@ abstract class ModuleCore {
 		$this->embedId = 0;
 
 		$this->reflector = new \ReflectionClass($this);
-
 		$class = $this->reflector->getShortName();
 		$this->name = strtolower($class);
 
@@ -216,7 +214,7 @@ abstract class ModuleCore {
 			* Default actions will only be triggered for the primary module matched by the router
 			* */
 
-		if ($this->parentModule !== null && $this->parentModule->name === 'document') {
+		if (isset($this->options['triggerAction']) && $this->options['triggerAction']) {
 			// actions set via GET will override default actions
 			if (isset(Router::$GET['_action'])) {
 				$action = Router::$GET['_action'];
@@ -408,7 +406,7 @@ abstract class ModuleCore {
 	}
 
 
-	// Exposes data to the layouts
+	// Adds the variable to the layout variables
 	public function lv(string $var, $value = null)
 	{
 		$this->layoutVariables[$var] = $value;

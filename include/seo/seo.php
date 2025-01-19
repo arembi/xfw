@@ -4,7 +4,6 @@ use Arembi\Xfw\Module\Head;
 
 abstract class Seo {
 
-	// https://developers.google.com/search/reference/robots_meta_tag
 	private static $indexable;
 
 	private static $followable;
@@ -22,12 +21,6 @@ abstract class Seo {
 	private static $translatable;
 
 	private static $imagesIndexable;
-
-	// content of the virtual robots.txt file
-	private static $robotsTxt;
-
-	// content of the virtual sitemap.xml file
-	private static $sitemapXML;
 
 
 	public static function init()
@@ -170,20 +163,5 @@ abstract class Seo {
 	{
 		Head::canonical($href);
 	}
-
-
-	public static function generateSitemapXml()
-	{
-
-	}
-
-
-
-	public static function generateRobotsTxt()
-	{
-
-	}
-
-
 
 }
