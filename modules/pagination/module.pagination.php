@@ -28,7 +28,6 @@
 namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\Router;
-use Arembi\Xfw\Module\HEAD;
 use Arembi\Xfw\Core\Language;
 
 class PaginationBase extends \Arembi\Xfw\Core\ModuleCore {
@@ -40,6 +39,7 @@ class PaginationBase extends \Arembi\Xfw\Core\ModuleCore {
 		'listType' => 'all',
 		'numberingType' => 'arabic'
 	];
+
 
 	protected function main(&$options)
 	{
@@ -79,7 +79,7 @@ class PaginationBase extends \Arembi\Xfw\Core\ModuleCore {
 		/*
 		 * Constructing links
 		 * */
-		 $links = '';
+		 $links = [];
 
 		 $lastPage = round($options['numberOfItems'] / $options['itemsPerPage']);
 		 $routeId = Router::getMatchedRouteId();
@@ -98,28 +98,26 @@ class PaginationBase extends \Arembi\Xfw\Core\ModuleCore {
 		 unset($linkData['queryParams'][Router::getPaginationParam()]);
 
 		 for ($i = 1; $i <= $lastPage; $i++) {
-			 $linkData['pageNumber'] = $i;
+			$linkData['pageNumber'] = $i;
 
-			 switch ($options['numberingType']) {
-				 	case 'arabic':
-				 		$linkData['anchor'] = $i;
-						break;
-					case 'roman':
-						$linkData['anchor'] = Language::intToRoman($i);
-						break;
-					case 'lcAlphabet':
-						$linkData['anchor'] = Language::$alphabets['en'][$i - 1];
-						break;
-					case 'ucAlphabet':
-						$linkData['anchor'] = strtoupper(Language::$alphabets['en'][$i - 1]);
-						break;
-					default:
-						break;
-			 }
+			switch ($options['numberingType']) {
+				case 'arabic':
+					$linkData['anchor'] = $i;
+					break;
+				case 'roman':
+					$linkData['anchor'] = Language::intToRoman($i);
+					break;
+				case 'lcAlphabet':
+					$linkData['anchor'] = Language::$alphabets['en'][$i - 1];
+					break;
+				case 'ucAlphabet':
+					$linkData['anchor'] = strtoupper(Language::$alphabets['en'][$i - 1]);
+					break;
+				default:
+					break;
+			}
 
-			 $pageLink = new Link($linkData);
-
-			 $links .= $pageLink->processLayout()->getLayoutHTML() . PHP_EOL;
+			$links[] = $linkData;
 		 }
 
 		 $this->lv('links', $links);
