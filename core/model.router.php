@@ -8,6 +8,7 @@ use Arembi\Xfw\Core\Models\Redirect;
 use Arembi\Xfw\Core\Models\Route;
 use Arembi\Xfw\Misc;
 
+
 class RouterModel {
 
 	public function getDomains()
@@ -60,7 +61,7 @@ class RouterModel {
 				'domains.id as domainId',
 				'modules.name as moduleName',
 				'modules.path_param_order as ppo'
-				)
+			)
 			->get()
 			->map(function($item, $key) use ($rlinks){
 				// JSON decoding the route
@@ -115,7 +116,7 @@ class RouterModel {
 	}
 
 
-	public function getAvailableRoutes($domain = DOMAIN)
+	public function getAvailableRoutes($domainId = DOMAIN_ID)
 	{
 		$routes = DB::table('routes')
 			->join('domains', 'routes.domain_id', '=', 'domains.id')
@@ -129,8 +130,8 @@ class RouterModel {
 				'modules.name as moduleName',
 				'modules.class as moduleClass',
 				'modules.path_param_order as modulePpo'
-				)
-			->where('domains.domain', $domain)
+			)
+			->where('domains.id', $domainId)
 			->whereIn('modules.class', ['p', 'b'])
 			->get()
 			->transform(function($item, $key){

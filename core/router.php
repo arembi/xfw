@@ -16,52 +16,55 @@ use Arembi\Xfw\Misc;
 
 abstract class Router {
 
-	private static $model = null;
+	private static $model;
+
+	// Whether the domain acts as an alias of another
+	private static $aliasOf;
 
 	// http, https
-	private static $protocol = '';
+	private static $protocol;
 
 	// protocol + domain
-	private static $hostUrl = '';
+	private static $hostUrl;
 
 	// equivalent to apache's %{REQUEST_URI}
-	private static $path = '';
+	private static $path;
 
 	// The URL without the query string
 	private static $noQSUrl;
 
 	// protocol + domain + path + query string
-	private static $fullUrl  = '';
+	private static $fullUrl;
 
 	// parts of the path
-	private static $pathNodes = []; // The segments of the path
-	private static $pathMain = ''; // The path without the query string
-	private static $pathQueryString = ''; // The query string
+	private static $pathNodes; // The segments of the path
+	private static $pathMain; // The path without the query string
+	private static $pathQueryString; // The query string
 
 	// The parameters given to the primary modules via the path (query string not included)
-	private static $pathParams = [];
+	private static $pathParams;
 
 	// The registered domains, will not be loaded automatically
-	private static $domains = [];
+	private static $domains;
 
 	// Custom redirects from the DB
-	private static $redirects = [];
+	private static $redirects;
 
 	// Saved links in the system
-	public static $links = [];
+	private static $links;
 
 	// Defined routes in the system
-	private static $routes = [];
+	private static $routes;
 
 	// Available primary modules
-	private static $primaryModuleRoutes = [];
+	private static $primaryModuleRoutes;
 
 	// Available backend modules
-	private static $backendModuleRoutes = [];
+	private static $backendModuleRoutes;
 
 	// hit404 shall be set to true if a 404 error occures
 	// It should prevent further scripts from execution
-	private static $hit404 = false;
+	private static $hit404;
 
 	// The matched routes record
 	private static $matchedRoute;
@@ -77,13 +80,13 @@ abstract class Router {
 	private static $paginationParam;
 
 	// Global clones
-	public static $GET     = [];
-	public static $POST    = [];
-	public static $REQUEST = [];
-	public static $SERVER  = [];
+	public static $GET;
+	public static $POST;
+	public static $REQUEST;
+	public static $SERVER;
 
 	// TODO: file upload
-	public static $FILES = [];
+	public static $FILES;
 
 
 	public const IH_RESULT = [
@@ -93,13 +96,47 @@ abstract class Router {
 	];
 
 
-	// Initialization
+	
 	public static function init()
-	{
-		// Instantiating the model
-		self::$model = new RouterModel();
+	{	
+		
+		// Making a working copy of the request globals
+		self::$GET     = $_GET;
+		self::$POST    = $_POST;
+		self::$REQUEST = $_REQUEST;
+		self::$SERVER  = $_SERVER;
 
-		if(!self::getDomains()){
+		self::$FILES = [];
+		
+		self::$model = new RouterModel();
+		
+		self::$aliasOf = null;
+		
+		self::$protocol = '';
+		self::$hostUrl = '';
+		self::$path = '';
+		self::$noQSUrl = '';
+		self::$fullUrl = '';
+		self::$pathNodes = [];
+		self::$pathMain = '';
+		self::$pathQueryString = '';
+		self::$pathParams = [];
+		self::$domains = [];
+		self::$redirects = [];
+		self::$links = [];
+		self::$routes = [];
+		self::$primaryModuleRoutes;
+		self::$backendModuleRoutes = [];
+		self::$hit404 = false;
+		self::$pageNumber = null;
+		
+		self::$matchedRoute = null;
+		self::$paginationParams = [];
+		self::$paginationParam = '';
+		
+		self::loadDomains();
+		
+		if(empty(self::$domains)){
 			App::hcf('Could not retrieve domains.');
 		}
 	}
@@ -111,14 +148,6 @@ abstract class Router {
 	 * */
 	public static function getEnvironment()
 	{
-		/*
-		 * Making a working copy of the request globals
-		 * */
-		self::$GET     = $_GET;
-		self::$POST    = $_POST;
-		self::$REQUEST = $_REQUEST;
-		self::$SERVER  = $_SERVER;
-
 		// Storing the URI
 		$uri = urldecode(self::$SERVER['REQUEST_URI']);
 
@@ -137,13 +166,9 @@ abstract class Router {
 			 * $uriParts[1] is the web root directory
 			 * $uriParts[2] has to be the domain
 			 *
-			 * for instance localhost/myDir/example.com
+			 * for instance http://localhost/myDir/example.com
 			 *   the web root is myDir
 			 *   the domain is example.com
-			 *
-			 * INSTALL MEMO
-			 * 	You have to put your app in a subdirectory in your
-			 *  below your root folder, for example: /var/www/html/myDir
 			 *
 			 * */
 			if (!empty($uriParts[2])) {
@@ -156,31 +181,64 @@ abstract class Router {
 				App::hcf(file_get_contents(ENGINE_DIR . DS . 'welcome.html'));
 			}
 		} else {
+			$isLocalhost = false;
 			$webRoot = '';
 			$domain = self::$SERVER['HTTP_HOST'];
-			$isLocalhost = false;
 
 			self::$pathMain = $uriQ[0];
 			self::$path = $uri;
 		}
 		
-		// Defining constants
-		define('WEB_ROOT', $webRoot);
-		define('DOMAIN', $domain);
-		define('DOMAIN_ID', self::getDomainId($domain));
-		define('IS_LOCALHOST', $isLocalhost);
-		define('HOST_ROOT', (IS_LOCALHOST ? self::$SERVER['HTTP_HOST'] . DS . WEB_ROOT . DS : '') . DOMAIN);
-		define('DOMAIN_DIR', SITES_DIR . DS . DOMAIN);
-		
-		// Retrieveing domain data if registered, otherwise false
-		$domainRecord = self::getDomainById(DOMAIN_ID);
+		$domainId = self::getDomainId($domain);
+		if (!$domainId) {
+			Debug::alert('Domain not found.', 'f');
+			echo file_get_contents(ENGINE_DIR . DS . '404.html');
+		}
 
+		// Retrieveing domain data if registered, otherwise false
+		$domainRecord = self::getDomainRecordById($domainId);
+		
 		// If the domain is not registered, we return a 404 error
 		if (!$domainRecord) {
 			Debug::alert('The domain ' . $domain . ' has not been registered in the system.', 'f');
 			App::hcf(file_get_contents(ENGINE_DIR . DS . '404.html'));
 		}
 
+
+		/* 
+			ALIASES
+			If a domain is marked as an alias of another via the domain settings, the alias will inherit
+			all settings, i.e routes, content from the original domain
+		*/
+		$originalDomainId = $domainRecord['settings']['aliasOf'] ?? false;
+		
+		if ($originalDomainId) {
+			$originalDomainRecord = self::getDomainRecordById($originalDomainId);
+			
+			if ($originalDomainRecord 
+				&& isset($originalDomainRecord['settings']['aliases'])
+				&& in_array($domainId, $originalDomainRecord['settings']['aliases'])) {
+				self::$aliasOf = [
+					'id'=>$originalDomainId,
+					...$originalDomainRecord
+				];
+				Debug::alert('ALIAS MODE, ALTERING DATA MIGHT AFFECT OTHER DOMAINS!', 'w');
+				Debug::alert('Domain identified as alias for ' . $originalDomainRecord['domain'], 'n');
+			}
+		}
+		
+		$dataDomainId = self::$aliasOf['id'] ?? $domainId;
+		
+		// Defining constants
+		define('WEB_ROOT', $webRoot);
+		define('DOMAIN', $domain);
+		define('DATA_DOMAIN_ID', $dataDomainId);
+		define('DOMAIN_ID', $domainId);
+		define('IS_ALIAS', $domainId != $dataDomainId);
+		define('IS_LOCALHOST', $isLocalhost);
+		define('HOST_ROOT', (IS_LOCALHOST ? self::$SERVER['HTTP_HOST'] . DS . WEB_ROOT . DS : '') . DOMAIN);
+		define('DOMAIN_DIR', SITES_DIR . DS . DOMAIN);
+		
 		// Identifying the protocol
 		self::$protocol = IS_LOCALHOST ? 'http://' : $domainRecord['protocol'];
 
@@ -191,7 +249,7 @@ abstract class Router {
 			? "https://"
 			: "http://";
 
-		// Redirecting bad protocol requests to the right ones
+		// Redirecting invalid protocol requests to the right ones
 		if (self::$protocol != $requestProtocol) {
 			self::redirect(self::$protocol . HOST_ROOT . self::$path, 307);
 		}
@@ -226,15 +284,15 @@ abstract class Router {
 		self::$redirects = self::$model->getRedirects();
 
 		// Loading the available routes from the database
-		self::$routes = self::$model->getAvailableRoutes();
+		self::$routes = self::$model->getAvailableRoutes(DATA_DOMAIN_ID);
 	}
 
 
 	/*
 	automatic redirects,
 	trailing slashes,
-	language markers in URLs
-	Parses the path */
+	language markers
+	route parsing */
 	public static function parseRoute()
 	{
 		/*
@@ -708,18 +766,20 @@ abstract class Router {
 
 	// Returns the domain records registered in the system
 	// Loads them first if it has not been done before
+	public static function loadDomains()
+	{
+		self::$domains = self::$model->getDomains();
+	}
+
+
 	public static function getDomains()
 	{
-		if (empty(self::$domains)) {
-			self::$domains = self::$model->getDomains();
-		}
-
 		return self::$domains ?? false;
 	}
 
 
 	// Returns the domain name for the given ID, or false if it can't be found
-	public static function getDomainById($id)
+	public static function getDomainRecordById($id)
 	{
 		return self::$domains[$id] ?? false;
 	}
@@ -793,6 +853,12 @@ abstract class Router {
 		}
 
 		return $ret;
+	}
+
+
+	public static function getAliasOf()
+	{
+		return self::$aliasOf;
 	}
 
 
@@ -975,20 +1041,20 @@ abstract class Router {
 			// The remainder of the $data are the path parameters
 			$pathParams = '';
 
-			$record = self::getRouteRecordById($data['route']);
+			$routeRecord = self::getRouteRecordById($data['route']);
 
-			if (!$record) {
+			if (!$routeRecord) {
 				Debug::alert('Could not build href for route #' . $data['route'] . ': route missing.', 'f');
 				return false;
 			}
 
-			if ($record->path !== '/') {
-				$route = $record->path[$lang];
+			if ($routeRecord->path !== '/') {
+				$route = $routeRecord->path[$lang];
 			} else {
-				$route = $record->path;
+				$route = $routeRecord->path;
 			}
 
-			$ppo = $record->moduleConfig['ppo'] ?? $record->modulePpo;
+			$ppo = $routeRecord->moduleConfig['ppo'] ?? $routeRecord->modulePpo;
 
 			if (!empty($ppo)) {
 				foreach ($ppo as $param) {
@@ -1004,8 +1070,11 @@ abstract class Router {
 			// builing hrefs based on routes, so it'll be empty
 			$queryStringParts = [];
 
-			$domain = self::getDomainById($record->domainId);
+			// If we are on a domain alias, we will use the paths with the current domain, otherwise use the original domain
+			$domainId = IS_ALIAS && self::$aliasOf['id'] == $routeRecord->domainId ? DOMAIN_ID : $routeRecord->domainId ;
 
+			$domain = self::getDomainRecordById($domainId);
+			
 			$href = (IS_LOCALHOST ? 'http://' : self::$protocol)
 				. (IS_LOCALHOST ? self::$SERVER['HTTP_HOST'] . DS . WEB_ROOT . DS : '')
 				. $domain['domain']

@@ -10,7 +10,7 @@ class Settings {
 	{
 		self::$settings = [];
 
-		$domain = Router::getDomainById(DOMAIN_ID);
+		$domain = Router::getDomainRecordById(DOMAIN_ID);
 		$dbSettings = $domain['settings'] ?? [];
 		self::$settings = array_merge(Config::get('defaultDomainSettings'), $dbSettings);
 	}
@@ -19,5 +19,11 @@ class Settings {
 	public static function get($record)
 	{
 		return isset(self::$settings[$record]) ? self::$settings[$record] : null;
+	}
+
+
+	public static function _($record)
+	{
+		return self::get($record);
 	}
 }

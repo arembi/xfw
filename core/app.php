@@ -100,6 +100,10 @@ abstract class App {
 
 		Debug::alert('Router initialized');
 
+		// Loading Settings (settings stored in the database)
+		Settings::init();
+		Debug::alert('Settings loaded');
+
 		// Loading scripts from the domain's include directory
 		self::loadScriptsFromDirectory(DOMAIN_DIR . DS . 'include') ;
 
@@ -115,10 +119,6 @@ abstract class App {
 		// Checking the session's user
 		self::populateSessionUser();
 		
-		// Loading Settings (settings stored in the database)
-		Settings::init();
-		Debug::alert('Settings loaded');
-
 		$websiteDatabase = Settings::get('database');
 
 		// Connecting to the websites database if necessary
@@ -450,7 +450,7 @@ abstract class App {
 		];
 
 		// Retrieving the modules stored in the database
-		self::$installedModules = array_merge(self::$installedModules, self::$model->getInstalledModules());
+		self::$installedModules = array_merge(self::$installedModules, self::$model->getInstalledModules(DATA_DOMAIN_ID));
 	}
 
 

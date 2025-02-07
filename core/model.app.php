@@ -14,10 +14,10 @@ class AppModel {
 	 * @param $active
 	 * 	filters the modules to only activated ones
 	 * */
-	public function getInstalledModules($domain = null, $active = false)
+	public function getInstalledModules($domainId = null, $active = false)
 	{
-		if ($domain === null) {
-			$domain = DOMAIN;
+		if ($domainId === null) {
+			$domainId = DOMAIN_ID;
 		}
 
 		$installedModules = DB::table('modules')
@@ -34,7 +34,7 @@ class AppModel {
 				'modules.path_param_order as pathParamOrder',
 				'module_categories.name as category'
 				)
-			->where('domains.domain', $domain)
+			->where('domains.id', $domainId)
 			->orWhere('module_categories.name', 'core')
 			->distinct()
 			->get()
