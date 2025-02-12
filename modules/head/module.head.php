@@ -11,7 +11,7 @@ The <head>
 namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\Router;
-use Arembi\Xfw\Seo;
+use Arembi\Xfw\Inc\Seo;
 
 class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	protected static $hasModel = false;
@@ -21,12 +21,12 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	private static $meta = [];
 	private static $link = [];
-	private static $baseUrl = null;
-	private static $faviconUrl = null;
-	private static $canonicalUrl = null;
+	private static $base = ['url'=>'', 'target'=>''];
+	private static $favicon = ['url'=>'', 'imageType'=>''];
+	private static $canonicalUrl = '';
 	private static $js = [];
 	private static $css = [];
-	private static $custom = [];
+	private static $custom = ['top'=>[], 'bottom'=>[]];
 
 	protected $options = [
 		'title' => null,
@@ -41,164 +41,78 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	protected function main(&$options)
 	{
-		$metaHtml = '';
-		$linkHtml = '';
-		$cssHtml = '';
-		$jsHtml = '';
-		$customHtml = '';
-
-		// Creating title tag
-		$titleHtml = '<title>' . self::$title . '</title>';
 		if(!empty(self::$setBy['title'])){
 			Debug::alert('The title was set by ' . self::$setBy['title'] . '.', 'n');
 		}
 
-		// Creating meta description tag
 		self::addMeta(['name' => 'description', 'content' => self::$metaDescription]);
+		
 		if (!empty(self::$setBy['metaDescription'])) {
 			Debug::alert('The title was set by ' . self::$setBy['metaDescription'] . '.', 'n');
 		}
 
-		// Creating the <base>
-		$baseHtml = self::$baseUrl !== null
-			? '<base href="' . self::$baseUrl . '">'
-			: '';
-
-		// Creating the favicon <link>
-		if (self::$faviconUrl !== null) {
-			$iconType = \Arembi\Xfw\Misc\getFileExtension(self::$faviconUrl);
-			$faviconHtml = '<link rel="icon" type="image/' . $iconType . '" href="' . self::$faviconUrl . '">';
-		} else {
-			$faviconHtml = '';
-		}
+		self::$favicon['imageType'] = \Arembi\Xfw\Misc\getFileExtension(self::$favicon['url']);
 
 		// Get the robots meta tag contents
-		$robotsMeta = self::generateRobotsMeta();
-		self::addMeta(['name' => 'robots', 'content' => $robotsMeta]);
-
-		// Adding meta HTML entities to the code
-		if (!empty(self::$meta['charset'])) {
-			$metaHtml .= '<meta charset="' . self::$meta['charset'] . '">' . PHP_EOL;
-		}
-
-		if (!empty(self::$meta['name'])) {
-			foreach (self::$meta['name'] as $name => $content) {
-				$metaTag= '<meta name="' . $name . '"' . ' content="' . $content . '">' . PHP_EOL;
-				$metaHtml .= $metaTag;
-			}
-		}
-
-		if (!empty(self::$meta['http-equiv'])) {
-			foreach (self::$meta['http-equiv'] as $name => $content) {
-				$metaTag= '<meta http-equiv="' . $name . '"' . ' content="' . $content . '">' . PHP_EOL;
-				$metaHtml .= $metaTag;
-			}
-		}
-
-		if (empty($metaHtml)) {
-			$metaHtml = '';
-		}
-
-		// Adding link HTML entities to the code
-		foreach (self::$link as $linkData) {
-			$linkTag = '<link';
-
-			foreach ($linkData as $attribute => $value) {
-				$linkTag .= ' ' . htmlspecialchars($attribute) . '="' . htmlspecialchars($value) . '"';
-			}
-
-			$linkTag .= '>' . PHP_EOL;
-
-			$linkHtml .= $linkTag;
-		}
-
+		self::addMeta(['name' => 'robots', 'content' => self::generateRobotsMeta()]);
+		
 		// Adding the canonical link
 		if (!empty(self::$canonicalUrl)) {
 			$l = new Link(['href'=>self::$canonicalUrl]);
-			$linkHtml .= '<link rel="canonical" href="' . $l->getHref() . '">' . PHP_EOL;
+			self::addLink([
+				['rel', 'canonical'],
+				['href', Router::url(self::$canonicalUrl)]
+			]);
 		}
 
-		// Adding JavaScript HTML entities to the code
-		foreach (self::$js as $cjs) {
-			// $cjs[0] is the JS code or src, $js[1] is the async attribute
-			if (strpos($cjs[0], '<script') !== false) {
-				if (strpos($cjs[0], '</script>') == strlen($cjs[0]) - 9) {
-					$jsHtml .= $cjs[0] . PHP_EOL;
-				} else {
-					Debug::alert('Some JavaScript code is missing due to incorrect embedding.');
-				}
-			} else {
-				$jsHtml .= '<script';
-				$jsHtml .= $cjs[1] ? ' async' : '';
-				$jsHtml .= ' src="' . (strpos($cjs[0], '//') !== false ? '' : Router::$hostURL) . htmlspecialchars($cjs[0]) . '"';
-				$jsHtml .= '></script>' . PHP_EOL;
-			}
-		}
-
-		/*
-		Adding CSS HTML entities to the code
-		*/
-
-		foreach (self::$css as $css) {
-			$cssHtml .= '<link rel="stylesheet" href="' . (strpos($css, '//') !== false ? '' : Router::getHostUrl()) . htmlspecialchars($css) . '" type="text/css">' . PHP_EOL;
-		}
-
-		/*
-		Adding custom elements to the code
-		*/
-
-		foreach (self::$custom as $c) {
-			$customHtml .= $c . PHP_EOL;
-		}
-
-		$this->lv('title', $titleHtml);
-		$this->lv('meta', $metaHtml);
-		$this->lv('css', $cssHtml);
-		$this->lv('js', $jsHtml);
-		$this->lv('custom', $customHtml);
-		$this->lv('link', $linkHtml);
-		$this->lv('base', $baseHtml);
-		$this->lv('favicon', $faviconHtml);
+		$this->lv('title', self::$title);
+		$this->lv('meta', self::$meta);
+		$this->lv('css', self::$css);
+		$this->lv('js', self::$js);
+		$this->lv('custom', self::$custom);
+		$this->lv('link', self::$link);
+		$this->lv('base', self::$base);
+		$this->lv('favicon', self::$favicon);
 	}
 
 
-	public static function setTitle(string $title)
+	public static function title(?string $title = null)
 	{
-		self::$title = $title;
-	}
-
-
-	public static function getTitle()
-	{
+		if ($title !== null) {
+			self::$title = $title;
+		}
 		return self::$title;
 	}
 
 
-	public static function setMetaDescription(string $description)
+	public static function metaDescription(?string $description = null)
 	{
-		self::$metaDescription = $description;
-	}
-
-
-	public static function getMetaDescription()
-	{
+		if ($description !== null) {
+			self::$metaDescription = $description;
+		}
 		return self::$metaDescription;
 	}
 
 
-	public static function setBaseUrl(string $url)
+	public static function baseUrl(?string $url = null)
 	{
-		self::$baseUrl = $url;
+		if ($url !== null) {
+			self::$baseUrl = $url;
+		}
+		return self::$baseUrl;
 	}
 
 
-	public static function setFaviconUrl(string $url)
+	public static function faviconUrl(?string $url = null)
 	{
-		self::$faviconUrl = $url;
+		if ($url !== null) {
+			self::$favicon['url'] = $url;
+		}
+		return self::$favicon['url'];
 	}
 
 
-	public static function addJS($js, bool $async = false)
+	public static function addJs($js, bool $async = false)
 	{
 		if (is_array($js)) {
 			foreach ($js as $cjs) {
@@ -216,7 +130,7 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public static function addCSS($css)
+	public static function addCss($css)
 	{
 		if (is_array($css)) {
 			foreach ($css as $ccss) {
@@ -238,13 +152,11 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-
 	// Metas should be arrays like this
 	// [
 	// 'attr1' => 'value1',
 	// 'attr2' => 'value2'
 	// ]
-
 	public static function addMeta(array $meta)
 	{
 		if (!isset($meta['content'])) {
@@ -259,7 +171,6 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 			self::$meta['http-equiv'][$meta['http-equiv']] = $meta['content'];
 		}
 	}
-
 
 
 	public static function addLink($link)
@@ -280,37 +191,35 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-
-	public static function canonical(string $href)
+	public static function canonical(?string $url = null)
 	{
-		self::$canonicalUrl = $href;
+		if ($url !== null) {
+			self::$canonicalUrl = $url;
+		}
+		return self::$canonicalUrl;
 	}
 
 
-
-	public static function addCustomHTML($custom)
+	public static function addCustomHtml(string $custom, string $position = 'bottom')
 	{
-		self::$custom[] = $custom;
+		self::$custom[$position] = $custom;
 	}
 
 
 	public static function generateRobotsMeta()
 	{
 		$meta = [];
-		$meta['index'] = Seo::isIndexable() ? 'index' : 'noindex';
-		$meta['follow'] = Seo::isFollowable() ? 'follow' : 'nofollow';
-		$meta['noArchive'] = Seo::isArchivable() ? false : 'noarchive';
+		$meta['index'] = Seo::indexable() ? 'index' : 'noindex';
+		$meta['follow'] = Seo::followable() ? 'follow' : 'nofollow';
+		$meta['noArchive'] = Seo::archivable() ? false : 'noarchive';
 		$meta['maxSnippet'] = 'max-snippet:' . Seo::maxSnippet();
 		$meta['maxImagePreview'] = 'max-image-preview:' . Seo::maxImagePreview();
 		$meta['max-video-preview'] = 'max-video-preview:' . Seo::maxVideoPreview();
-		$meta['noTranslate'] = Seo::isTranslatable() ? false : 'notranslate';
-		$meta['noImageIndex'] = Seo::areImagesIndexable() ? false : 'noimageindex';
+		$meta['noTranslate'] = Seo::translatable() ? false : 'notranslate';
+		$meta['noImageIndex'] = Seo::imagesIndexable() ? false : 'noimageindex';
 
-		$meta = array_filter($meta);
-
-		$content = implode(', ', $meta);
+		$content = implode(', ', array_filter($meta));
 
 		return $content;
 	}
-
 }

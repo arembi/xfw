@@ -1,5 +1,7 @@
 <?php
-namespace Arembi\Xfw;
+
+namespace Arembi\Xfw\Inc;
+
 use Arembi\Xfw\Module\Head;
 
 abstract class Seo {
@@ -29,139 +31,113 @@ abstract class Seo {
 		self::$followable = true;
 		self::$archivable = true;
 		self::$maxSnippet = -1;
-		self::$maxImagePreview = 'standard';
 		self::$allowedmaxImagePreviewSettings = [
 			'standard',
 			'large',
 			'none'
 		];
+		self::$maxImagePreview = 'standard';
 		self::$maxVideoPreview = -1;
 		self::$translatable = true;
 		self::$imagesIndexable = true;
 	}
 
 
-	public static function title($title = null)
+	public static function title(?string $title = null)
 	{
-		if ($title === null) {
-			Head::getTitle();
-		} else {
-			Head::setTitle($title);	
+		Head::title($title);
+	}
+
+
+	public static function metaDescription(?string $description = null)
+	{
+		Head::metaDescription($description);
+	}
+
+
+	public static function indexable(?bool $state = null)
+	{
+		if ($state !== null) {
+			self::$indexable = $state;
 		}
-	}
-
-
-	public static function metaDescription($description = null)
-	{
-		if ($description === null) {
-			Head::getMetaDescription();	
-		} else {
-			Head::setMetaDescription($description);
-		}
-	}
-
-
-	public function indexable(bool $state)
-	{
-		self::$indexable = $state;
-	}
-
-
-	public static function isIndexable()
-	{
 		return self::$indexable;
 	}
 
 
-	public static function followable(bool $state)
+	public static function followable(?bool $state = null)
 	{
-		self::$followable = $state;
-	}
-
-
-	public static function isFollowable()
-	{
+		if ($state !== null) {
+			self::$followable = $state;
+		}
 		return self::$followable;
 	}
 
 
-	public static function archivable(bool $state)
+	public static function archivable(?bool $state = null)
 	{
-		self::$archivable = $state;
-	}
-
-
-	public static function isArchivable()
-	{
+		if ($state !== null) {
+			self::$archivable = $state;
+		}
 		return self::$archivable;
 	}
 
 
-	public static function maxSnippet($characterCount = null)
+	public static function maxSnippet(?int $characterCount = null)
 	{
-		if ($characterCount === null) {
-			return self::$maxSnippet;
-		} else {
-			self::$maxSnippet = $characterCount;
+		if ($characterCount !== null) {
+			self::$maxSnippet = $characterCount;	
 		}
+		return self::$maxSnippet;
 	}
 
 
 	public static function maxImagePreview($setting = null)
 	{
-		if ($setting === null) {
-			return self::$maxImagePreview;
-		} else {
+		if ($setting !== null) {
 			if (in_array($setting, self::$allowedmaxImagePreviewSettings)) {
 				self::$maxImagePreview = $setting;
 			} else {
 				Debug::alert('max-image-preview could not be set, invalid value given.', 'f');
 			}
 		}
+		return self::$maxImagePreview;
 	}
 
 
-	public static function maxVideoPreview($seconds = null)
+	public static function maxVideoPreview(?int $seconds = null)
 	{
-		if ($seconds === null) {
-			return self::$maxVideoPreview;
-		} else {
+		if ($seconds !== null) {
 			if ($seconds >= -1) {
 				self::$maxVideoPreview = $seconds;
 			} else {
 				Debug::alert('max-video-preview could not be set, invalid value given.', 'f');
-			}
+			}	
 		}
+		return self::$maxVideoPreview;
 	}
 
 
-	public static function translatable(bool $state)
+	public static function translatable(?bool $state = null)
 	{
-		self::$translatable = $state;
-	}
-
-
-	public static function isTranslatable()
-	{
+		if ($state !== null) {
+			self::$translatable = $state;
+		}
 		return self::$translatable;
 	}
 
 
-	public static function imagesIndexable(bool $state)
+	public static function imagesIndexable(?bool $state = null)
 	{
-		self::$imagesIndexable = $state;
-	}
-
-
-	public static function areImagesIndexable()
-	{
+		if ($state !== null) {
+			self::$imagesIndexable = $state;
+		}
 		return self::$imagesIndexable;
 	}
 
 
-	public static function canonical($href)
+	public static function canonical(?string $url = null)
 	{
-		Head::canonical($href);
+		Head::canonical($url);
 	}
 
 }
