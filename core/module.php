@@ -456,7 +456,7 @@ abstract class ModuleCore {
 		}
 
 		foreach ($filters as $filter) {
-			$filterClass = "\\Arembi\\Xfw\\Filter\\$filter";
+			$filterClass = "\\Arembi\\Xfw\\Filter\\$filter" . "LayoutFilter";
 			if (class_exists($filterClass)) {
 				$filter = new $filterClass();
 			}
