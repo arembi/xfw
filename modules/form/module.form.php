@@ -32,7 +32,6 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 			if (!$form) {
 				return false;
 			}
-			$options['layout'] = $form['name'];
 			
 			if (isset($form['fields'])) {
 				foreach ($form['fields'] as $k => $f) {
@@ -45,10 +44,11 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 			// Adding the non-optional formID hidden input
 			$this->addField('formId', 'hidden')
 				->attribute('value' , $options['id']);
+			
+			$options['layout'] = $form['options']['layout'] ?? $form['name'];
+			$options['layoutVariant'] = $form['options']['layoutVariant'] ?? $form['name'];
 
 		} elseif (!empty($options['handlerModule']) && !empty($options['handlerMethod'])) { // Standard forms
-			
-			$options['layout'] = $options['handlerMethod'];
 			
 			if (isset($options['fields'])) {
 				foreach ($options['fields'] as $k => $f) {
@@ -63,6 +63,9 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 				->attribute('value', $options['handlerMethod']);
 
 			$this->actionUrl = $options['actionUrl'] ?? '';
+			
+			$options['layout'] = $options['layout'] ?? $options['handlerMethod'];
+			$options['layoutVariant'] = $options['layoutVariant'] ?? $options['handlerMethod'];
 		} else {
 			return false;
 		}
@@ -70,6 +73,25 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 		if (empty($options['autoBuild']) || $options['autoBuild'] === true) {
 			$this->build();
 		}
+	}
+
+
+	public function build()
+	{
+		$this->applyOverrides();
+		$this->fields->generateTags();
+
+		if (!empty($this->actionUrl)) {
+			$actionLink = new Link(['href'=>$this->actionUrl]);
+			$actionUrl = $actionLink->getHref();
+		} else {
+			$actionUrl = '';
+		}
+
+		$this->lv('fields', $this->fields->fields());
+		$this->lv('action', $actionUrl);
+
+		return $this;
 	}
 
 
@@ -110,47 +132,6 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public function build()
-	{
-		$this->applyOverrides();
-		$this->fields->generateTags();
-
-		if (!empty($this->actionUrl)) {
-			$actionLink = new Link(['href'=>$this->actionUrl]);
-			$actionUrl = $actionLink->getHref();
-		} else {
-			$actionUrl = '';
-		}
-
-		$this->lv('fields', $this->fields->fields());
-		$this->lv('action', $actionUrl);
-
-		return $this;
-	}
-
-
-	public function addField(string $fieldName, string $type = 'text'): FormField
-	{
-		
-		$field = new FormField();
-		$field->type($type);
-
-		$this->overrides->addField($fieldName, $field);
-
-		return $field;
-	}
-
-
-	public function addFieldSet($fieldName): FormFieldSet
-	{
-		$fieldSet = new FormFieldSet();
-		
-		$this->overrides->addField($fieldName, $fieldSet);
-
-		return $fieldSet;
-	}
-
-
 	public function fields(FormFieldSet $fields = null)
     {
         if ($fields === null) {
@@ -173,7 +154,7 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
     }
 
 
-	public function actionUrl(string|null $url = null)
+	public function actionUrl(?string $url = null)
 	{
 		if ($url === null) {
 			return $this->actionUrl;
@@ -181,6 +162,28 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 			$this->actionUrl = $url;
 			return $this;
 		}
+	}
+
+
+	public function addField(string $fieldName, string $type = 'text'): FormField
+	{
+		
+		$field = new FormField();
+		$field->type($type);
+
+		$this->overrides->addField($fieldName, $field);
+
+		return $field;
+	}
+
+
+	public function addFieldSet($fieldName): FormFieldSet
+	{
+		$fieldSet = new FormFieldSet();
+		
+		$this->overrides->addField($fieldName, $fieldSet);
+
+		return $fieldSet;
 	}
 
 
