@@ -4,14 +4,102 @@ namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Settings;
+use Arembi\Xfw\Core\Models\Domain;
 use Arembi\Xfw\Core\Models\Route;
 
 class Control_PanelBaseModel {
 
+	
+	public function newDomain(array $data)
+	{
+		// Input check and default values
+		if (empty($data['domain']) || collect(Router::getDomains())->contains('domain', $data['domain'])) {
+			return false;
+		}
+		if (empty($data['protocol'])) {
+			$data['protocol'] = 'http://';
+		}
+		if (!isset($data['settings']) || !is_string($data['settings'])) {
+			$data['settings'] = null;
+		}
+
+		$d = new Domain();
+		$d->domain = $data['domain'];
+		$d->protocol = $data['protocol'];
+		$d->settings = $data['settings'];
+
+		$result = $d->save();
+
+		if ($result) {
+			Router::loadDomains();
+		}
+
+		return $result;
+	}
+
+
+	public function updateDomain(array $data)
+	{
+		// Input check and default values
+		if (empty($data['id'])) {
+			return false;
+		} else {
+			$data['id'] = (int) $data['id'];
+		}
+		if (empty($data['domain']) || !is_string($data['domain'])) {
+			return false;
+		}
+		if (empty($data['protocol']) || !in_array($data['protocol'], ['http://', 'https://'])) {
+			return false;
+		}
+		if (!isset($data['settings']) || !is_string($data['settings'])) {
+			$data['settings'] = null;
+		}
+		
+		$d = Domain::find($data['id']);
+		
+		if ($d) {
+			if ($d->domain === $data['domain'] || !collect(Router::getDomains())->contains('domain', $data['domain'])) {
+				$d->domain = $data['domain'];
+				$d->protocol = $data['protocol'];
+				$d->settings = $data['settings'];
+				
+				$result = $d->save();
+			} else {
+				$result = false;
+			}
+		} else {
+			$result = false;
+		}
+
+		if ($result) {
+			Router::loadDomains();
+		}
+
+		return $result;
+	}
+
+
+	public function deleteDomain(int $id)
+	{
+		$result = false;
+		$domain = Domain::find($id);
+		
+		if ($domain) {
+			$result = $domain->delete();
+			if ($result) {
+				Router::loadDomains();
+			}
+		}
+
+		return $result;
+	}
+
+
 	public function newRoute(array $data)
 	{
 		// Input check and default values
-		if (!isset($data['path']) || empty($data['path']) || !is_array($data['path'])) {
+		if (empty($data['path']) || !is_array($data['path'])) {
 			return false;
 		}
 		if (!isset($data['domainId']) || !is_numeric($data['domainId'])) {
@@ -210,16 +298,18 @@ class Control_PanelBaseModel {
 
 
 
-	public function deleteRoute($id)
+	public function deleteRoute(int $id)
 	{
+		$result = false;
 		$route = Route::find($id);
-		$result = $route->delete();
-
-		if ($result) {
-			Router::loadData();
-		} else {
-			$result = false;
+		
+		if ($route) {
+			$result = $route->delete();
+			if ($result) {
+				Router::loadData();
+			}
 		}
+
 		return $result;
 	}
 

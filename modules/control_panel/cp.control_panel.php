@@ -20,6 +20,14 @@ class CP_Control_PanelBase extends Control_panel {
 					'hu'=>'Kezdőlap',
 					'en'=>'Dash']
 				],
+				['domain_list', [
+					'hu'=>'Domain lista',
+					'en'=>'Domain List']
+				],
+				['domain_new', [
+					'hu'=>'Új domain',
+					'en'=>'New Domain']
+				],
 				['route_list', [
 					'hu'=>'Útvonal lista',
 					'en'=>'Route List']
@@ -36,10 +44,153 @@ class CP_Control_PanelBase extends Control_panel {
 	public function home()
 	{
 		?>
-		<div style="font-weight:bold;font-size:2em;text-align:center;">
+		<div style="padding-top:2em;font-weight:bold;font-size:2em;text-align:center;">
 			Control panel home page
 		</div>
 		<?php
+	}
+
+
+	public function domain_list()
+	{
+		$domains = Router::getDomains();
+		
+		foreach ($domains as $id => &$domainData) {
+			$editLink = new Link(['anchor'=>'edit', 'href'=>'?task=domain_edit&id=' . $id]);
+			$deleteLink = new Link(['anchor'=>'delete', 'href'=>'?task=domain_delete&id=' . $id]);
+
+			$domainData['editLink'] = $editLink->processLayout()->getLayoutHtml();
+			$domainData['deleteLink'] = $deleteLink->processLayout()->getLayoutHtml();
+		}
+
+		unset($domainData);
+		?>
+		<table>
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Domain</th>
+					<th>Protocol</th>
+					<th colspan="2">Tools</th>
+				</tr>
+			</thead>
+			<tbody>
+			<?php foreach($domains as $id=>$domainData):?>
+				<tr>
+					<td title="ID"><?php echo $id;?></td>
+					<td title="domain name"><?php echo $domainData['domain']?></td>
+					<td title="domain protocol"><?php echo $domainData['protocol']?></td>
+					<td title="edit"><?php echo $domainData['editLink'] ?></td>
+					<td title="delete"><?php echo $domainData['deleteLink'] ?></td>
+				</tr>
+			<?php endforeach;?>
+			</tbody>
+		</table>
+		<?php
+	}
+
+
+	public function domain_new()
+	{
+		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'domain_new'], false);
+
+		$form->actionUrl('?task=domain_list');
+
+		$form->addField('domain')
+			->label('Domain');
+		
+		$protocolSelectOptions = [
+			'http://'=>['value'=>'http://'],
+			'https://'=>['value'=>'https://']
+		];
+		$form->addField('protocol', 'select')
+			->options($protocolSelectOptions)
+			->label('Protocol');
+
+		$form->addField('settings', 'textarea')
+			->label('Domain Settings (JSON)');
+
+		$form
+			->build()
+			->processLayout()
+			->render();
+	}
+
+
+	public function domain_edit()
+	{	
+		$domainId = Router::$REQUEST['id'];
+		$domain = Router::getDomainRecordById($domainId);
+		
+		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'domain_edit']);
+
+		// ID
+		$form->addField('domainId')
+			->attributes(['value'=>$domainId, 'readonly'=>true])
+			->label('ID');
+
+		// Domain name
+		$form->addField('domain')
+			->label('Domain Name')
+			->attribute('value', $domain['domain']);
+
+		// Protocol
+		$protocolSelectOptions = [
+			'http://'=>['value'=>'http://'],
+			'https://'=>['value'=>'https://']
+		];
+		
+		$protocolSelectOptions[$domain['protocol']]['selected'] = 'selected';
+
+		$form->addField('protocol', 'select')
+			->options($protocolSelectOptions)
+			->label('Protocol');
+		
+		// Domain Settings
+		if (!empty($domain['settings'])) {
+			$domainSettingsField = $form->addFieldSet('domainSettings')
+			->label('Domain Settings');
+		
+			foreach ($domain['settings'] as $k => $s) {
+				$newField = new FormField();
+				$newField->type('textarea')
+					->label($k)
+					->text(is_string($s) ? $s : json_encode($s));
+
+				$domainSettingsField->addField($domainSettingsField->name() . '[' . $k . ']', $newField);
+			}
+		} else {
+			$form->addField('domainSettings', 'textarea')
+				->label('Domain Settings (JSON)')
+				->text('{}');
+		}
+		
+		$form
+			->build()
+			->processLayout()
+			->render();
+	}
+
+
+	public function domain_delete()
+	{
+		$domainId = Router::$REQUEST['id'];
+		$domain = Router::getDomainRecordById($domainId);
+
+		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'domain_delete']);
+
+		// ID
+		$form->addField('domainId')
+			->attributes(['value'=>$domainId, 'readonly'=>true])
+			->label('ID');
+		
+		$form->lv('id', $domainId);
+		$form->lv('domain', $domain['domain']);
+
+		$form
+			->build()
+			->processLayout()
+			->render();
 	}
 
 
@@ -59,9 +210,9 @@ class CP_Control_PanelBase extends Control_panel {
 			}
 
 		$editLink = new Link(['anchor'=>'edit', 'href'=>'?task=route_edit&id=' . $id]);
-		$routeData->editLink = $editLink->processLayout()->getLayoutHTML();
+		$routeData->editLink = $editLink->processLayout()->getLayoutHtml();
 		$deleteLink = new Link(['anchor'=>'delete', 'href'=>'?task=route_delete&id=' . $id]);
-		$routeData->deleteLink = $deleteLink->processLayout()->getLayoutHTML();
+		$routeData->deleteLink = $deleteLink->processLayout()->getLayoutHtml();
 
 		}
 

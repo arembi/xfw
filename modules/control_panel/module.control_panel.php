@@ -2,9 +2,10 @@
 
 namespace Arembi\Xfw\Module;
 
+use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\ModuleCore;
-use Arembi\Xfw\Seo;
+use Arembi\Xfw\Inc\Seo;
 
 /*
 URL path parameters
@@ -27,6 +28,7 @@ class Control_PanelBase extends ModuleCore {
 
 	protected static $hasModel = true;
 
+	
 	public function main()
 	{
 		$this->loadPathParams();
@@ -53,6 +55,8 @@ class Control_PanelBase extends ModuleCore {
 				ob_start();
 				$controller->$task();
 				$main = ob_get_clean();
+			} else {
+				Debug::alert("Task $task for module %$module does not exist.", 'f');
 			}
 		}
 

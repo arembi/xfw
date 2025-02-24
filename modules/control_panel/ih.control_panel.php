@@ -8,7 +8,73 @@ use Arembi\Xfw\Misc;
 
 class IH_Control_PanelBase extends Control_Panel {
 
-	public $formData;
+
+	public function domain_new()
+	{
+		$this->loadModel();
+
+		$data = [
+			'domain'=>Router::$POST['domain'],
+			'protocol'=>Router::$POST['protocol'],
+			'settings'=>Router::$POST['settings']
+		];
+
+		$result = $this->model->newDomain($data);
+
+		if ($result) {
+			return [0, 'Domain has been added.'];
+		} else {
+			return [2, 'Domain couldn\'t be added due to input error.'];
+		}
+	}
+
+
+	public function domain_edit()
+	{
+		$this->loadModel();
+
+		$domainSettings = Router::$POST['domainSettings'];
+
+		if (is_array($domainSettings)) {
+			foreach ($domainSettings as &$s) {
+				$s = Misc\decodeIfJson($s);
+			}
+			unset($s);
+
+			$domainSettings = json_encode($domainSettings);
+		} elseif (!json_validate($domainSettings)) {
+			$domainSettings = '{}';
+		}
+
+		$data = [
+			'id'=>Router::$POST['domainId'],
+			'domain'=>Router::$POST['domain'],
+			'protocol'=>Router::$POST['protocol'],
+			'settings'=>$domainSettings
+		];
+
+		$result = $this->model->updateDomain($data);
+
+		if ($result) {
+			return [0, 'Domain has been updated.'];
+		} else {
+			return [2, 'Domain couldn\'t be updated due to input error.'];
+		}
+	}
+
+
+	public function domain_delete()
+	{
+		$this->loadModel();
+
+		$result = $this->model->deleteDomain(Router::$POST['domainId']);
+
+		if ($result) {
+			return [0, 'Domain has been deleted.'];
+		} else {
+			return [2, 'Domain couldn\'t be deleted.'];
+		}
+	}
 
 
 	public function route_new()
@@ -33,9 +99,9 @@ class IH_Control_PanelBase extends Control_Panel {
 		$result = $this->model->newRoute($data);
 
 		if ($result) {
-			return ['OK', 'Route has been added.'];
+			return [0, 'Route has been added.'];
 		} else {
-			return ['NOK', 'Route couldn\'t be added due to input error.'];
+			return [2, 'Route couldn\'t be added due to input error.'];
 		}
 	}
 
@@ -75,9 +141,9 @@ class IH_Control_PanelBase extends Control_Panel {
 		$result = $this->model->updateRoute($data);
 
 		if ($result) {
-			return ['OK', 'Route has been updated.'];
+			return [0, 'Route has been updated.'];
 		} else {
-			return ['NOK', 'Route couldn\'t be updated due to input error.'];
+			return [2, 'Route couldn\'t be updated due to input error.'];
 		}
 	}
 
@@ -86,17 +152,12 @@ class IH_Control_PanelBase extends Control_Panel {
 	{
 		$this->loadModel();
 
-		$delOK = true;
+		$result = $this->model->deleteRoute(Router::$POST['routeId']);
 
-		if (!isset(Router::$POST['routeId']) || !is_numeric(Router::$POST['routeId'])) {
-			$delOK = false;
-		}
-
-		if ($delOK) {
-			$this->model->deleteRoute(Router::$POST['routeId']);
-			return ['OK', 'Route has been deleted.'];
+		if ($result) {
+			return [0, 'Route has been deleted.'];
 		} else {
-			return ['NOK', 'Route couldn\'t be deleted.'];
+			return [2, 'Route couldn\'t be deleted.'];
 		}
 	}
 
