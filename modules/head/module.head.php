@@ -152,6 +152,12 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
+	public static function removeCss(int $key)
+	{
+		unset(self::$css[$key]);
+	}
+
+
 	// Metas should be arrays like this
 	// [
 	// 'attr1' => 'value1',
@@ -173,6 +179,12 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
+	public static function removeMeta(string $type, string $key)
+	{
+		unset(self::$meta[$type][$key]);
+	}
+
+
 	public static function addLink($link)
 	{
 		if (is_array($link)) {
@@ -191,6 +203,12 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
+	public static function removeLink(int $key)
+	{
+		unset(self::$link[$key]);
+	}
+
+
 	public static function canonical(?string $url = null)
 	{
 		if ($url !== null) {
@@ -203,6 +221,12 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	public static function addCustomHtml(string $custom, string $position = 'bottom')
 	{
 		self::$custom[$position] = $custom;
+	}
+
+
+	public static function removeCustomHtml(string $position, int $key)
+	{
+		unset(self::$custom[$position][$key]);
 	}
 
 
