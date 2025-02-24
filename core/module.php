@@ -108,6 +108,9 @@ abstract class ModuleCore {
 	// The module's name
 	protected $name;
 
+	// The module class's name
+	protected $class;
+
 	// Holds the module addon type, or false if it is not an addon
 	protected $addonType;
 
@@ -118,7 +121,7 @@ abstract class ModuleCore {
 	protected $model;
 
 	// The HTML output for the module after processing its layout
-	protected $layoutHTML;
+	protected $layoutHtml;
 
 	// Shows whether the module's layout has already been processed
 	protected $layoutProcessed;
@@ -132,34 +135,35 @@ abstract class ModuleCore {
 	// The array of embedded modules in the layout
 	protected $embeddedModules;
 
-	protected $reflector; // instance of ReflectionClass
+	// Instance of the Reflector class
+	protected $reflector;
 
-	// embedID is used for ordering of embedded modules within a layout
+	// Used for ordering of embedded modules within a layout
 	private $embedId;
 
 	// Whether the loop should continue through the current layout
 	protected $recursive;
 
-	// data sent by forms defined within the system, used by IH module extensions
+	// Data sent by forms defined within the system, used by IH module extensions
 	protected $formData;
 
 
 	final public function __construct(array $options = [])
 	{
-		$this->name = '';
+		$this->reflector = new \ReflectionClass($this);
+		$this->class = $this->reflector->getShortName();
+		
+		$name = strtolower($this->class);
+		if (substr($name, -4) == 'base') {
+			$name = substr($name, 0, -4);
+		}
+		$this->name = $name;
+		
 		$this->layoutProcessed = false;
 		$this->options = [];
 		$this->layoutVariables = [];
 		$this->embeddedModules = [];
 		$this->embedId = 0;
-
-		$this->reflector = new \ReflectionClass($this);
-		$class = $this->reflector->getShortName();
-		$this->name = strtolower($class);
-
-		if (substr($this->name, -4) == 'base') {
-			$this->name = substr($this->name, 0, -4);
-		}
 
 		// Checking whether it is an addon
 		$parts = explode('_', $this->name, 2);
@@ -174,15 +178,19 @@ abstract class ModuleCore {
 			$this->addonType = null;
 		}
 
-		// If the name has not been set, we will use the module class name
-		if (empty($options['name'])) {
-			$options['name'] = $this->name;
-		}
+
+		// Default option values
+		$this->options['id'] = 0;
+		$this->options['name'] = $this->name;
 
 		$this->parentModule = $options['parentModule'] ?? null;
 
-		// Layout setup
 		$this->options['layout'] = Settings::get('defaultModuleLayout');
+		$this->options['layoutVariant'] = Settings::get('defaultModuleLayoutVariant');
+		$this->options['layoutJsAutoLoad'] = true;
+		$this->options['layoutCssAutoLoad'] = true;
+
+		$this->options['triggerAction'] = false;
 
 		/*
 		Code that should run every time the module is instantiated
@@ -202,38 +210,24 @@ abstract class ModuleCore {
 			$mainResult = $this->main($options);
 		}
 
+
+		// OVERWRITING DEFAULT OPTIONS VALUES
 		$this->options = array_merge($this->options, $options);
 
-		// If not set, ID will be 0
-		if (!isset($this->options['id'])) {
-			$this->options['id'] = 0;
-		}
 
 		/*
-			* Triggering an action if requested
-			* Default actions will only be triggered for the primary module matched by the router
-			* */
+		Triggering an action if requested
+		Default actions will only be triggered for the primary module matched by the router
+		*/
 
-		if (isset($this->options['triggerAction']) && $this->options['triggerAction']) {
-			// actions set via GET will override default actions
-			if (isset(Router::$GET['_action'])) {
-				$action = Router::$GET['_action'];
-			} else {
-				$action = Router::getMatchedRouteAction();
-			}
-
-			if ($action) {
-				$actionMethod = $action . 'Action';
-				if (method_exists($this, $actionMethod)) {
-					$this->$actionMethod();
-					Debug::alert('Action ' . $action . ' for %' . $class . ' successfully triggered.', 'o');
-				} else {
-					Debug::alert('Action ' . $action . ' for %' . $class . ' could not be triggered.' , 'f');
+		if ($this->options['triggerAction']) {
+			// actions sent as a REQUEST will override default actions
+				$action = Router::$REQUEST['_action'] ?? Router::getMatchedRouteAction();
+				if ($action) {
+					$this->triggerAction($action);
 				}
-			} else {
-				Debug::alert('No action was triggered for %' . $class . '.');
-			}
 		}
+
 		$this->recursive = !isset($this->options['recursive']) || $this->options['recursive'] != "no";
 
 		if (isset($mainResult) && $mainResult !== false) {
@@ -249,6 +243,22 @@ abstract class ModuleCore {
 	}
 
 
+	private function triggerAction(string $action)
+	{
+		if ($action) {
+			$actionMethod = $action . 'Action';
+			if (method_exists($this, $actionMethod)) {
+				$this->$actionMethod();
+				Debug::alert('Action ' . $action . ' for %' . $this->class . ' successfully triggered.', 'o');
+			} else {
+				Debug::alert('Action ' . $action . ' for %' . $this->class . ' could not be triggered.' , 'f');
+			}
+		} else {
+			Debug::alert('No action was triggered for %' . $this->class . '.');
+		}
+	}
+
+
 	/*
 	* The layout processing covers the followings:
 	* - put the layoutVariables into the layout
@@ -261,11 +271,11 @@ abstract class ModuleCore {
 		$this->rId = App::registerModule($this);
 
 		// Load the module's layout
-		$layout = $this->loadLayoutFile($this->options['layout']);
+		$layout = $this->findLayoutFile($this->options['layout'], $this->options['layoutVariant']);
 
 		// If the requested layout could not be loaded, we try to load the default
 		if ($layout['layoutFile'] === null) {
-			$layout = $this->loadLayoutFile(Settings::get('defaultModuleLayout'));
+			$layout = $this->findLayoutFile(Settings::get('defaultModuleLayout'));
 		}
 
 		// Loading layout file
@@ -279,7 +289,7 @@ abstract class ModuleCore {
 			include($layout['layoutFile']);
 
 			// Get the contents of the buffer
-			$this->layoutHTML = ob_get_contents();
+			$this->layoutHtml = ob_get_contents();
 
 			// End buffering and discard
 			ob_end_clean();
@@ -288,11 +298,15 @@ abstract class ModuleCore {
 		// CSS, JS autoload
 		// Adding the module layout's assets to the head
 		if (!empty($layout['layoutDir'])) {
-			$this->JSAutoload($layout['layoutDir']);
-			$this->CSSAutoload($layout['layoutDir']);
+			if ($this->options['layoutJsAutoLoad']) {
+				$this->jsAutoLoad($layout['layoutDir']);
+			}
+			if ($this->options['layoutCssAutoLoad']) {
+				$this->cssAutoLoad($layout['layoutDir']);
+			}
 		}
 
-		if (!empty($this->layoutHTML)) {
+		if (!empty($this->layoutHtml)) {
 			// Initializing embedded modules (if enabled)
 			if ($this->recursive) {
 				// Loading embedded modules
@@ -305,13 +319,13 @@ abstract class ModuleCore {
 						$embeddedModule = $this->loadModule($module['params']['name'], $module['params']);
 						if ($embeddedModule !== false) {
 							// The module has been successfully loaded
-							$embedHTML = $embeddedModule->processLayout()->getLayoutHTML();
+							$embedHtml = $embeddedModule->processLayout()->getLayoutHtml();
 						} else {
-							$embedHTML = '';
+							$embedHtml = '';
 						}
 
 						// Inserting the embedded HTML
-						$this->layoutHTML = str_replace('{%' . $module['embedId'] . '%}', $embedHTML, $this->layoutHTML);
+						$this->layoutHtml = str_replace('{%' . $module['embedId'] . '%}', $embedHtml, $this->layoutHtml);
 					}
 				}
 			}
@@ -322,19 +336,23 @@ abstract class ModuleCore {
 	}
 
 
-	protected function loadLayoutFile(string $layout)
+	protected function findLayoutFile(string $layout, ?string $variant = null)
 	{
-		if (file_exists(DOMAIN_DIR . DS . 'layouts' . DS . $this->options['name'] . DS . $layout . DS . $layout . '.php')) {
+		if ($variant === null) {
+			$variant = $layout;
+		}
+
+		if (file_exists(DOMAIN_DIR . DS . 'layouts' . DS . $this->options['name'] . DS . $layout . DS . $variant . '.php')) {
 			$layoutDir = DOMAIN_DIR . DS . 'layouts' . DS . $this->options['name'] . DS . $layout;
-			$layoutFile = $layoutDir . DS . $layout . '.php';
-		} elseif (file_exists(ENGINE_DIR . DS . 'layouts' . DS . $this->options['name'] . DS . $layout . DS . $layout . '.php')) {
+			$layoutFile = $layoutDir . DS . $variant . '.php';
+		} elseif (file_exists(ENGINE_DIR . DS . 'layouts' . DS . $this->options['name'] . DS . $layout . DS . $variant . '.php')) {
 			// Trying to fallback to the base module layout
 			$layoutDir = ENGINE_DIR . DS . 'layouts' . DS . $this->options['name'] . DS . $layout;
-			$layoutFile = $layoutDir . DS . $layout . '.php';
+			$layoutFile = $layoutDir . DS . $variant . '.php';
 		} else {
 			$layoutFile = null;
 			$layoutDir = null;
-			Debug::alert('Layout ' . $layout . ' for module %' . $this->options['name'] . ' not found.', 'f');
+			Debug::alert('Layout ' . $variant . ' for module %' . $this->options['name'] . ' not found.', 'f');
 		}
 
 		return ['layoutFile' => $layoutFile, 'layoutDir' => $layoutDir];
@@ -497,17 +515,17 @@ abstract class ModuleCore {
 	}
 
 
-	public function getLayoutHTML()
+	public function getLayoutHtml()
 	{
-		if($this->layoutHTML){
-			return $this->layoutHTML;
+		if($this->layoutHtml){
+			return $this->layoutHtml;
 		} else {
 			Debug::alert('Couldn\'t retrieve layout for ' . __CLASS__ . '.', 'f');
 		}
 	}
 
 
-	public function JSAutoload(string $layoutDir)
+	public function jsAutoLoad(string $layoutDir)
 	{
 		if (is_dir($layoutDir . DS . 'js')) {
 			$JSList = Misc\listFiles($layoutDir . DS . 'js', '/', FALSE, 'js');
@@ -520,7 +538,7 @@ abstract class ModuleCore {
 	}
 
 
-	public function CSSAutoload(string $layoutDir)
+	public function cssAutoLoad(string $layoutDir)
 	{
 		if (is_dir($layoutDir . DS . 'css')) {
 			$CSSList = Misc\listFiles($layoutDir . DS . 'css', '/', FALSE, 'css');
@@ -535,7 +553,7 @@ abstract class ModuleCore {
 
 	public function render()
 	{
-		echo $this->layoutHTML;
+		echo $this->layoutHtml;
 	}
 
 
