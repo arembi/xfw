@@ -87,7 +87,7 @@ abstract class Debug {
 	// Shows the HTML output of the debug alerts. HTML will be escaped in the messages
 	public static function render()
 	{
-		$HTML = '
+		$html = '
 			<style>' . self::$style . '</style>
 			<div id="debugArea">
 				<div id="debugAreaHeading">Debug Panel</div>';
@@ -115,13 +115,13 @@ abstract class Debug {
 
 			$currentAlert .= '</div>';
 
-			$HTML .= $currentAlert;
+			$html .= $currentAlert;
 		}
 
-		$HTML .= '</div>
+		$html .= '</div>
 		';
 
-		echo $HTML;
+		echo $html;
 	}
 
 }
