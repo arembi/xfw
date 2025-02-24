@@ -72,7 +72,7 @@ class Body_StartBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public static function addCustomHTML($custom)
+	public static function addCustomHtml($custom)
 	{
 		self::$custom[] = $custom;
 	}

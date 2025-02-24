@@ -61,7 +61,7 @@ class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 						'showTitle'=>false
 					];
 					$submenu = new Menu($submenuData);
-					$menuItems[] = $submenu->processLayout()->getLayoutHTML();
+					$menuItems[] = $submenu->processLayout()->getLayoutHtml();
 				} else {
 					// Filling up empty values
 					if (!isset($item['target'])) {
@@ -99,7 +99,7 @@ class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 
 						$link = new Link($linkData);
 
-						$menuItems[] = $link->processLayout()->getLayoutHTML();
+						$menuItems[] = $link->processLayout()->getLayoutHtml();
 					} else {
 						$menuItems[] = '<span class="menuitem placeholder" title="' . $item['title'] . '">' . $item['anchorText'] . '</span>';
 					}
@@ -119,7 +119,7 @@ class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 				}
 
 				$submenu = new Menu($submenuData);
-				$menuItems[] = $submenu->processLayout()->getLayoutHTML();
+				$menuItems[] = $submenu->processLayout()->getLayoutHtml();
 			} elseif ($item['type'] == 'link') {
 				if (isset($item['id'])) {
 					$item['href'] = '@' . $item['id'];
@@ -159,7 +159,7 @@ class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 
 					$link = new Link($linkData);
 
-					$menuItems[] = $link->processLayout()->getLayoutHTML();
+					$menuItems[] = $link->processLayout()->getLayoutHtml();
 				} else {
 					$menuItems[] = '<span class="menuitem placeholder" title="' . $item['title'] . '">' . $item['anchorText'] . '</span>';
 				}

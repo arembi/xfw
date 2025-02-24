@@ -2,7 +2,7 @@
 
 namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\App;
-use Arembi\Xfw\Seo;
+use Arembi\Xfw\Inc\Seo;
 
 class DocumentBase extends \Arembi\Xfw\Core\ModuleCore {
 

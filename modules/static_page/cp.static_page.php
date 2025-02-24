@@ -49,9 +49,9 @@ class CP_Static_PageBase extends Static_Page {
 
 		foreach ($pages as &$page) {
 			$editLink = new Link(['anchor' => 'edit', 'href' => '?task=page_edit&id=' . $page->id]);
-			$page->editLink = $editLink->processLayout()->getLayoutHTML();
+			$page->editLink = $editLink->processLayout()->getLayoutHtml();
 			$deleteLink = new Link(['anchor' => 'delete', 'href' => '?task=page_delete&id=' . $page->id]);
-			$page->deleteLink = $deleteLink->processLayout()->getLayoutHTML();
+			$page->deleteLink = $deleteLink->processLayout()->getLayoutHtml();
 		}
 		unset($page);
 		?>

@@ -46,9 +46,9 @@ class CP_MenuBase extends Menu {
 
 		foreach ($menus as &$menu) {
 			$editLink = new Link(['anchor' => 'edit', 'href' => '?task=menu_edit&id=' . $menu->id]);
-			$menu->editLink = $editLink->processLayout()->getLayoutHTML();
+			$menu->editLink = $editLink->processLayout()->getLayoutHtml();
 			$deleteLink = new Link(['anchor' => 'delete', 'href' => '?task=menu_delete&id=' . $menu->id]);
-			$menu->deleteLink = $deleteLink->processLayout()->getLayoutHTML();
+			$menu->deleteLink = $deleteLink->processLayout()->getLayoutHtml();
 		}
 		unset($menu);
 		?>

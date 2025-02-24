@@ -3,8 +3,7 @@
 namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
-use Arembi\Xfw\Module\Head;
-use Arembi\Xfw\Seo;
+use Arembi\Xfw\Inc\Seo;
 
 class Static_PageBase extends \Arembi\Xfw\Core\ModuleCore {
 
