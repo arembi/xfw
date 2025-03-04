@@ -52,7 +52,6 @@ function md_array_lookup($inputArray, $searchKey, $searchValue, $returnKey = fal
 }
 
 
-
 /*
  * Same as md_array_lookup, but returns all the matching elements
  * */
@@ -92,7 +91,6 @@ function md_array_pick(&$inputArray, $searchKey, $searchValue, $returnKey = fals
 	}
 	return false;
 }
-
 
 
 // Sorts a multidimensional array by the given column
@@ -197,7 +195,7 @@ function getFileExtension($path)
 }
 
 
-function decodeIfJSON($string, $associative = null, $depth = 512, $flags = 0)
+function decodeIfJson($string, $associative = null, $depth = 512, $flags = 0)
 {
 	return json_validate($string, $depth, $flags) ? json_decode($string, $associative, $depth, $flags) : $string;
 }
@@ -211,7 +209,6 @@ function array_keys_numeric($array)
 }
 
 
-
 function concatenate($to, $what, $after = false)
 {
 	if (is_string($after)) {
@@ -219,7 +216,6 @@ function concatenate($to, $what, $after = false)
 	}
 	return $to . $what;
 }
-
 
 
 function parseHtmlAttributes($input1, $input2 = [])
@@ -255,7 +251,6 @@ function parseHtmlAttributes($input1, $input2 = [])
 
 	return $ret;
 }
-
 
 
 function getMimeType($filePath)
