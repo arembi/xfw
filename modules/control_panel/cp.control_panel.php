@@ -155,7 +155,7 @@ class CP_Control_PanelBase extends Control_panel {
 				$newField = new FormField();
 				$newField->type('textarea')
 					->label($k)
-					->text(is_string($s) ? $s : json_encode($s));
+					->text(is_string($s) ? $s : json_encode($s,JSON_UNESCAPED_UNICODE));
 
 				$domainSettingsField->addField($domainSettingsField->name() . '[' . $k . ']', $newField);
 			}

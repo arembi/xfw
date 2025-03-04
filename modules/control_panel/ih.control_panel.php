@@ -41,7 +41,7 @@ class IH_Control_PanelBase extends Control_Panel {
 			}
 			unset($s);
 
-			$domainSettings = json_encode($domainSettings);
+			$domainSettings = json_encode($domainSettings,JSON_UNESCAPED_UNICODE);
 		} elseif (!json_validate($domainSettings)) {
 			$domainSettings = '{}';
 		}

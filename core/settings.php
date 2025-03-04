@@ -16,9 +16,9 @@ class Settings {
 	}
 
 
-	public static function get($record)
+	public static function get(?string $record = null)
 	{
-		return isset(self::$settings[$record]) ? self::$settings[$record] : null;
+		return $record === null ? self::$settings : (isset(self::$settings[$record]) ? self::$settings[$record] : null);
 	}
 
 

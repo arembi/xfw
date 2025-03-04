@@ -86,9 +86,9 @@ abstract class Config {
 
 		'defaultDomainSettings' => [
 			'availableLanguages' => [
-				["hu", "hu-HU"],
-				["en","en-GB","en-US"],
-				["de", "de-DE"]
+				['hu', 'hu-HU'],
+				['en','en-GB','en-US'],
+				['de', 'de-DE']
 			],
 			'defaultLanguage' => 'hu',
 			'defaultModuleLayout' => 'default',
@@ -104,9 +104,13 @@ abstract class Config {
 				'hu' => 'oldal',
 				'en' => 'page',
 				'de' => 'seite'
+			],
+			'siteName' => [
+				'hu' => 'XFW Oldal',
+				'en' => 'XFW Site',
+				'de' => 'XFW Seite'
 			]
 		]
-
 	];
 
 
@@ -115,8 +119,8 @@ abstract class Config {
   public static function init()
   {
 		if (file_exists(BASE_DIR . DS . self::$configFileName)) {
-    	include BASE_DIR . DS . self::$configFileName;
-    	self::$config = array_merge(self::$config, $config);
+			include BASE_DIR . DS . self::$configFileName;
+			self::$config = array_merge(self::$config, $config);
 		} else {
 			die('Something went wrong. Contact the administrator.');
 		}
