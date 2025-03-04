@@ -3,7 +3,6 @@
 namespace Arembi\Xfw\Core;
 
 use Illuminate\Database\Capsule\Manager as DB;
-use Arembi\Xfw\Core\Models\Domain;
 
 class AppModel {
 
