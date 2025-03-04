@@ -120,6 +120,9 @@ abstract class ModuleCore {
 	// The module's model
 	protected $model;
 
+	// Error that prevents layout processing
+	protected $error;
+
 	// The HTML output for the module after processing its layout
 	protected $layoutHtml;
 
@@ -147,6 +150,8 @@ abstract class ModuleCore {
 	// Data sent by forms defined within the system, used by IH module extensions
 	protected $formData;
 
+	protected $mainResult;
+
 
 	final public function __construct(array $options = [])
 	{
@@ -159,11 +164,25 @@ abstract class ModuleCore {
 		}
 		$this->name = $name;
 		
+		$this->error = ['errorOccured'=>false,'message'=>''];
 		$this->layoutProcessed = false;
 		$this->options = [];
 		$this->layoutVariables = [];
 		$this->embeddedModules = [];
 		$this->embedId = 0;
+		$this->parentModule = $options['parentModule'] ?? null;
+		$this->recursive = true;
+		$this->mainResult = true;
+
+		// Default option values
+		$this->options['id'] = 0;
+		$this->options['name'] = $this->name;
+		$this->options['layout'] = Settings::get('defaultModuleLayout');
+		$this->options['layoutVariant'] = Settings::get('defaultModuleLayoutVariant');
+		$this->options['layoutJsAutoLoad'] = true;
+		$this->options['layoutCssAutoLoad'] = true;
+		$this->options['triggerAction'] = false;
+		$this->options['recursive'] = true;
 
 		// Checking whether it is an addon
 		$parts = explode('_', $this->name, 2);
@@ -178,42 +197,29 @@ abstract class ModuleCore {
 			$this->addonType = null;
 		}
 
-
-		// Default option values
-		$this->options['id'] = 0;
-		$this->options['name'] = $this->name;
-
-		$this->parentModule = $options['parentModule'] ?? null;
-
-		$this->options['layout'] = Settings::get('defaultModuleLayout');
-		$this->options['layoutVariant'] = Settings::get('defaultModuleLayoutVariant');
-		$this->options['layoutJsAutoLoad'] = true;
-		$this->options['layoutCssAutoLoad'] = true;
-
-		$this->options['triggerAction'] = false;
-
 		/*
 		Code that should run every time the module is instantiated
 		shall be put into its main() function
-
 		The module addons will not run the main function by default
-
 		For unique functionality, use actions
-
 		If you want to use a model, create a class in the model.modulename.php file,
 		and call the loadModel() in the controllers main() function
-
 		To access URL parameters call the loadPathParams()
 		*/
 
 		if ($this->addonType === null && method_exists($this, 'main')) {
-			$mainResult = $this->main($options);
+			$this->mainResult = $this->main($options);
+		}
+
+		if ($this->mainResult === false) {
+			Debug::alert('Error during execution of main() at module %' . $this->name . '#' . $this->options['id'], 'e');
 		}
 
 
 		// OVERWRITING DEFAULT OPTIONS VALUES
 		$this->options = array_merge($this->options, $options);
 
+		$this->recursive = $this->options['recursive'] !== "no";
 
 		/*
 		Triggering an action if requested
@@ -222,18 +228,13 @@ abstract class ModuleCore {
 
 		if ($this->options['triggerAction']) {
 			// actions sent as a REQUEST will override default actions
-				$action = Router::$REQUEST['_action'] ?? Router::getMatchedRouteAction();
-				if ($action) {
-					$this->triggerAction($action);
-				}
+			$action = Router::$REQUEST['_action'] ?? Router::getMatchedRouteAction();
+			if ($action) {
+				$this->triggerAction($action);
+			} else {
+				Debug::alert('No action was triggered for %' . $this->class . '.');
+			}
 		}
-
-		$this->recursive = !isset($this->options['recursive']) || $this->options['recursive'] != "no";
-
-		if (isset($mainResult) && $mainResult !== false) {
-			Debug::alert('Error during execution of main() at module %' . $this->name . '#' . $this->options['id'], 'e');
-		}
-
 	}
 
 
@@ -245,16 +246,27 @@ abstract class ModuleCore {
 
 	private function triggerAction(string $action)
 	{
-		if ($action) {
-			$actionMethod = $action . 'Action';
-			if (method_exists($this, $actionMethod)) {
-				$this->$actionMethod();
-				Debug::alert('Action ' . $action . ' for %' . $this->class . ' successfully triggered.', 'o');
-			} else {
-				Debug::alert('Action ' . $action . ' for %' . $this->class . ' could not be triggered.' , 'f');
-			}
+		$actionMethod = $action . 'Action';
+		if (method_exists($this, $actionMethod)) {
+			$this->$actionMethod();
+			Debug::alert('Action ' . $action . ' for %' . $this->class . ' successfully triggered.', 'o');
 		} else {
-			Debug::alert('No action was triggered for %' . $this->class . '.');
+			Debug::alert('Action ' . $action . ' for %' . $this->class . ' could not be triggered.' , 'f');
+		}
+	}
+
+
+	protected function error($message = null)
+	{
+		if ($message === null) {
+			return $this->error;
+		}
+
+		if ($message === false) {
+			$this->error = ['errorOccured'=>false, 'message'=>''];
+		} else {
+			$this->error = ['errorOccured'=>true, 'message'=>$message];
+			Debug::alert($message, 'f');
 		}
 	}
 
@@ -267,6 +279,12 @@ abstract class ModuleCore {
 
 	public function processLayout()
 	{
+		if ($this->error()['errorOccured']) {
+			Debug::alert("Cannot process layout of %$this->name #" . $this->options['id']);
+			$this->layoutHtml = null;
+			return $this;
+		}
+
 		// Register the module in the system
 		$this->rId = App::registerModule($this);
 
@@ -317,14 +335,15 @@ abstract class ModuleCore {
 					// Loading the embedded modules
 					foreach ($this->embeddedModules as $module) {
 						$embeddedModule = $this->loadModule($module['params']['name'], $module['params']);
+						
 						if ($embeddedModule !== false) {
 							// The module has been successfully loaded
-							$embedHtml = $embeddedModule->processLayout()->getLayoutHtml();
+							$embedHtml = $embeddedModule->processLayout()->getLayoutHtml() ?? '';
 						} else {
 							$embedHtml = '';
 						}
 
-						// Inserting the embedded HTML
+						// Replacing the placeholder with the embedded HTML
 						$this->layoutHtml = str_replace('{%' . $module['embedId'] . '%}', $embedHtml, $this->layoutHtml);
 					}
 				}
@@ -517,11 +536,7 @@ abstract class ModuleCore {
 
 	public function getLayoutHtml()
 	{
-		if($this->layoutHtml){
-			return $this->layoutHtml;
-		} else {
-			Debug::alert('Couldn\'t retrieve layout for ' . __CLASS__ . '.', 'f');
-		}
+		return $this->layoutHtml;
 	}
 
 
