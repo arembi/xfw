@@ -108,10 +108,12 @@ class PaginationBase extends \Arembi\Xfw\Core\ModuleCore {
 					$linkData['anchor'] = Language::intToRoman($i);
 					break;
 				case 'lcAlphabet':
-					$linkData['anchor'] = Language::$alphabets['en'][$i - 1];
+					$alphabet = Language::getAlphabet('en');
+					$linkData['anchor'] = $alphabet[$i - 1];
 					break;
 				case 'ucAlphabet':
-					$linkData['anchor'] = strtoupper(Language::$alphabets['en'][$i - 1]);
+					$alphabet = Language::getAlphabet('en');
+					$linkData['anchor'] = strtoupper($alphabet[$i - 1]);
 					break;
 				default:
 					break;

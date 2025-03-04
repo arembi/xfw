@@ -4,14 +4,14 @@ namespace Arembi\Xfw\Core;
 
 abstract class Language {
 
-	private static $model = NULL;
-	public static $alphabets = [];
-
+	private static $model;
+	private static $alphabets;
 
 
 	public static function init()
 	{
 		self::$model = new LanguageModel();
+		self::$alphabets = [];
 		self::$alphabets['en'] = range('a','z');
 		self::$alphabets['hu'] = [
 			'a', 'á', 'b', 'c', 'cs', 'd', 'dz', 'dzs', 'e', 'é', 'f', 'g',
@@ -22,6 +22,11 @@ abstract class Language {
 	}
 
 
+	public static function getAlphabet(string $langCode)
+	{
+		return self::$alphabets[$langCode] ?? null;
+	}
+
 
 	// Returns the proper language version of $str from the dictionary
 	// If lang is null, the current system language will be used
@@ -31,13 +36,12 @@ abstract class Language {
 	}
 
 
-
 	// Converts a roman number to integer
-	public static function romanToInt($roman)
+	public static function romanToInt(string $roman)
 	{
 		$roman = strtoupper($roman);
 
-		$romanNumbers = [
+		$numberTable = [
 			'M' => 1000,
 			'D' => 500,
 			'C' => 100,
@@ -51,19 +55,19 @@ abstract class Language {
 
 		// Validating letters
 		for ($i = 0; $i < $l; $i++) {
-			if (!isset($romanNumbers[$roman[$i]])) {
+			if (!isset($numberTable[$roman[$i]])) {
 				return false;
 			}
 		}
 
 		// The last one can be added automatically
-		$sum = $romanNumbers[$roman[$l - 1]];
+		$sum = $numberTable[$roman[$l - 1]];
 
 		for ($i = 0; $i < $l - 1; $i++) {
-			if ($romanNumbers[$roman[$i]] < $romanNumbers[$roman[$i + 1]]) {
-				$sum -= $romanNumbers[$roman[$i]];
+			if ($numberTable[$roman[$i]] < $numberTable[$roman[$i + 1]]) {
+				$sum -= $numberTable[$roman[$i]];
 			} else {
-				$sum += $romanNumbers[$roman[$i]];
+				$sum += $numberTable[$roman[$i]];
 			}
 		}
 
@@ -71,10 +75,9 @@ abstract class Language {
 	}
 
 
-
-	public static function intToRoman($integer, $upcase = true)
+	public static function intToRoman(int $number, bool $uppercase = true)
 	{
-    	$romanNumbers = [
+    	$numberTable = [
 			'M' => 1000,
 			'CM' => 900,
 			'D' => 500,
@@ -90,18 +93,18 @@ abstract class Language {
 			'I' => 1
 		];
 
-    	$return = '';
+    	$romanNumber = '';
 
-		while ($integer > 0) {
-			foreach ($romanNumbers as $rom => $arb) {
-				if ($integer >= $arb) {
-					$integer -= $arb;
-					$return .= $rom;
+		while ($number > 0) {
+			foreach ($numberTable as $roman => $arabic) {
+				if ($number >= $arabic) {
+					$number -= $arabic;
+					$romanNumber .= $roman;
 					break;
 				}
 			}
 		}
 
-		return $return;
+		return $uppercase ? $romanNumber : strtolower($romanNumber);
 	}
 }
