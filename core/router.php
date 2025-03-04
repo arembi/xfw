@@ -178,7 +178,7 @@ abstract class Router {
 				self::$path = self::$pathMain . (isset($uriQ[1]) ? '?' . $uriQ[1] : '');
 			} else {
 				Debug::alert('Loading root page contents.', 'o');
-				App::hcf(file_get_contents(ENGINE_DIR . DS . 'welcome.html'));
+				App::hcf(file_get_contents(ENGINE_DIR . DS . 'welcome.html'), false);
 			}
 		} else {
 			$isLocalhost = false;
@@ -786,7 +786,7 @@ abstract class Router {
 
 
 	// Returns the ID of the domain, or false if it can't be found
-	public static function getDomainId($domain)
+	public static function getDomainId(string $domain)
 	{
 		$result = Misc\md_array_lookup_key(self::$domains, 'domain', $domain);
 
@@ -794,46 +794,22 @@ abstract class Router {
 	}
 
 
-	public static function getRouteRecordById($routeId)
+	public static function getRouteRecordById(int $routeId)
 	{
-		$i = 0;
-		$l = count(self::$routes);
-		$route = null;
-
-		while ($i < $l && $route === null) {
-			if (self::$routes[$i]->id == $routeId) {
-				$route = self::$routes[$i];
-			} else {
-				$i++;
-			}
-		}
-
-		if ($route === null) {
-			$route = self::$model->getRouteById($routeId);
-		}
-
-		return $route ?? false;
+		return self::$routes->first(fn($r) => $r->id == $routeId);
 	}
 
 
-	// The getRouteByID function is returns the actual route (/some/fancy/url) for the given route ID
-	public static function getRouteById($routeId, $lang = 'sys')
+	// Returns the actual route (/lang/some/fancy/url) for the given route ID
+	public static function getRouteById(int $routeId, string $lang = 'sys')
 	{
+		$ret = null;
+
 		if ($lang == 'sys') {
 			$lang = App::getLang();
 		}
 
-		$i = 0;
-		$l = count(self::$routes);
-		$route = null;
-
-		while ($i < $l && $route === null) {
-			if (self::$routes[$i]->id == $routeId) {
-				$route = self::$routes[$i];
-			} else {
-				$i++;
-			}
-		}
+		$route = self::getRouteRecordById($routeId);
 
 		if ($route !== null) {
 			if ($route->path === '/') {
@@ -848,8 +824,6 @@ abstract class Router {
 					$ret = $ret->path[$lang];
 				}
 			}
-		} else {
-			$ret = null;
 		}
 
 		return $ret;
@@ -953,6 +927,10 @@ abstract class Router {
 	 * */
 	public static function href(string $source, $data)
 	{
+		$lang = null;
+		$href = null;
+		$queryStringParts = null;
+
 		if ($source == 'link') {
 			// $data has to be the link ID
 			if (!$data || !isset(self::$links[$data])) {
@@ -1042,7 +1020,7 @@ abstract class Router {
 			$pathParams = '';
 
 			$routeRecord = self::getRouteRecordById($data['route']);
-
+			
 			if (!$routeRecord) {
 				Debug::alert('Could not build href for route #' . $data['route'] . ': route missing.', 'f');
 				return false;
@@ -1072,7 +1050,7 @@ abstract class Router {
 
 			// If we are on a domain alias, we will use the paths with the current domain, otherwise use the original domain
 			$domainId = IS_ALIAS && self::$aliasOf['id'] == $routeRecord->domainId ? DOMAIN_ID : $routeRecord->domainId ;
-
+			
 			$domain = self::getDomainRecordById($domainId);
 			
 			$href = (IS_LOCALHOST ? 'http://' : self::$protocol)
@@ -1100,8 +1078,8 @@ abstract class Router {
 	*/
 	public static function url(string $xfwHref, array $overrides = [])
 	{
-		$routerHref = [];
 		$url = null;
+		$routerHref = [];
 		$lang = App::getLang();
 		
 		if (substr($xfwHref, 0 ,2) === '//') {
@@ -1195,9 +1173,6 @@ abstract class Router {
 					$queryString = '?' . $queryString;
 				}
 				$url = $routerHref['base'] . $queryString;
-
-			} else {
-				Debug::alert('href ' . $xfwHref . ' does not exist in the system.', 'w');
 			}
 		} else {
 			$url = $xfwHref;

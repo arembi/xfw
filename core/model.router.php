@@ -6,24 +6,15 @@ use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\Models\Domain;
 use Arembi\Xfw\Core\Models\Redirect;
 use Arembi\Xfw\Core\Models\Route;
-use Arembi\Xfw\Misc;
+
+use function Arembi\Xfw\Misc\decodeIfJson;
 
 
 class RouterModel {
 
 	public function getDomains()
 	{
-		$domains = [];
-
-		$temp = Domain::all()->toArray();
-
-		foreach ($temp as $d) {
-			$id = $d['id'];
-			unset($d['id']);
-			$domains[$id] = $d;
-		}
-
-		return $domains;
+		return Domain::all()->mapWithKeys(fn($d) => [$d['id'] => $d]);
 	}
 
 
@@ -42,8 +33,6 @@ class RouterModel {
 	 * */
 	public function getSystemLinks($domain = 'this')
 	{
-		// Links to return
-		$rlinks = [];
 
 		$links = DB::table('links')
 			->join('routes', 'links.route_id', '=', 'routes.id')
@@ -63,9 +52,9 @@ class RouterModel {
 				'modules.path_param_order as ppo'
 			)
 			->get()
-			->map(function($item, $key) use ($rlinks){
+			->map(function($item){
 				// JSON decoding the route
-				$item->path = Misc\decodeIfJSON($item->path, true);
+				$item->path = decodeIfJson($item->path, true);
 
 				if (is_string($item->path) && $item->path != '/') {
 					$item->path = [Settings::get('defaultLanguage') => $item->path];
@@ -79,7 +68,7 @@ class RouterModel {
 					?? [];
 
 				// JSON decoding the query string
-				$item->queryString = Misc\decodeIfJSON($item->queryString, true);
+				$item->queryString = decodeIfJson($item->queryString, true);
 
 				// If the string was directly given, we convert it to an array
 				if (is_string($item->queryString)) {
@@ -107,12 +96,7 @@ class RouterModel {
 			});
 		}
 
-		foreach ($links as $link) {
-			$id = $link->linkId;
-			unset($link->linkId);
-			$rlinks[$id] = (array) $link;
-		}
-		return $rlinks;
+		return $links->mapWithKeys(fn($l) => [$l->linkId => $l]);
 	}
 
 
@@ -134,8 +118,8 @@ class RouterModel {
 			->where('domains.id', $domainId)
 			->whereIn('modules.class', ['p', 'b'])
 			->get()
-			->transform(function($item, $key){
-				$item->path = Misc\decodeIfJSON($item->path, true);
+			->transform(function($item){
+				$item->path = decodeIfJson($item->path, true);
 
 				if (is_string($item->path) && $item->path != '/') {
 					$item->path = [Settings::get('defaultLanguage') => $item->path];
