@@ -7,14 +7,14 @@ class Domain extends Model {
 
     protected function getSettingsAttribute($value)
     {
-      return \Arembi\Xfw\Misc\decodeIfJSON($value, true);
+      return \Arembi\Xfw\Misc\decodeIfJson($value, true);
     }
 
 
     protected function setSettingsAttribute($value)
     {
       if (!is_string($value)) {
-        $this->attributes['settings'] = json_encode($value);
+        $this->attributes['settings'] = json_encode($value,JSON_UNESCAPED_UNICODE);
       } else {
         $this->attributes['settings'] = $value;
       }
