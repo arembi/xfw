@@ -52,16 +52,20 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 	
 	protected function main(&$options)
 	{
-		$lang = App::getLang();
-
 		if (empty($options['href'])) {
-			Debug::alert('No href attribute given to a link.', 'f');
-			return false;
+			$this->error('href has not been set.');
+			return;
 		}
 
+		$href = Router::url($options['href'], $options);
+		if ($href === null) {
+			$this->error('Could not retrieve href.');
+			return;
+		}
+
+		$lang = App::getLang();
 		$this->hrefRaw = $options['href'];
-		
-		$this->href = Router::url($options['href'], $options);
+		$this->href = $href;
 		
 		if (Router::getFullURL() == $this->href) {
 			$class = 'origo ';
