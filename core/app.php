@@ -75,7 +75,7 @@ abstract class App {
 		Debug::init();
 		Debug::alert('Configuration loaded');
 		Debug::alert('Core loaded');
-
+		
 		// Starting a timer to measure page load speed
 		$pageloadTimer = new Misc\Timer();
 		$pageloadTimer->mark();
@@ -634,9 +634,13 @@ abstract class App {
 
 	// Halt & Catch Fire
 	// Stops the execution and optionally displays a message
-	public static function hcf($message = '')
+	public static function hcf(string $message, bool $messageToDebug = true)
 	{
-		Debug::alert('HCF: ' . $message, 'f');
+		if ($messageToDebug) {
+			Debug::alert('HCF: ' . $message, 'f');
+		} else {
+			echo $message;
+		}
 		Debug::render();
 		exit;
 	}
