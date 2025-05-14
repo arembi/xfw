@@ -115,11 +115,11 @@ abstract class Config {
 
 
 
-  // Reads data
+  // Loads the data
   public static function init()
   {
-		if (file_exists(BASE_DIR . DS . self::$configFileName)) {
-			include BASE_DIR . DS . self::$configFileName;
+		if (file_exists(INDEX_DIR . DS . self::$configFileName)) {
+			include INDEX_DIR . DS . self::$configFileName;
 			self::$config = array_merge(self::$config, $config);
 		} else {
 			die('Something went wrong. Contact the administrator.');

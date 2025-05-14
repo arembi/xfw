@@ -3,7 +3,9 @@
 namespace Arembi\Xfw\Core;
 
 abstract class Debug {
-	public static $log;
+	private static $suppressed;
+
+	private static $log;
 
 	// keys are the notations
 	// values: debug message notation , message color
@@ -16,6 +18,7 @@ abstract class Debug {
 	
 	public static function init()
 	{
+		self::$suppressed = false;
 		self::$alertLevels = [
 			'default' => ['&#128421;', '#FFF'],
 			'i' => ['&#128712;', '#C0C'],
@@ -76,6 +79,24 @@ abstract class Debug {
 	}
 
 
+	public static function suppress()
+	{
+		self::$suppressed = true;
+	}
+
+
+	public static function allow()
+	{
+		self::$suppressed = false;
+	}
+
+
+	public static function isSuppressed()
+	{
+		return self::$suppressed;
+	}
+
+
 	public static function alert($message, $alertLevel = 'default')
 	{
 		if (Config::get('debugMode') || (isset($_SESSION['debugMode']) && $_SESSION['debugMode'])) {
@@ -87,6 +108,10 @@ abstract class Debug {
 	// Shows the HTML output of the debug alerts. HTML will be escaped in the messages
 	public static function render()
 	{
+		if (self::isSuppressed()) {
+			return false;
+		}
+		
 		$html = '
 			<style>' . self::$style . '</style>
 			<div id="debugArea">
@@ -111,6 +136,7 @@ abstract class Debug {
 				$currentAlert .= '</ul>';
 			} else {
 				$currentAlert .= htmlspecialchars($alert[0]);
+				$currentAlert = nl2br($currentAlert);
 			}
 
 			$currentAlert .= '</div>';
@@ -118,8 +144,7 @@ abstract class Debug {
 			$html .= $currentAlert;
 		}
 
-		$html .= '</div>
-		';
+		$html .= '</div>';
 
 		echo $html;
 	}

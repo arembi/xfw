@@ -11,7 +11,7 @@ class Robots_TxtBase extends ModuleCore {
 
     protected $dictionary;
 
-    protected function main(&$options)
+    protected function main()
     {   
         $this->dictionary = [
             'u'=>'user-agent',
@@ -19,7 +19,7 @@ class Robots_TxtBase extends ModuleCore {
             'd'=>'disallow'
         ];
 
-        App::suppressDebug();
+        Debug::suppress();
         header('Content-Type: text/plain');
         
         $source = Settings::get('robotsTxt');

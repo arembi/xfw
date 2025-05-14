@@ -28,7 +28,7 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	private static $css = [];
 	private static $custom = ['top'=>[], 'bottom'=>[]];
 
-	protected $options = [
+	protected $params = [
 		'title' => null,
 		'base' => null,
 		'meta' => null,
@@ -39,7 +39,7 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	];
 
 
-	protected function main(&$options)
+	protected function main()
 	{
 		if(!empty(self::$setBy['title'])){
 			Debug::alert('The title was set by ' . self::$setBy['title'] . '.', 'n');

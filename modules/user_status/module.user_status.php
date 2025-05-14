@@ -6,7 +6,7 @@ class User_StatusBase extends \Arembi\Xfw\Core\ModuleCore {
   
 	protected static $hasModel = false;
 
-	protected function main(&$options)
+	protected function main()
 	{
 		$this->lv('user', $_SESSION['user']);
 		$this->lv('username', $_SESSION['user']->get('username'));

@@ -1,1 +1,1 @@
-<?php $this->embed($primaryModule); ?>
+<?php $this->embed($primaryModule, $primaryModuleParams); ?>

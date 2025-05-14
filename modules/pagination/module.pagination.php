@@ -41,47 +41,47 @@ class PaginationBase extends \Arembi\Xfw\Core\ModuleCore {
 	];
 
 
-	protected function main(&$options)
+	protected function main()
 	{
 		// If the number of items has not been set, there is no point to place a
 		// paginator on the site
-		if (empty($options['numberOfItems'])) {
+		if (empty($this->params['numberOfItems'])) {
 			return false;
 		}
 
 		// Setting default values if needed
-		$options = array_merge(self::$defaults, $options);
+		$this->params = array_merge(self::$defaults, $this->params);
 
 		/*
 		Checking which page are we on
 		If the value has not been set, we assume its the first page
 		*/
 		if (!empty(Router::$pageNumber)) {
-			$options['currentPage'] = Router::$pageNumber;
-		} elseif(!empty($options['itemCount']) && !empty($options['itemsPerPage'])) {
-			$options['currentPage'] = 1;
+			$this->params['currentPage'] = Router::$pageNumber;
+		} elseif(!empty($this->params['itemCount']) && !empty($this->params['itemsPerPage'])) {
+			$this->params['currentPage'] = 1;
 		}
 
-		$id = (!empty($options['id']))
-			? ' id="' . $options['id'] . '"'
+		$id = (!empty($this->params['htmlId']))
+			? ' id="' . $this->params['htmlId'] . '"'
 			: '';
 
-		$class = (!empty($options['class']))
-			? ' class="' . $options['class'] . '"'
+		$class = (!empty($this->params['htmlClass']))
+			? ' class="' . $this->params['htmlClass'] . '"'
 			: '';
 
-		$style = (!empty($options['style']))
-			? ' style="' . $options['style'] . '"'
+		$style = (!empty($this->params['htmlStyle']))
+			? ' style="' . $this->params['htmlStyle'] . '"'
 			: '';
 
-		$etc = $options['etc'] ?? '';
+		$etc = $this->params['etc'] ?? '';
 
 		/*
 		 * Constructing links
 		 * */
 		 $links = [];
 
-		 $lastPage = round($options['numberOfItems'] / $options['itemsPerPage']);
+		 $lastPage = round($this->params['numberOfItems'] / $this->params['itemsPerPage']);
 		 $routeId = Router::getMatchedRouteId();
 
 		 $linkData = [];
@@ -100,7 +100,7 @@ class PaginationBase extends \Arembi\Xfw\Core\ModuleCore {
 		 for ($i = 1; $i <= $lastPage; $i++) {
 			$linkData['pageNumber'] = $i;
 
-			switch ($options['numberingType']) {
+			switch ($this->params['numberingType']) {
 				case 'arabic':
 					$linkData['anchor'] = $i;
 					break;

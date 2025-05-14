@@ -9,17 +9,7 @@ class ImageBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	protected static $hasModel = false;
 	/*
-	$options = [
-		src,
-		id,
-		class,
-		alt,
-		title,
-		style,
-		width,
-		height
-	]
-	 * options
+	 * params
 	 * src
 	 * 	can be a href or an internal identifier
 	 * alt
@@ -31,17 +21,16 @@ class ImageBase extends \Arembi\Xfw\Core\ModuleCore {
 	 * style
 	 * */
 
-	protected function main(&$options)
+	protected function main()
 	{
-		$attributes['id'] = $options['id'] ?? null;
-		$attributes['class'] = $options['class'] ?? null;
-		$attributes['alt'] = $options['alt'] ?? null;
-		$attributes['title'] = $options['title'] ?? null;
-		$attributes['style'] = $options['style'] ?? null;
-		$attributes['width'] = $options['width'] ?? null;
-		$attributes['height'] = $options['height'] ?? null;
-
-		$attributes['src'] = Router::url($options['src']);
+		$attributes['id'] = $this->params['htmlId'] ?? null;
+		$attributes['class'] = $this->params['htmlClass'] ?? null;
+		$attributes['alt'] = $this->params['htmlAlt'] ?? null;
+		$attributes['title'] = $this->params['htmlTitle'] ?? null;
+		$attributes['style'] = $this->params['htmlStyle'] ?? null;
+		$attributes['width'] = $this->params['htmlWidth'] ?? null;
+		$attributes['height'] = $this->params['htmlHeight'] ?? null;
+		$attributes['src'] = Router::url($this->params['src']);
 
 		$this->lv('attributes', parseHtmlAttributes($attributes));
 	}

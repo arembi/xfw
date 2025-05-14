@@ -13,6 +13,7 @@ Router tasks:
 namespace Arembi\Xfw\Core;
 
 use Arembi\Xfw\Misc;
+use function Arembi\Xfw\Misc\getFileExtension;
 
 abstract class Router {
 
@@ -148,6 +149,9 @@ abstract class Router {
 	 * */
 	public static function getEnvironment()
 	{
+		$domainId = null;
+		$domainRecord = null;
+		
 		// Storing the URI
 		$uri = urldecode(self::$SERVER['REQUEST_URI']);
 
@@ -190,20 +194,17 @@ abstract class Router {
 		}
 		
 		$domainId = self::getDomainId($domain);
-		if (!$domainId) {
-			Debug::alert('Domain not found.', 'f');
-			echo file_get_contents(ENGINE_DIR . DS . '404.html');
+		
+		if ($domainId) {
+			// Retrieveing domain data if registered, otherwise false
+			$domainRecord = self::getDomainRecordById($domainId);
 		}
 
-		// Retrieveing domain data if registered, otherwise false
-		$domainRecord = self::getDomainRecordById($domainId);
-		
 		// If the domain is not registered, we return a 404 error
 		if (!$domainRecord) {
 			Debug::alert('The domain ' . $domain . ' has not been registered in the system.', 'f');
-			App::hcf(file_get_contents(ENGINE_DIR . DS . '404.html'));
+			App::hcf(file_get_contents(ENGINE_DIR . DS . '404.html'), false);
 		}
-
 
 		/* 
 			ALIASES
@@ -278,7 +279,7 @@ abstract class Router {
 	public static function loadData()
 	{
 		// Loading previously saved links
-		self::$links = self::$model->getSystemLinks();
+		self::$links = self::$model->getSystemLinksByDomain();
 
 		// Loading stored redirects
 		self::$redirects = self::$model->getRedirects();
@@ -426,9 +427,8 @@ abstract class Router {
 				$match['documentLayout'] = self::$primaryModuleRoutes[$rootId]->moduleConfig['documentLayout']
 					?? Settings::get('defaultDocumentLayout');
 				$match['primary'] = self::$primaryModuleRoutes[$rootId]->moduleName;
-				$match['action'] = self::$primaryModuleRoutes[$rootId]->moduleConfig['action']
-					?? null;
-				$match['options'] = self::$primaryModuleRoutes[$rootId]->moduleConfig['options'] ?? [];
+				$match['action'] = self::$primaryModuleRoutes[$rootId]->moduleConfig['action'] ?? null;
+				$match['params'] = self::$primaryModuleRoutes[$rootId]->moduleConfig['params'] ?? [];
 
 				self::$matchedRoute = self::$primaryModuleRoutes[$rootId];
 			} else {
@@ -485,12 +485,10 @@ abstract class Router {
 				// +1 for the array indexing and another +1 for the starting slash
 				self::$pathParams = explode('/', substr($pathMain, strlen($bestMatch['match']->path[App::getLang()]) + 1 ));
 				self::$matchedRoute = $bestMatch['match'];
-				$match['primary'] = $bestMatch['match']->moduleName;
-				$match['action'] = $bestMatch['match']->moduleConfig['action'] ?? null;
-				$match['options'] = $bestMatch['match']->moduleConfig['options'] ?? [];
-				$match['documentLayout'] = empty($bestMatch['match']->moduleConfig['documentLayout'])
-					? Settings::get('defaultDocumentLayout')
-					: $bestMatch['match']->moduleConfig['documentLayout'];
+				$match['primary'] = self::$matchedRoute->moduleName;
+				$match['action'] = self::$matchedRoute->moduleConfig['action'] ?? null;
+				$match['params'] = self::$matchedRoute->moduleConfig['params'] ?? [];
+				$match['documentLayout'] = self::$matchedRoute->moduleConfig['documentLayout'] ?? Settings::get('defaultDocumentLayout');
 			} else {
 				$match['documentLayout'] = Settings::get('defaultDocumentLayout');
 			}
@@ -603,7 +601,8 @@ abstract class Router {
 	private static function serveFiles()
 	{
 		// Files are identified by the file extensions
-		$extension = Misc\getFileExtension(self::$pathMain);
+		$extension = getFileExtension(self::$pathMain);
+		
 		if ($extension !== false) {
 			$allowedExtensionsByDefault = Config::get('fileTypesServed');
 			$allowedExtensionsOnSite = Settings::get('fileTypesServed');
@@ -615,15 +614,13 @@ abstract class Router {
 			}
 
 			if (in_array($extension, $allowedExtensions)) {
-				$file = DOMAIN_DIR . DS . self::$pathMain;
-				if (file_exists($file)) {
-					$mime = Misc\getMimeType($file);
-					if (!$mime) {
-						// Fallback to plain text if the MIME has not been found
-						$mime = 'text/plain';
-					}
+				$fs = FS::getFilesystem('site');
+
+				if ($fs->fileExists(self::$pathMain)) {
+					$mime = $fs->mimeType(self::$pathMain) ?? 'text/plain';
+					
 					header('Content-Type: ' . $mime);
-					readfile($file);
+					echo $fs->read(self::$pathMain);
 					exit;
 				} else {
 					App::hcf('Requested file could not be found.');
@@ -673,7 +670,7 @@ abstract class Router {
 			'primary'=>'fourohfour',
 			'action'=>'default',
 			'documentLayout'=>Settings::get('defaultDocumentLayout'),
-			'options'=>[]
+			'params'=>[]
 		];
 	}
 
@@ -892,7 +889,7 @@ abstract class Router {
 
 	public static function getMatchedRoutePpo()
 	{
-		return self::$matchedRoute->moduleConfig['ppo'] ?? self::$matchedRoute->modulePpo ?? false;
+		return self::$matchedRoute->moduleConfig['ppo'] ?? self::$matchedRoute->modulePpo ?? null;
 	}
 
 
@@ -915,9 +912,21 @@ abstract class Router {
 	}
 
 
+	public static function getLinks()
+	{
+		return self::$links;
+	}
+
+
+	public static function getLinkById(int $linkId)
+	{
+		return self::$links[$linkId] ?? self::$model->getLinkById($linkId);
+	}
+
+
 	/*
 	 * Retrieves the information necessary to construct a href of a link by
-	 * its source, builds the href til the query string (hrefBase)
+	 * its source, builds the href up to the query string (hrefBase)
 	 * returns the hrefBase and the query string as an array for further processing
 	 * @param $source: supported sources are `link` and `route`
 	 * @param $data: infrotmation used to generate the href
@@ -928,16 +937,16 @@ abstract class Router {
 	public static function href(string $source, $data)
 	{
 		$lang = null;
-		$href = null;
+		$baseHref = null;
 		$queryStringParts = null;
-
+		
 		if ($source == 'link') {
 			// $data has to be the link ID
 			if (!$data || !isset(self::$links[$data])) {
 				Debug::alert('Link with id ' . $data . ' not found.', 'f');
 				return false;
 			}
-
+			
 			// If the site is multilingual, we add the language marker to the URL
 			if (Settings::get('multiLang')) {
 				if (isset(self::$links[$data]['linkLang'])) {
@@ -948,9 +957,9 @@ abstract class Router {
 
 				$langMarker = DS . $lang;
 
-				if (self::$links[$data]['path'] != '/') {
-					if (isset(self::$links[$data]['path'][$lang])) {
-						$route = self::$links[$data]['path'][$lang];
+				if (self::$links[$data]->path != '/') {
+					if (isset(self::$links[$data]->path[$lang])) {
+						$route = self::$links[$data]->path[$lang];
 					} else {
 						return false;
 					}
@@ -960,8 +969,8 @@ abstract class Router {
 			} else {
 				$lang = App::getLang();
 				$langMarker = '';
-				if (self::$links[$data]['path'] != '/') {
-					$route = self::$links[$data]['path'][Settings::get('defaultLanguage')];
+				if (self::$links[$data]->path != '/') {
+					$route = self::$links[$data]->path[Settings::get('defaultLanguage')];
 				} else {
 					$route = '/';
 				}
@@ -970,22 +979,22 @@ abstract class Router {
 			// Assembling path parameters
 			$pathParams = '';
 
-			foreach (self::$links[$data]['ppo'] as $id => $link) {
-				$pathParams .= (isset(self::$links[$data]['pathParams'][$link]))
-					? '/' . self::$links[$data]['pathParams'][$link]
+			foreach (self::$links[$data]->ppo as $id => $link) {
+				$pathParams .= (isset(self::$links[$data]->pathParams[$link]))
+					? '/' . self::$links[$data]->pathParams[$link]
 					: '';
 			}
 
 			// The query string is stored in an array at this point
-			if (!empty(self::$links[$data]['queryString'])) {
-				$queryStringParts = self::$links[$data]['queryString'];
+			if (!empty(self::$links[$data]->queryString)) {
+				$queryStringParts = self::$links[$data]->queryString;
 			} else {
 				$queryStringParts = [];
 			}
 
-			$domain = self::$links[$data]['domain'];
+			$domain = self::$links[$data]->domain;
 
-			$href = self::$protocol
+			$baseHref = self::$protocol
 				. (IS_LOCALHOST ? self::$SERVER['HTTP_HOST'] . DS . WEB_ROOT . DS : '')
 				. $domain
 				. $langMarker
@@ -1053,19 +1062,19 @@ abstract class Router {
 			
 			$domain = self::getDomainRecordById($domainId);
 			
-			$href = (IS_LOCALHOST ? 'http://' : self::$protocol)
+			$baseHref = (IS_LOCALHOST ? 'http://' : self::$protocol)
 				. (IS_LOCALHOST ? self::$SERVER['HTTP_HOST'] . DS . WEB_ROOT . DS : '')
 				. $domain['domain']
 				. $langMarker
 				. $route
 				. $pathParams;
 		} else {
-			$href = $data;
+			$baseHref = $data;
 		}
 
 		$ret = [
 			'lang' => $lang,
-			'base' => $href,
+			'base' => $baseHref,
 			'queryStringParts' => $queryStringParts
 		];
 
@@ -1114,6 +1123,7 @@ abstract class Router {
 				
 				$linkId = substr($hrefParts[0], 1);
 				$routerHref = Router::href('link', $linkId);
+			
 			} elseif ($xfwHref1 == '+') {
 				
 				//Route mode

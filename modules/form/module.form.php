@@ -1,34 +1,42 @@
 <?php
 
-/* 
- * Attributes can be overridden in the controllers
- * */
 namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\Debug;
-use Arembi\Xfw\FormField;
-use Arembi\Xfw\FormFieldSet;
+use Arembi\Xfw\Core\Router;
+use Arembi\Xfw\Inc\FormField;
+use Arembi\Xfw\Inc\FormFieldSet;
 
 class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	protected static $hasModel = true;
+	protected static $encTypes = [
+		'application/x-www-form-urlencoded',
+		'multipart/form-data',
+		'text/plain'
+	];
 
-	private $overrides;
 	private $fields;
+	private $overrides;
+	private $autoBuild;
 	private $actionUrl;
+	private $encType;
+	private $hasFileField;
 
 	
-	public function main(&$options)
+	public function main()
 	{
 		$this->loadModel();
 
 		$this->fields = new FormFieldSet();
 		$this->overrides = new FormFieldSet();
-		$this->actionUrl = '';
+		$this->autoBuild = $this->params['autoBuild'] ?? false;
+		$this->actionUrl = $this->params['actionUrl'] ?? '';
+		$this->encType = $this->params['encType'] ?? 0;
 
-		if (!empty($options['id'])) { // User generated forms
+		if (!empty($this->params['formId'])) { // Stored forms
 			
-			$form = $this->model->getForm($options['id']);
+			$form = $this->model->getForm($this->params['formId']);
 			if (!$form) {
 				return false;
 			}
@@ -39,38 +47,40 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 				}
 			}
 
-			$this->actionUrl = $form->action_url ?? '';
+			if (!empty($form->actionUrl)) {
+				$this->actionUrl = $form->action_url;
+			}
 
 			// Adding the non-optional formID hidden input
 			$this->addField('formId', 'hidden')
-				->attribute('value' , $options['id']);
+				->attribute('value' , $this->params['formId']);
 			
-			$options['layout'] = $form['options']['layout'] ?? $form['name'];
-			$options['layoutVariant'] = $form['options']['layoutVariant'] ?? $form['name'];
+			$this->layout($form['options']['layout'] ?? $form['name']);
+			$this->layoutVariant($form['options']['layoutVariant'] ?? $form['name']);
 
-		} elseif (!empty($options['handlerModule']) && !empty($options['handlerMethod'])) { // Standard forms
+		} elseif (!empty($this->params['handlerModule']) && !empty($this->params['handlerMethod'])) { // Standard forms
 			
-			if (isset($options['fields'])) {
-				foreach ($options['fields'] as $k => $f) {
+			if (isset($this->params['fields'])) {
+				foreach ($this->params['fields'] as $k => $f) {
 					$this->fields->addField($k, $this->arrayToFormField($f));
 				}
 			}
 
 			$this->addField('handlerModule', 'hidden')
-				->attribute('value', $options['handlerModule']);
+				->attribute('value', $this->params['handlerModule']);
 			
 			$this->addField('handlerMethod', 'hidden')
-				->attribute('value', $options['handlerMethod']);
+				->attribute('value', $this->params['handlerMethod']);
 
-			$this->actionUrl = $options['actionUrl'] ?? '';
+			$this->actionUrl = $this->params['actionUrl'] ?? '';
 			
-			$options['layout'] = $options['layout'] ?? $options['handlerMethod'];
-			$options['layoutVariant'] = $options['layoutVariant'] ?? $options['handlerMethod'];
+			$this->layout($this->params['layout'] ?? $this->params['handlerMethod']);
+			$this->layoutVariant($this->params['layoutVariant'] ?? $this->params['handlerMethod']);
 		} else {
 			return false;
 		}
 
-		if (empty($options['autoBuild']) || $options['autoBuild'] === true) {
+		if ($this->autoBuild) {
 			$this->build();
 		}
 	}
@@ -80,14 +90,15 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 	{
 		$this->applyOverrides();
 		$this->fields->generateTags();
+		
+		$actionUrl = $this->actionUrl ? Router::url($this->actionUrl) : '';
 
-		if (!empty($this->actionUrl)) {
-			$actionLink = new Link(['href'=>$this->actionUrl]);
-			$actionUrl = $actionLink->getHref();
-		} else {
-			$actionUrl = '';
+		// If at least one field's type is file, overriding the form encType
+		if ($this->hasFileField) {
+			$this->encType = 1;
 		}
 
+		$this->lv('enctype', self::$encTypes[$this->encType]);
 		$this->lv('fields', $this->fields->fields());
 		$this->lv('action', $actionUrl);
 
@@ -132,10 +143,10 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public function fields(FormFieldSet $fields = null)
+	public function fields(?FormFieldSet $fields = null)
     {
         if ($fields === null) {
-            return $this->fields ?? null;
+            return $this->fields;
         } else {
             $this->fields = $fields;
             return $this;
@@ -143,15 +154,26 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
     }
 
 
-	public function overrides(FormFieldSet $overrides = null)
+	public function overrides(?FormFieldSet $overrides = null)
     {
         if ($overrides === null) {
-            return $this->overrides ?? null;
+            return $this->overrides;
         } else {
             $this->overrides = $overrides;
             return $this;
         }
     }
+
+
+	public function autoBuild(?bool $value = null)
+	{
+		if ($value === null) {
+			return $this->autoBuild;
+		} else {
+			$this->autoBuild = $value;
+			return $this;
+		}
+	}
 
 
 	public function actionUrl(?string $url = null)
@@ -165,22 +187,42 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
+	public function encType($encType = null)
+	{
+		if ($encType === null) {
+			return $this->encType;
+		} elseif (is_string($encType)) {
+			$key = array_search($encType, self::$encTypes);
+			if ($key !== false) {
+				$this->encType = $key;
+				return $this;
+			} else {
+				return false;
+			}
+		} elseif (is_int($encType) && in_array($encType, array_keys(self::$encTypes))) {
+			$this->encType = $encType;
+			return $this;
+		} else {
+			return false;
+		}
+	}
+
+
 	public function addField(string $fieldName, string $type = 'text'): FormField
 	{
-		
 		$field = new FormField();
 		$field->type($type);
-
 		$this->overrides->addField($fieldName, $field);
-
+		if ($type == 'file') {
+			$this->hasFileField = true;
+		}
 		return $field;
 	}
 
 
-	public function addFieldSet($fieldName): FormFieldSet
+	public function addFieldSet(string $fieldName): FormFieldSet
 	{
 		$fieldSet = new FormFieldSet();
-		
 		$this->overrides->addField($fieldName, $fieldSet);
 
 		return $fieldSet;

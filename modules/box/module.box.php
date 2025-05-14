@@ -6,17 +6,17 @@ class BoxBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	protected static $hasModel = false;
 
-	protected $options = [
+	protected $params = [
 		'title' => 'default title',
 		'content' => 'default content',
 		'kedvenc_allat' => ['kutya']
 	];
 
-	protected function main(&$options)
+	protected function main()
 	{
-		$this->lv('title', $options['title']);
-		$this->lv('content', $options['content']);
-		$this->lv('kedvenc_allat', $options['kedvenc_allat']);
+		$this->lv('title', $this->params['title']);
+		$this->lv('content', $this->params['content']);
+		$this->lv('kedvenc_allat', $this->params['kedvenc_allat']);
 	}
 
 }

@@ -11,10 +11,11 @@ error_reporting(0);
 
 // System directories
 define('DS', DIRECTORY_SEPARATOR);
-define('BASE', __DIR__);
-define('ENGINE_DIR', BASE . DS . '..' . DS .'xfw_engine' );
+define('INDEX_DIR', __DIR__);
+define('ROOT_DIR', realpath(INDEX_DIR . DS . '..'));
+define('ENGINE_DIR', ROOT_DIR . DS .'xfw_engine');
 define('CORE_DIR', ENGINE_DIR . DS . 'core');
-define('SITES_DIR', BASE . DS . '..' . DS . 'xfw_sites');
+define('SITES_DIR', ROOT_DIR . DS . 'xfw_sites');
 
 // Loading application engine
 require_once(CORE_DIR . DS .'app.php');

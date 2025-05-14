@@ -17,7 +17,7 @@ class Body_EndBase extends \Arembi\Xfw\Core\ModuleCore {
 		];
 
 
-	protected function main(&$options)
+	protected function main()
 	{
 		$JS = '';
 		$custom = '';

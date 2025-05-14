@@ -6,14 +6,14 @@
     Session ID: <?php $this->print($sessionId); ?>
   </div>
   <div>
-    Log out: <?php $this->embed('form', ['id' => 2]);?>
+    Log out: <?php $this->embed('form', ['formId' => 2, 'autoBuild'=>true]);?>
   </div>
 <?php else: ?>
   <div>
     Hi, <?php $this->print($firstName)?><br>
   </div>
   <div>
-    <?php $this->embed('form', ['id' => 1]);?>
+    <?php $this->embed('form', ['formId' => 1, 'autoBuild'=>true]);?>
   </div>
 <?php endif; ?>
 

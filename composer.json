@@ -1,6 +1,6 @@
 {
     "require": {
         "illuminate/database": "^11.0",
-        "illuminate/filesystem": "^11.0"
+        "league/flysystem": "^3.29"
     }
 }

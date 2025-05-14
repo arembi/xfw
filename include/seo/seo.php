@@ -7,21 +7,13 @@ use Arembi\Xfw\Module\Head;
 abstract class Seo {
 
 	private static $indexable;
-
 	private static $followable;
-
 	private static $archivable;
-
 	private static $maxSnippet;
-
 	private static $maxImagePreview;
-
 	private static $allowedmaxImagePreviewSettings;
-
 	private static $maxVideoPreview;
-
 	private static $translatable;
-
 	private static $imagesIndexable;
 
 

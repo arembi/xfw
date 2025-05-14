@@ -4,7 +4,7 @@
 </head><body>
   <?php $this->embed('body_start');?>
   <main>
-    <?php $this->embed($primaryModule)?>
+    <?php $this->embed($primaryModule, $primaryModuleParams)?>
   </main>
   <?php $this->embed('body_end');?>
 </body></html>

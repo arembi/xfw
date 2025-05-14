@@ -5,20 +5,19 @@ use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\Models\Menu;
 use Arembi\Xfw\Core\Models\Menuitem;
 
+
 class MenuBaseModel {
 
-	public function getMenuByMenuId(int $menuId)
+	public function getMenuByMenuId(int $id)
 	{
-		$menu = Menu::with(['menuitems', 'domains'])->find($menuId);
-
+		$menu = Menu::with(['menuitems', 'domains'])->find($id);
+		
 		return $menu;
 	}
 
-	public function getMenuByMenuName(string $menuName, $domainId = null)
+	public function getMenuByMenuName(string $menuName, ?int $domainId = null)
 	{
-		if ($domainId === null) {
-			$domainId = DOMAIN_ID;
-		}
+		$domainId ??= DOMAIN_ID;
 
 		$menu = DB::table('menus')
 			->join('menu_domain', 'menus.id', '=', 'menu_domain.menu_id')
@@ -36,20 +35,17 @@ class MenuBaseModel {
 
 			$menu->menuitems = Menuitem::where('menu_id', $menu->id)
 				->get()
-				->map(function ($item){
+				->map(function ($item) {
 					return $item['item'];
-				})
-				->toArray();
+				});
 
 			return $menu;
 	}
 
 
-	public function getMenusByDomainId($domainId = null)
+	public function getMenusByDomainId(?int $domainId = null)
 	{
-		if ($domainId === null) {
-			$domainId = DOMAIN_ID;
-		}
+		$domainId ??= DOMAIN_ID;
 
 		$menus = DB::table('menus')
 			->join('menu_domain', 'menu_domain.menu_id', '=', 'menus.id')

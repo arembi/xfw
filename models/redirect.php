@@ -1,11 +1,14 @@
 <?php
 
 namespace Arembi\Xfw\Core\Models;
+
 use \Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Redirect extends Model {
-  public function domain()
-  {
-    return $this->belongsTo(Domain::class);
-  }
+ 
+	protected function domain(): BelongsTo
+	{
+		return $this->belongsTo(Domain::class);
+	}
 }

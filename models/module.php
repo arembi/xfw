@@ -1,41 +1,55 @@
 <?php
 
 namespace Arembi\Xfw\Core\Models;
-use \Illuminate\Database\Eloquent\Model;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Module extends Model {
-    protected $fillable = [
-      'name',
-      'class',
-      'priority',
-      'version',
-      'description',
-      'path_param_order'
-      ];
+	
+	protected $fillable = [
+		'name',
+		'class',
+		'priority',
+		'version',
+		'description',
+		'path_param_order'
+	];
 
 
-    protected function getPathParamOrderAttribute($value)
-    {
-      return json_decode($value ?? '', true);
-    }
+	protected function pathParamOrder(): Attribute
+	{
+		return Attribute::make(
+			get: fn (string $value) => json_decode($value ?? '', true),
+			set: fn ($value) => !is_string($value) ? json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) : $value
+		);
+	}
+
+	/*
+	protected function getPathParamOrderAttribute($value)
+	{
+		return json_decode($value ?? '', true);
+	}
 
 
-    protected function setPathParamOrderAttribute($value)
-    {
-      return json_encode($value);
-    }
+	protected function setPathParamOrderAttribute($value)
+	{
+		return json_encode($value);
+	}*/
 
 
-    public function routes()
-    {
-      return $this->hasMany(Route::class);
-    }
+	public function routes(): HasMany
+	{
+		return $this->hasMany(Route::class);
+	}
 
 
 
-    public function categories()
-    {
-      return $this->belongsToMany(Module_Category::class, 'module_module_category', 'module_id', 'module_category_id');
-    }
+	public function categories(): BelongsToMany
+	{
+		return $this->belongsToMany(Module_Category::class, 'module_module_category', 'module_id', 'module_category_id');
+	}
 
 }

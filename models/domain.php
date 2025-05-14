@@ -1,35 +1,49 @@
 <?php
 
 namespace Arembi\Xfw\Core\Models;
+
 use \Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use function Arembi\Xfw\Misc\decodeIfJson;
+
 
 class Domain extends Model {
 
-    protected function getSettingsAttribute($value)
+	protected function settings(): Attribute
+	{
+		return Attribute::make(
+            get: fn (string $value) => decodeIfJson($value, true),
+			set: fn ($value) => !is_string($value) ? json_encode($value,JSON_UNESCAPED_UNICODE) : $value
+        );
+	}
+
+	/*
+	protected function getSettingsAttribute($value)
     {
-      return \Arembi\Xfw\Misc\decodeIfJson($value, true);
+    	return decodeIfJson($value, true);
     }
 
 
     protected function setSettingsAttribute($value)
     {
-      if (!is_string($value)) {
-        $this->attributes['settings'] = json_encode($value,JSON_UNESCAPED_UNICODE);
-      } else {
-        $this->attributes['settings'] = $value;
-      }
+		if (!is_string($value)) {
+			$this->attributes['settings'] = json_encode($value,JSON_UNESCAPED_UNICODE);
+		} else {
+			$this->attributes['settings'] =  $value;
+		}
+    }*/
 
+
+    public function routes(): HasMany
+    {
+		return $this->hasMany(Route::class);
     }
 
 
-    public function routes()
+    public function menus(): BelongsToMany
     {
-      return $this->hasMany(Route::class);
-    }
-
-
-    public function menus()
-    {
-      return $this->belongsToMany(Menu::class, 'menu_domain', 'domain_id', 'menu_id' );
+    	return $this->belongsToMany(Menu::class, 'menu_domain', 'domain_id', 'menu_id' );
     }
 }

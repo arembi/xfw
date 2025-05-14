@@ -92,7 +92,7 @@ class CP_Control_PanelBase extends Control_panel {
 
 	public function domain_new()
 	{
-		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'domain_new'], false);
+		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'domain_new']);
 
 		$form->actionUrl('?task=domain_list');
 
@@ -109,6 +109,9 @@ class CP_Control_PanelBase extends Control_panel {
 
 		$form->addField('settings', 'textarea')
 			->label('Domain Settings (JSON)');
+
+		$form->addField('test', 'file')
+			->label('Test');
 
 		$form
 			->build()

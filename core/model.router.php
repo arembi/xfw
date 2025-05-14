@@ -4,6 +4,7 @@ namespace Arembi\Xfw\Core;
 
 use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\Models\Domain;
+use Arembi\Xfw\Core\Models\Link;
 use Arembi\Xfw\Core\Models\Redirect;
 use Arembi\Xfw\Core\Models\Route;
 
@@ -31,16 +32,15 @@ class RouterModel {
 	 * 'this' refers to the current domain
 	 * to get access to all domains, use 'all'
 	 * */
-	public function getSystemLinks($domain = 'this')
+	public function getSystemLinksByDomain(string|int $domain = 'this')
 	{
-
 		$links = DB::table('links')
 			->join('routes', 'links.route_id', '=', 'routes.id')
 			->join('domains', 'routes.domain_id', '=', 'domains.id')
 			->join('modules', 'routes.module_id', '=', 'modules.id')
 			->select(
-				'links.id as linkId',
-				'links.lang as linkLang',
+				'links.id as id',
+				'links.lang as lang',
 				'links.path_params as pathParams',
 				'links.query_string as queryString',
 				'routes.id as routeId',
@@ -86,21 +86,25 @@ class RouterModel {
 
 				return $item;
 			});
-
+		
 		if ($domain !== 'all') {
 			if ($domain == 'this') {
-				$domain = DOMAIN;
+				$domain = DOMAIN_ID;
 			}
-			$links = $links->filter(function($value, $key) use ($domain){
-				return $value->domain == $domain;
+			$links = $links->filter(function($value, $key) use ($domain) {
+				return $value->domainId == $domain;
 			});
 		}
 
-		return $links->mapWithKeys(fn($l) => [$l->linkId => $l]);
+		return $links->mapWithKeys(function($l) {
+			$id = $l->id;
+			unset($l->id);
+			return [$id => $l];
+		});
 	}
 
 
-	public function getAvailableRoutes($domainId = DOMAIN_ID)
+	public function getAvailableRoutes(int $domainId = DOMAIN_ID)
 	{
 		$routes = DB::table('routes')
 			->join('domains', 'routes.domain_id', '=', 'domains.id')
@@ -148,6 +152,12 @@ class RouterModel {
 			}
 		}
 		return $route;
+	}
+
+
+	public function getLinkById(int $linkId)
+	{
+		return Link::find($linkId);
 	}
 
 

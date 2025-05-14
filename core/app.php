@@ -3,7 +3,12 @@
 namespace Arembi\Xfw\Core;
 
 use Arembi\Xfw\Module\Document;
-use Arembi\Xfw\Misc;
+use Arembi\Xfw\Misc\Timer;
+use Arembi\Xfw\Inc\Seo;
+use Illuminate\Support\Collection;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+
 
 abstract class App {
 
@@ -32,15 +37,15 @@ abstract class App {
 	// Language
 	private static $lang;
 
-	// Makes it possible to manually hide the debug panel
-	private static $debugSuppressed;
-
 
 	public static function init()
 	{
-		self::$model = null;
+		// Load libraries from other vendors
+		self::loadThirdPartyLibs();
 		
-		self::$coreModules = [
+		self::$model = null;
+		self::$coreModules = collect([
+			'filesystem',
 			'model',
 			'settings',
 			'language',
@@ -49,41 +54,36 @@ abstract class App {
 			'input_handler',
 			'router',
 			'user'
-		];
-		
-		self::$installedModules = [];
-		self::$activeModules = [];
+		]);
+		self::$installedModules = new Collection();
+		self::$activeModules = new Collection();
 		self::$registeredModules = [];
 		self::$registeredModuleId = 0;
 		self::$pathParamOrders = [];
 		self::$lang = '';
-		self::$debugSuppressed = false;
-
-
+		
 		// Loading configuration
 		self::loadConfigAndDebug();
 		
 		// Loading scripts from the engine include directory
 		self::loadScriptsFromDirectory(ENGINE_DIR . DS . 'include') ;
-		
-		// Load libraries from other vendors
-		self::loadThirdPartyLibs();
-		
+
 		// Load core controllers and models
 		self::loadCore();
-		
+		self::$model = new AppModel();
+
 		Debug::init();
 		Debug::alert('Configuration loaded');
 		Debug::alert('Core loaded');
-		
+
 		// Starting a timer to measure page load speed
-		$pageloadTimer = new Misc\Timer();
+		$pageloadTimer = new Timer();
 		$pageloadTimer->mark();
 
 		// Apply charset settings
 		mb_language(Config::get('mbLanguage'));
 		mb_internal_encoding(Config::get('mbInternalEncoding'));
-		
+
 		// Establishing database connection and interface
 		Database::init();
 		
@@ -93,14 +93,18 @@ abstract class App {
 		// Determine environment (protocol, domain)
 		Router::init();
 		Router::getEnvironment();
+		Debug::alert('Router initialized');
 		
 		if (Config::get('debugMode') && IS_LOCALHOST) {
 			error_reporting(E_ALL);
+			Debug::allow();
 		}
 
-		Debug::alert('Router initialized');
+		// Initializing local filesystems
+		FS::addLocalFilesystem('site', DOMAIN_DIR);
+		FS::activeFilesystem('site');
 
-		// Loading Settings (settings stored in the database)
+		// Loading Settings from the database
 		Settings::init();
 		Debug::alert('Settings loaded');
 
@@ -110,11 +114,7 @@ abstract class App {
 		// Initializing sessions
 		Session::init();
 		Session::start();
-		
 		Debug::alert('Session started');
-
-		// Setting the model of the App class
-		self::$model = new AppModel();
 
 		// Checking the session's user
 		self::populateSessionUser();
@@ -141,32 +141,33 @@ abstract class App {
 		 * For the primary module, the action is also required
 		 * */
 		$matchedRoute = Router::parseRoute();
-
 		Debug::alert('URI parsed');
-
 		Debug::alert('Active user: ' . $_SESSION['user']->get('username'));
 
-		// Initializing inner autoincrementing ID
-		self::$registeredModuleId = 0;
+		// Search Engine Optimization
+		Seo::init();
 
-		//Setting the module option for the document module
-		$documentModuleOptions = [
+		//Setting the module params for the document module
+		
+		$documentModuleParams = [
+			'parentModule'=>null,
 			'layout'=>$matchedRoute['documentLayout'],
 			'primaryModule'=>$matchedRoute['primary'],
-			'primaryModuleOptions'=>$matchedRoute['options'],
-			'parentModule'=>null
+			'primaryModuleParams'=>['triggerAction'=>true, ...$matchedRoute['params']]
 		];
 
 		// The response is simply an instance of a document module
-		$response = new Document($documentModuleOptions);
-
-		Debug::alert('Document ready to render');
+		$response = new Document($documentModuleParams);
+		
+		Debug::alert('Document ready to render, using layout \'' . $documentModuleParams['layout'] . '\'.');
 
 		// Start the layout loop and show the result
 		$response->processLayout();
 
 		// Generate HTML output
 		$response->render();
+
+		self::debugModuleInfo();
 
 		// Final time marker
 		$pageloadTimer->mark();
@@ -176,10 +177,8 @@ abstract class App {
 		Debug::alert('Memory usage: ' . number_format(memory_get_usage() / (1024 * 1024), 4) . ' MB', 'i');
 		Debug::alert('Memory peak usage: ' . number_format(memory_get_peak_usage() / (1024 * 1024), 4) . ' MB', 'i');
 
-		if (!self::isDebugSuppressed()) {
-			// Show debug messages
-			Debug::render();
-		}
+		// Show debug messages
+		Debug::render();
 	}
 
 
@@ -190,7 +189,7 @@ abstract class App {
 			require($configFile);
 			Config::init();
 		} else {
-			die ('Inappropriate configuration, please contact the adminisrator');
+			die ('Inappropriate configuration, please contact the adminisrator.');
 		}
 		$debugFile = CORE_DIR . DS .'debug.php';
 		if (file_exists($debugFile)) {
@@ -247,8 +246,8 @@ abstract class App {
 	private static function loadScriptsFromDirectory(string $directory)
 	{
 		if (file_exists($directory)) {
-			$dirIterator = new \RecursiveDirectoryIterator($directory);
-			$iterator = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::SELF_FIRST);
+			$dirIterator = new RecursiveDirectoryIterator($directory);
+			$iterator = new RecursiveIteratorIterator($dirIterator, RecursiveIteratorIterator::SELF_FIRST);
 
 			$includes = [];
 			foreach ($iterator as $i=>$file) {
@@ -313,8 +312,11 @@ abstract class App {
 		 * class can extend the basic module
 		 * */
 		foreach (self::$installedModules as $currentModule) {
-			$moduleName = $currentModule->name;
+			$currentModule->loadedFrom = '';
+			$currentModule->modelLoadedFrom = '';
 
+			$moduleName = $currentModule->name;
+			
 			if ($currentModule->active || $currentModule->category == 'core') {
 				$moduleFilePath = 'modules' . DS . $moduleName . DS . 'module.' . $moduleName . '.php';
 
@@ -323,28 +325,23 @@ abstract class App {
 				if (file_exists(ENGINE_DIR . DS . $moduleFilePath)) {
 					include(ENGINE_DIR . DS . $moduleFilePath);
 					$loaded = true;
-					Debug::alert('Base module %' . $moduleName . ' successfully loaded.', 'o');
-				} else {
-					Debug::alert('Base module %' . $moduleName . ' could not be loaded.', 'n');
+					$currentModule->loadedFrom = 'base';
 				}
 
-				// Looking for overrides
+				// Looking for site-specific overrides
 				if (file_exists(SITES_DIR . DS . DOMAIN . DS . $moduleFilePath)) {
 					include(SITES_DIR . DS . DOMAIN . DS . $moduleFilePath);
-					Debug::alert('Override for module %' . $moduleName . ' successfully loaded and activated.', 'o');
 					$loaded = true;
+					$currentModule->loadedFrom = 'site';
 				} elseif ($loaded) {
 					// Creating an alias for ModuleNameBase to ModuleName,
 					// because the system uses only ModuleName classes
 					class_alias('\\Arembi\Xfw\\Module\\' . $moduleName . 'Base', '\\Arembi\Xfw\\Module\\' . $moduleName);
-
-					Debug::alert('Module %' . $moduleName . ' successfully loaded and activated.', 'o');
 				}
 
 				if (!$loaded) {
-					Debug::alert('Module %' . $moduleName . ' active, but could not be loaded.', 'f');
+					Debug::alert('Module %' . $moduleName . ' installed and active, but could not be loaded.', 'f');
 				} else {
-					self::$activeModules[] = $currentModule;
 					// Adding path parameter order for current module
 					self::$pathParamOrders[$moduleName] = $currentModule->pathParamOrder;
 
@@ -359,8 +356,8 @@ abstract class App {
 
 						if (file_exists(ENGINE_DIR . DS . $modelFilePath)) {
 							include(ENGINE_DIR . DS . $modelFilePath);
-							Debug::alert('Base model for module %' . $moduleName . ' successfully loaded and activated.', 'o');
 							$loaded = true;
+							$currentModule->modelLoadedFrom = 'base';
 						} else {
 							Debug::alert('Base model for module %' . $moduleName . ' could not be loaded.', 'n');
 						}
@@ -368,8 +365,8 @@ abstract class App {
 						// Looking for overrides
 						if (file_exists(DOMAIN_DIR . DS . $modelFilePath)) {
 							include(DOMAIN_DIR . DS . $modelFilePath);
-							Debug::alert('Override for model of module %' . $moduleName . ' successfully loaded and activated.', 'o');
 							$loaded = true;
+							$currentModule->modelLoadedFrom = 'site';
 						} elseif($loaded) {
 							class_alias('\\Arembi\Xfw\\Module\\' . $moduleName . 'BaseModel', '\\Arembi\Xfw\\Module\\' . $moduleName . 'Model');
 						}
@@ -378,9 +375,10 @@ abstract class App {
 							Debug::alert('Model for module %' . $moduleName . ' could not be loaded.', 'f');
 						}
 					}
+					self::$activeModules->push($currentModule);
 				}
 			} else {
-				Debug::alert('Module %' . $moduleName . ' installed, but not active.', 'i');
+				Debug::alert('Module %' . $moduleName . ' installed, but inactive.', 'i');
 			}
 		}
 
@@ -392,7 +390,6 @@ abstract class App {
 		}
 
 	}
-
 
 
 	private static function loadInstalledModuleData()
@@ -484,7 +481,6 @@ abstract class App {
 		if (file_exists(ENGINE_DIR . DS . $addonFilePath)) {
 			include(ENGINE_DIR . DS . $addonFilePath);
 			$loaded = true;
-			Debug::alert('Base module addon ' . $addonName . ' for %' . $module . ' successfully loaded.', 'o');
 		} else {
 			Debug::alert('Base module addon ' . $addonName . ' for %' . $module . ' could not be loaded.', 'n');
 		}
@@ -513,9 +509,8 @@ abstract class App {
 		$composerAutoloadFile = ENGINE_DIR . DS . 'vendor' . DS . 'autoload.php';
 		if (file_exists($composerAutoloadFile))	{
 			require($composerAutoloadFile);
-			Debug::alert('Composer libraries loaded.', 'o');
 		} else {
-			Debug::alert('Cannot load Composer libraries.', 'e');
+			die('An error occured.');
 		}
 	}
 
@@ -526,13 +521,13 @@ abstract class App {
 	}
 
 
-	public static function setLang($lang)
+	public static function setLang(string $lang)
 	{
 		self::$lang = $lang;
 	}
 
 
-	public static function lang($lang = null)
+	public static function lang(?string $lang = null)
 	{
 		if (empty($lang)) {
 			return self::$lang;
@@ -560,6 +555,21 @@ abstract class App {
 	}
 
 
+	public static function debugModuleInfo()
+	{
+		$info = ['debugTitle'=>'Active module list'];
+		foreach (self::$activeModules as $module) {
+			if($module->loadedFrom) {
+				$info[] = '%' . $module->name . ' [' . strtoupper($module->loadedFrom) . ']';
+			}
+			if($module->modelLoadedFrom) {
+				$info[] = 'model for %' . $module->name . ' [' . strtoupper($module->modelLoadedFrom) . ']';
+			}
+		}
+		Debug::alert($info, 'i');
+	}
+
+
 	// Function to check whether a module is installed for on the current domain
 	public static function isInstalledModule(string $module)
 	{
@@ -575,25 +585,23 @@ abstract class App {
 	}
 
 
-	public static function getActiveModules(string $attribute = '')
+	public static function getActiveModules(?string $attribute = null)
 	{
-		return $attribute ? array_column(self::$activeModules, $attribute) : self::$activeModules;
+		return $attribute === null ? self::$activeModules : self::$activeModules->select($attribute)->flatten();
 	}
 
 
 	public static function getPrimaryModules()
 	{
-		return array_filter(self::$activeModules, function ($m) {
-			return $m->class == 'p';
-		});
+		return self::$activeModules->filter(fn ($m) => $m->class == 'p');
 	}
 
 
-	// Register all instantiated modules as an array
+	// Register all instantiated modules in an array
 	public static function registerModule(&$moduleObject)
 	{
 		self::$registeredModules[self::$registeredModuleId] = $moduleObject;
-		return self::$registeredModuleId ++;
+		return self::$registeredModuleId++;
 	}
 
 
@@ -603,8 +611,10 @@ abstract class App {
 		return self::$registeredModules;
 	}
 
+
 	// Implement it if needed
-	public static function unlistModule() {}
+	public static function deregisterModule() {}
+
 
 	// Returns the path parameter order for the requested module
 	public static function getPathParamOrder($moduleName)
@@ -644,18 +654,4 @@ abstract class App {
 		Debug::render();
 		exit;
 	}
-
-
-	private static function isDebugSuppressed()
-	{
-		return (self::$debugSuppressed || !Config::get('debugMode') || !IS_LOCALHOST);
-	}
-
-
-	public static function suppressDebug()
-	{
-		self::$debugSuppressed = true;
-	}
-
-
 }

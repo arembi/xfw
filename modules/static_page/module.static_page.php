@@ -11,7 +11,7 @@ class Static_PageBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	public $unavailableInfo;
 
-	protected function main(&$options)
+	protected function main()
 	{
 		$this->loadModel();
 		$this->loadPathParams();
@@ -27,12 +27,11 @@ class Static_PageBase extends \Arembi\Xfw\Core\ModuleCore {
 			]
 		];
 
-		if (empty($options['id'])) {
+		if (!$this->params['id']) {
 			$routeId = Router::getMatchedRouteId();
 			$page = $this->model->getPageByRouteId($routeId);
 		} else {
-			$id = $options['id'];
-			$page = $this->model->getPages([$id]);
+			$page = $this->model->getPages([$this->params['id']]);
 		}
 
 		$lang = App::getLang();
