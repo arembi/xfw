@@ -41,7 +41,7 @@ class PaginationBase extends \Arembi\Xfw\Core\ModuleCore {
 	];
 
 
-	protected function main()
+	protected function init()
 	{
 		// If the number of items has not been set, there is no point to place a
 		// paginator on the site
@@ -56,8 +56,8 @@ class PaginationBase extends \Arembi\Xfw\Core\ModuleCore {
 		Checking which page are we on
 		If the value has not been set, we assume its the first page
 		*/
-		if (!empty(Router::$pageNumber)) {
-			$this->params['currentPage'] = Router::$pageNumber;
+		if (!empty(Router::getPageNumber())) {
+			$this->params['currentPage'] = Router::getPageNumber();
 		} elseif(!empty($this->params['itemCount']) && !empty($this->params['itemsPerPage'])) {
 			$this->params['currentPage'] = 1;
 		}

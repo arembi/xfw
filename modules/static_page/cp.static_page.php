@@ -150,7 +150,7 @@ class CP_Static_PageBase extends Static_Page {
 			->options($routeIdSelectOptions);
 
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();
 	}
@@ -159,7 +159,7 @@ class CP_Static_PageBase extends Static_Page {
 
 	public function page_edit()
 	{
-		$page = $this->model->getPageById(Router::$GET['id']);
+		$page = $this->model->getPageById(Router::get('id'));
 
 		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_update'], false);
 
@@ -220,7 +220,7 @@ class CP_Static_PageBase extends Static_Page {
 			->label('CA');
 
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();
 	}
@@ -228,7 +228,7 @@ class CP_Static_PageBase extends Static_Page {
 
 	public function page_delete()
 	{
-		$id = Router::$GET['id'];
+		$id = Router::get('id');
 
 		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_delete']);
 		
@@ -237,7 +237,7 @@ class CP_Static_PageBase extends Static_Page {
 			->label('ID');
 
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();
 

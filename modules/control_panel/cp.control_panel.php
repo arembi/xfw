@@ -114,7 +114,7 @@ class CP_Control_PanelBase extends Control_panel {
 			->label('Test');
 
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();
 	}
@@ -122,7 +122,7 @@ class CP_Control_PanelBase extends Control_panel {
 
 	public function domain_edit()
 	{	
-		$domainId = Router::$REQUEST['id'];
+		$domainId = Router::request('id');
 		$domain = Router::getDomainRecordById($domainId);
 		
 		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'domain_edit']);
@@ -169,7 +169,7 @@ class CP_Control_PanelBase extends Control_panel {
 		}
 		
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();
 	}
@@ -177,7 +177,7 @@ class CP_Control_PanelBase extends Control_panel {
 
 	public function domain_delete()
 	{
-		$domainId = Router::$REQUEST['id'];
+		$domainId = Router::request('id');
 		$domain = Router::getDomainRecordById($domainId);
 
 		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'domain_delete']);
@@ -191,7 +191,7 @@ class CP_Control_PanelBase extends Control_panel {
 		$form->lv('domain', $domain['domain']);
 
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();
 	}
@@ -280,7 +280,7 @@ class CP_Control_PanelBase extends Control_panel {
 			->label('Hozzáférési szint');
 
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();
 	}
@@ -289,7 +289,7 @@ class CP_Control_PanelBase extends Control_panel {
 	public function route_edit()
 	{
 		// Loading route info
-		$route = Router::getRouteRecordById(Router::$REQUEST['id']);
+		$route = Router::getRouteRecordById(Router::request('id'));
 
 		$modules = App::getPrimaryModules();
 
@@ -357,7 +357,7 @@ class CP_Control_PanelBase extends Control_panel {
 			->attribute('value', $route->clearanceLevel);
 
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();
 
@@ -366,7 +366,7 @@ class CP_Control_PanelBase extends Control_panel {
 
 	public function route_delete()
 	{
-		$routeId = Router::$REQUEST['id'];
+		$routeId = Router::request('id');
 
 		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'route_delete']);
 		
@@ -375,7 +375,7 @@ class CP_Control_PanelBase extends Control_panel {
 			->label('ID');
 
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();
 

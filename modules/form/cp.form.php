@@ -14,7 +14,7 @@ class CP_FormBase extends Form {
 		$form = new Form(['id' => 7], false);
 
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();
 	}

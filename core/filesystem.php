@@ -4,6 +4,7 @@ namespace Arembi\Xfw\Core;
 
 use League\Flysystem\Local\LocalFilesystemAdapter;
 use League\Flysystem\Filesystem;
+use League\Flysystem\UnixVisibility\PortableVisibilityConverter;
 
 
 abstract class FS {
@@ -12,10 +13,28 @@ abstract class FS {
     private static $activeFilesystem;
 
 
-    public static function addLocalFilesystem(string $name, string $rootDirPath)
+    public static function addLocalFilesystem(string $name, string $rootDirPath, ?LocalFilesystemAdapter $adapter = null)
 	{
 		if (empty(self::$filesystems[$name])) {
-            self::$filesystems[$name] = new Filesystem(new LocalFilesystemAdapter($rootDirPath));
+           
+            $adapter = $adapter ?? new LocalFilesystemAdapter(
+                $rootDirPath,
+                PortableVisibilityConverter::fromArray([
+                    'file' => [
+                        'public' => 0640,
+                        'private' => 0604,
+                    ],
+                    'dir' => [
+                        'public' => 0740,
+                        'private' => 7604,
+                    ],
+                ]),
+                LOCK_EX,
+                LocalFilesystemAdapter::DISALLOW_LINKS
+            );
+
+            self::$filesystems[$name] = new Filesystem($adapter);
+            
             return self::$filesystems[$name];
         } else {
             return null;
@@ -42,14 +61,14 @@ abstract class FS {
     public static function write(string $path, $contents, array $config = [], ?string $fs = null)
     {
         $filesystem = $fs === null ? self::$filesystems[self::$activeFilesystem] : self::$filesystems[$fs];
-        $filesystem->write($path, $contents);
+        $filesystem->write($path, $contents, $config);
     }
 
 
     public static function writeStream(string $path, $contents, array $config = [], ?string $fs = null)
     {
         $filesystem = $fs === null ? self::$filesystems[self::$activeFilesystem] : self::$filesystems[$fs];
-        $filesystem->writeStream($path, $contents);
+        $filesystem->writeStream($path, $contents, $config);
     }
 
 

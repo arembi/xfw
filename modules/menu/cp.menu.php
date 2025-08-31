@@ -105,7 +105,7 @@ class CP_MenuBase extends Menu {
 			->options($typeSelectOptions);
 
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();
 	}
@@ -114,7 +114,7 @@ class CP_MenuBase extends Menu {
 
 	public function menu_edit()
 	{
-		$menu = $this->model->getMenuByMenuId(Router::$GET['id']);
+		$menu = $this->model->getMenuByMenuId(Router::get('id'));
 
 		$form = new Form(['handlerModule' => 'menu', 'handlerMethod' => 'menu_update'], false);
 
@@ -150,7 +150,7 @@ class CP_MenuBase extends Menu {
 			->label('UA');
 
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();?>
 
@@ -191,7 +191,7 @@ class CP_MenuBase extends Menu {
 
 	public function menu_delete()
 	{
-		$id = Router::$GET['id'];
+		$id = Router::get('id');
 
 		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_delete']);
 		$form->addField('id')
@@ -199,7 +199,7 @@ class CP_MenuBase extends Menu {
 			->label('ID');
 
 		$form
-			->build()
+			->finalize()
 			->processLayout()
 			->render();
 
@@ -214,7 +214,7 @@ class CP_MenuBase extends Menu {
 
 	public function menuitem_edit()
 	{
-		$menu = $this->model->getMenuByMenuId(Router::$GET['id']);
+		$menu = $this->model->getMenuByMenuId(Router::get('id'));
 
 	}
 

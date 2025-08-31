@@ -21,7 +21,7 @@ class ImageBase extends \Arembi\Xfw\Core\ModuleCore {
 	 * style
 	 * */
 
-	protected function main()
+	protected function init()
 	{
 		$attributes['id'] = $this->params['htmlId'] ?? null;
 		$attributes['class'] = $this->params['htmlClass'] ?? null;

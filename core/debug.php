@@ -99,7 +99,7 @@ abstract class Debug {
 
 	public static function alert($message, $alertLevel = 'default')
 	{
-		if (Config::get('debugMode') || (isset($_SESSION['debugMode']) && $_SESSION['debugMode'])) {
+		if (Config::get('debugMode') || ($_SESSION['debugMode'])) {
 			self::$alerts[] = [$message, $alertLevel];
 		}
 	}

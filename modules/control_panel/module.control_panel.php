@@ -29,7 +29,7 @@ class Control_PanelBase extends ModuleCore {
 	protected static $hasModel = true;
 
 	
-	public function main()
+	public function init()
 	{
 		$this->loadPathParams();
 
@@ -43,7 +43,7 @@ class Control_PanelBase extends ModuleCore {
 	public function panelAction()
 	{
 		$module = $this->params['module'] ?? 'control_panel';
-		$task = Router::$GET['task'] ?? 'home';
+		$task = Router::get('task') ?? 'home';
 		$controllerClass = 'Arembi\Xfw\\Module\\CP_' . $module;
 
 		if (class_exists($controllerClass)) {

@@ -11,14 +11,15 @@ class Control_Panel_MenuBase extends ModuleCore {
 
 	protected static $hasModel = false;
 
-    public function main()
+    public function init()
 	{
         $lang = App::getLang();
-
+		$activeModules = App::getActiveModules('name');
+		
 		$menuItems = [];
 
 		// Loading controller modules
-		foreach (App::getActiveModules('name') as $module) {
+		foreach ($activeModules as $module) {
 			if (App::loadModuleAddon($module, 'cp') === true) {
 				$addon = 'Arembi\Xfw\Module\CP_' . $module;
 				$cpMenu = $addon::menu();
@@ -26,15 +27,16 @@ class Control_Panel_MenuBase extends ModuleCore {
 				// Module integration to CP menu
 				if (!empty($cpMenu)) {
 					$addonMenuData = [
-						'showTitle' => true,
+						'displayTitle' => true,
 						'title' => $cpMenu['title'][$lang] ?? array_values($cpMenu['title'])[0] ?? $cpMenu,
+						'autoFinalize' => true
 					];
 
 					foreach ($cpMenu['items'] as $item) {
-						$addonMenuData['items'][] = [
-							'anchorText' => $item[1][$lang] ?? array_values($item[1])[0] ?? $item[1],
+						$addonMenuData['items'][] = new Link([
+							'anchor' => $item[1][$lang] ?? array_values($item[1])[0] ?? $item[1],
 							'href' => '+route=' . Router::getMatchedRouteId() . '+module=' . $module . '?task=' . $item[0]
-						];
+						]);
 					}
 
 					$menuItems[] = new Menu($addonMenuData);
@@ -44,6 +46,4 @@ class Control_Panel_MenuBase extends ModuleCore {
 
         $this->lv('cpMenuItems', $menuItems);
 	}
-
-    
 }

@@ -39,7 +39,7 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	];
 
 
-	protected function main()
+	protected function init()
 	{
 		if(!empty(self::$setBy['title'])){
 			Debug::alert('The title was set by ' . self::$setBy['title'] . '.', 'n');

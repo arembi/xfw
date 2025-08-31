@@ -2,29 +2,27 @@
 
 namespace Arembi\Xfw\Core;
 
+use RuntimeException;
+
 abstract class Config {
 
 	private static $configFileName = 'config.php';
 
 	private static $config = [
 
-		// The debug mode switch: if set to TRUE, all debug functions will be available, including the debug panel
 		'debugMode' => true,
 
 		'logFile' => ENGINE_DIR . DS . 'sys.log',
 
-		// The IP address of localhost
 		'localhostIP' => [
 			'127.0.0.1',
 			'192.168.1.2',
 			'::1'
 		],
 
-		// Charset settings
 		'mbLanguage' => 'uni',
 		'mbInternalEncoding' => 'UTF-8',
 
-		// These values will be used for the database connection
 		'databases' => [
 			'sys' => [
 				'driver'   => '',
@@ -36,19 +34,16 @@ abstract class Config {
 			]
 		],
 
-		// Set the session handlig mode here:
-		// supported modes:
-		// 	- database
-		// 	- default
+		//Supported modes:
+		//	database
+		//	default
 		'sessionStorage' => 'database',
 
-		// Annotations
 		'moduleAddons' => [
 			'cp' => 'control_panel',
 			'ih' => 'input_handler'
 		],
 
-		// The file types that will be accepted for requests
 		'fileTypesServed' => [
 			'css',
 			'js',
@@ -66,6 +61,19 @@ abstract class Config {
 			'otf',
 			'pdf',
 			'ttf'
+		],
+
+		'uploadMaxFileSize' => 10000000,
+
+		'uploadAcceptedMimeTypes' => [
+			'jpg'=>'image/jpeg',
+			'png'=>'image/png',
+			'gif'=>'image/gif',
+			'csv'=>'text/csv',
+			'csv_2'=>'text/plain',
+			'xml'=>'text/xml',
+			'xml_2'=>'application/xml',
+			'xml_3'=>'text/plain'
 		],
 
 		'baseModels' => [
@@ -93,6 +101,7 @@ abstract class Config {
 			'defaultLanguage' => 'hu',
 			'defaultModuleLayout' => 'default',
 			'defaultDocumentLayout' => 'default',
+			'defaultDocumentLayoutVariant' => 'default',
 			'multiLang' => false,
 			'URLTrailingSlash' => 'remove',
 			'inputClearance' => 0,
@@ -114,17 +123,15 @@ abstract class Config {
 	];
 
 
-
-  // Loads the data
-  public static function init()
-  {
+	public static function init()
+	{
 		if (file_exists(INDEX_DIR . DS . self::$configFileName)) {
 			include INDEX_DIR . DS . self::$configFileName;
 			self::$config = array_merge(self::$config, $config);
 		} else {
-			die('Something went wrong. Contact the administrator.');
+			exit('Something went wrong. Contact the administrator.');
 		}
-  }
+	}
 
 
 	public static function get($record, $NA = null)

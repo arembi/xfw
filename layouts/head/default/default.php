@@ -25,7 +25,7 @@
 <?php foreach ($link as $linkData): ?>
     <link
     <?php foreach ($linkData as $attribute => $value): ?>
-        <?php $this->print(' ' . $attribute . '="' . $value . '"', 'html'); ?>
+        <?php $this->print(' ' . $attribute . '="' . $value . '"', ['filters'=>'html']); ?>
     <?php endforeach; ?>
     />
 <?php endforeach; ?>
@@ -38,12 +38,12 @@
             <?php $this->print($j[0]); ?>
         <?php endif;?>
     <?php else: ?>
-        <script src="<?php $this->print((strpos($j[0], '//') !== false ? '' : \Arembi\Xfw\Core\Router::$hostURL) . htmlspecialchars($j[0]))?>" <?php $this->print($j[1] ? ' async' : '')?>></script>
+        <script src="<?php $this->print((strpos($j[0], '//') !== false ? '' : \Arembi\Xfw\Core\Router::getHostUrl()) . htmlspecialchars($j[0]))?>" <?php $this->print($j[1] ? ' async' : '')?>></script>
     <?php endif;?>
 <?php endforeach;?>
 
 <?php foreach ($css as $c): ?>
-    <link rel="stylesheet" href="<?php $this->print((strpos($c, '//') !== false ? '' : \Arembi\Xfw\Core\Router::getHostUrl()) . $c, 'html')?>" type="text/css">
+    <link rel="stylesheet" href="<?php $this->print((strpos($c, '//') !== false ? '' : \Arembi\Xfw\Core\Router::getHostUrl()) . $c, ['filters'=>'html'])?>" type="text/css">
 <?php endforeach;?>
 
 <?php foreach ($custom['bottom'] as $c): ?>

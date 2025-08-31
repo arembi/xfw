@@ -12,39 +12,32 @@ use RecursiveIteratorIterator;
 
 abstract class App {
 
-	// The App's model
 	private static $model;
 
-	// The list of core modules, ONLY THESE WILL BE LOADED with the core
 	private static $coreModules;
 
-	// Modules that have been installed to the current domain
 	private static $installedModules;
 
-	// Active modules are the successfully installed and loaded modules
 	private static $activeModules;
 
-	// $registeredModules keeps track of which modules have already been instantiated
+	// Keeps track of which modules have already been instantiated
 	// by the system, it holds the references to all embedded modules
 	private static $registeredModules;
 
-	// Autoincrementing inner identifier for embedded modules
+	// Autoincrementing ID for embedded modules
 	private static $registeredModuleId;
 
-	// Path parameter translation rules for modules
 	private static $pathParamOrders;
 
-	// Language
 	private static $lang;
 
 
 	public static function init()
 	{
-		// Load libraries from other vendors
-		self::loadThirdPartyLibs();
+		self::loadThirdPartyLibraries(ENGINE_DIR);
 		
 		self::$model = null;
-		self::$coreModules = collect([
+		self::$coreModules = [
 			'filesystem',
 			'model',
 			'settings',
@@ -54,7 +47,7 @@ abstract class App {
 			'input_handler',
 			'router',
 			'user'
-		]);
+		];
 		self::$installedModules = new Collection();
 		self::$activeModules = new Collection();
 		self::$registeredModules = [];
@@ -62,13 +55,10 @@ abstract class App {
 		self::$pathParamOrders = [];
 		self::$lang = '';
 		
-		// Loading configuration
 		self::loadConfigAndDebug();
 		
-		// Loading scripts from the engine include directory
 		self::loadScriptsFromDirectory(ENGINE_DIR . DS . 'include') ;
 
-		// Load core controllers and models
 		self::loadCore();
 		self::$model = new AppModel();
 
@@ -76,109 +66,111 @@ abstract class App {
 		Debug::alert('Configuration loaded');
 		Debug::alert('Core loaded');
 
-		// Starting a timer to measure page load speed
 		$pageloadTimer = new Timer();
 		$pageloadTimer->mark();
 
-		// Apply charset settings
 		mb_language(Config::get('mbLanguage'));
 		mb_internal_encoding(Config::get('mbInternalEncoding'));
 
-		// Establishing database connection and interface
 		Database::init();
 		
-		// Initializing the language module
 		Language::init();
 		
-		// Determine environment (protocol, domain)
 		Router::init();
-		Router::getEnvironment();
 		Debug::alert('Router initialized');
-		
+
+		Input_Handler::init();
+
+		Router::getEnvironment();
+		Debug::alert('Environment recognized.');
+
 		if (Config::get('debugMode') && IS_LOCALHOST) {
 			error_reporting(E_ALL);
 			Debug::allow();
 		}
 
-		// Initializing local filesystems
-		FS::addLocalFilesystem('site', DOMAIN_DIR);
-		FS::activeFilesystem('site');
+		self::loadThirdPartyLibraries(DOMAIN_DIR);
 
-		// Loading Settings from the database
+		FS::addLocalFilesystem('sys', '/');
+		FS::addLocalFilesystem('site', DOMAIN_DIR);
+
 		Settings::init();
 		Debug::alert('Settings loaded');
 
-		// Loading scripts from the domain's include directory
 		self::loadScriptsFromDirectory(DOMAIN_DIR . DS . 'include') ;
 
-		// Initializing sessions
 		Session::init();
 		Session::start();
 		Debug::alert('Session started');
-
-		// Checking the session's user
+		
 		self::populateSessionUser();
 		
 		$websiteDatabase = Settings::get('database');
 
-		// Connecting to the websites database if necessary
 		if (isset($websiteDatabase['name'], $websiteDatabase['connection'])) {
 			Database::connect($websiteDatabase['name'], $websiteDatabase['connection']);
 		} elseif (!empty($websiteDatabase)) {
 			Debug::alert('Missing website database info, cannot connect.', 'f');
 		}
 
-		// Load the modules with ModuleCore
 		self::loadInstalledModules();
+		Debug::alert('Modules loaded.');
 
-		Debug::alert('Modules loaded');
-
-		// Load routes, links, redirects
 		Router::loadData();
 
 		/*
 		 * The system requires the document layout and a primary module from the router
 		 * For the primary module, the action is also required
 		 * */
+
 		$matchedRoute = Router::parseRoute();
 		Debug::alert('URI parsed');
 		Debug::alert('Active user: ' . $_SESSION['user']->get('username'));
 
-		// Search Engine Optimization
 		Seo::init();
 
-		//Setting the module params for the document module
-		
 		$documentModuleParams = [
 			'parentModule'=>null,
 			'layout'=>$matchedRoute['documentLayout'],
+			'layoutVariant'=>$matchedRoute['documentLayoutVariant'],
 			'primaryModule'=>$matchedRoute['primary'],
 			'primaryModuleParams'=>['triggerAction'=>true, ...$matchedRoute['params']]
 		];
 
-		// The response is simply an instance of a document module
 		$response = new Document($documentModuleParams);
 		
-		Debug::alert('Document ready to render, using layout \'' . $documentModuleParams['layout'] . '\'.');
+		Debug::alert(
+			'Document Layout ready for processing. Layout / variant in use: ['
+			. $documentModuleParams['layout']
+			. ' / ' . $documentModuleParams['layoutVariant']
+			. '].'
+		);
 
-		// Start the layout loop and show the result
 		$response->processLayout();
 
-		// Generate HTML output
 		$response->render();
 
 		self::debugModuleInfo();
 
-		// Final time marker
 		$pageloadTimer->mark();
 		Debug::alert('Page load time: ' . $pageloadTimer->getFullTime() . 's.', 'i');
 
-		// Memory usage information
 		Debug::alert('Memory usage: ' . number_format(memory_get_usage() / (1024 * 1024), 4) . ' MB', 'i');
 		Debug::alert('Memory peak usage: ' . number_format(memory_get_peak_usage() / (1024 * 1024), 4) . ' MB', 'i');
 
-		// Show debug messages
 		Debug::render();
+	}
+
+
+	private static function loadThirdPartyLibraries(string $autoloaderDirectoryPath)
+	{
+		$composerAutoloadFilePath = $autoloaderDirectoryPath . DS . 'vendor' . DS . 'autoload.php';
+
+		if (file_exists($composerAutoloadFilePath))	{
+			require($composerAutoloadFilePath);
+		} else {
+			exit('An error occured.');
+		}
 	}
 
 
@@ -189,13 +181,13 @@ abstract class App {
 			require($configFile);
 			Config::init();
 		} else {
-			die ('Inappropriate configuration, please contact the adminisrator.');
+			exit('Inappropriate configuration, please contact the adminisrator.');
 		}
 		$debugFile = CORE_DIR . DS .'debug.php';
 		if (file_exists($debugFile)) {
 			require($debugFile);
 		} else {
-			die ('An error occured during initialization.');
+			exit('An error occured during initialization.');
 		}
 	}
 
@@ -297,13 +289,13 @@ abstract class App {
 				->set('userGroup', 'guest')
 				->set('clearanceLevel', 0);
 		}
+		
 		$_SESSION['user'] = $user;
 	}
 
 
 	private static function loadInstalledModules()
 	{
-		// Get data from the database
 		self::loadInstalledModuleData();
 
 		/*
@@ -456,7 +448,7 @@ abstract class App {
 		$addon = strtolower($addon);
 		$module = strtolower($module);
 
-		if (class_exists('Arembi\Xfw\Module\CP_' . $module)) {
+		if (class_exists('Arembi\Xfw\Module\\' . $addon . '_' . $module)) {
 			Debug::alert("Cannot load module addon $addon for %$module: it has already been loaded.", 'f');
 			return false;
 		}
@@ -503,18 +495,6 @@ abstract class App {
 	}
 
 
-	private static function loadThirdPartyLibs()
-	{
-		// Composer Autoload
-		$composerAutoloadFile = ENGINE_DIR . DS . 'vendor' . DS . 'autoload.php';
-		if (file_exists($composerAutoloadFile))	{
-			require($composerAutoloadFile);
-		} else {
-			die('An error occured.');
-		}
-	}
-
-
 	public static function getLang()
 	{
 		return self::$lang;
@@ -551,26 +531,33 @@ abstract class App {
 				$i++;
 			}
 		}
-		return $found ? self::$installedModules[$i] : false;
+		return $found ? self::$installedModules[$i] : null;
 	}
 
 
 	public static function debugModuleInfo()
 	{
 		$info = ['debugTitle'=>'Active module list'];
-		foreach (self::$activeModules as $module) {
-			if($module->loadedFrom) {
-				$info[] = '%' . $module->name . ' [' . strtoupper($module->loadedFrom) . ']';
+		$modules = self::$activeModules->toArray();
+		
+		usort($modules, function ($a, $b){
+			return $a->name == $b->name ? 0 : ($a->name > $b->name ? 1 : -1);
+		});
+
+		foreach ($modules as $module) {
+			$currentInfo = '';
+			if ($module->loadedFrom) {
+				$currentInfo = $module->name . ' [' . $module->loadedFrom . ']';
 			}
-			if($module->modelLoadedFrom) {
-				$info[] = 'model for %' . $module->name . ' [' . strtoupper($module->modelLoadedFrom) . ']';
+			if ($module->modelLoadedFrom) {
+				$currentInfo .= ' | model: [' . $module->modelLoadedFrom . ']';
 			}
+			$info[] = $currentInfo;
 		}
 		Debug::alert($info, 'i');
 	}
 
 
-	// Function to check whether a module is installed for on the current domain
 	public static function isInstalledModule(string $module)
 	{
 		$isInstalled = false;

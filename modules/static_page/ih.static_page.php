@@ -3,26 +3,30 @@
 namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\Router;
+use Arembi\Xfw\Core\Settings;
 
 class IH_Static_PageBase extends Static_Page {
 
 	public $formData;
 
-	public function page_add()
+	public function page_add(&$result)
 	{
 		$this->loadModel();
-		$routeId = Router::$POST['routeId'] === 0 ? null : Router::$POST['routeId'];
+		$routeId = Router::post('routeId') === 0 ? null : Router::post('routeId');
 		$pageTitle = [];
 		$pageContent = [];
-		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
-			if (isset(Router::$POST['pageTitle-' . $lang[0]])) {
-				$pageTitle[$lang[0]] = Router::$POST['pageTitle-' . $lang[0]];
+		$createdBy = '';
+		$data = [];
+
+		foreach (Settings::get('availableLanguages') as $lang) {
+			if (Router::post('pageTitle-' . $lang[0]) !== null) {
+				$pageTitle[$lang[0]] = Router::post('pageTitle-' . $lang[0]);
 			}
-			if (isset(Router::$POST['pageContent-' . $lang[0]])) {
-				$pageContent[$lang[0]] = Router::$POST['pageContent-' . $lang[0]];
+			if (Router::post('pageContent-' . $lang[0]) !== null) {
+				$pageContent[$lang[0]] = Router::post('pageContent-' . $lang[0]);
 			}
 		}
-		$createdBy = Router::$POST['createdBy'];
+		$createdBy = Router::post('createdBy');
 
 		$data = [
 			'routeId'=>$routeId,
@@ -33,33 +37,39 @@ class IH_Static_PageBase extends Static_Page {
 
 
 		if ($this->model->addPage($data)) {
-			return [Router::IH_RESULT['ok'], 'Page has been added.'];
+			$result
+				->status(Input_Handler::RESULT_SUCCESS)
+				->message('Page has been added.');
 		} else {
-			return [Router::IH_RESULT['error'], 'Page couldn\'t be added.'];
+			$result
+				->status(Input_Handler::RESULT_ERROR)
+				->message('Page couldn\'t be added.');
 		}
 	}
 
 
 
-	public function page_update()
+	public function page_update(&$result)
 	{
 		$this->loadModel();
-		$id = Router::$POST['id'];
-		$routeId = Router::$POST['routeId'];
+		$id = Router::post('id');
+		$routeId = Router::post('routeId');
 
 		$pageTitle = [];
 		$pageContent = [];
+		$createdBy = '';
+		$pageData = [];
 
-		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
-			if (isset(Router::$POST['pageTitle-' . $lang[0]])) {
-				$pageTitle[$lang[0]] = Router::$POST['pageTitle-' . $lang[0]];
+		foreach (Settings::get('availableLanguages') as $lang) {
+			if (Router::post('pageTitle-' . $lang[0]) !== null) {
+				$pageTitle[$lang[0]] = Router::post('pageTitle-' . $lang[0]);
 			}
-			if (isset(Router::$POST['pageContent-' . $lang[0]])) {
-				$pageContent[$lang[0]] = Router::$POST['pageContent-' . $lang[0]];
+			if (Router::post('pageContent-' . $lang[0]) !== null) {
+				$pageContent[$lang[0]] = Router::post('pageContent-' . $lang[0]);
 			}
 		}
 
-		$createdBy = Router::$POST['createdBy'];
+		$createdBy = Router::post('createdBy');
 
 		$pageData = [
 			'id'=>$id,
@@ -70,22 +80,26 @@ class IH_Static_PageBase extends Static_Page {
 		];
 
 		if ($this->model->updatePage($pageData)) {
-			return [Router::IH_RESULT['ok'], 'Page has been added.'];
+			$result
+				->status(Input_Handler::RESULT_SUCCESS)
+				->message('Page has been added.');
 		} else {
-			return [Router::IH_RESULT['error'], 'Page couldn\'t be added.'];
+			$result
+				->status(Input_Handler::RESULT_ERROR)
+				->message('Page couldn\'t be added.');
 		}
 	}
 
 
 
-	public function page_delete()
+	public function page_delete(&$result)
 	{
 		$this->loadModel();
 
-		if ($this->model->deletePage(Router::$POST['id']) ) {
-			return [Router::IH_RESULT['ok'], 'Route has been deleted.'];
+		if ($this->model->deletePage(Router::post('id')) ) {
+			return [Router::IH_RESULT_OK, 'Route has been deleted.'];
 		} else {
-			return [Router::IH_RESULT['error'], 'Route couldn\'t be deleted.'];
+			return [Router::IH_RESULT_ERROR, 'Route couldn\'t be deleted.'];
 		}
 	}
 

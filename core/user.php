@@ -3,6 +3,7 @@
 namespace Arembi\Xfw\Core;
 
 use Arembi\Xfw\Core\Router;
+use stdClass;
 
 class User {
 
@@ -35,7 +36,7 @@ class User {
 				$this->data = self::$model->getUserByUsername($value);
 				break;
 			default:
-				$this->data = new \stdClass();
+				$this->data = new stdClass();
 				$this->data->username = $value;
 				break;
 		}

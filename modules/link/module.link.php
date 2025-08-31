@@ -48,7 +48,7 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 	*/
 	
 	
-	protected function main()
+	protected function init()
 	{
 		// If instantiated with an id present, it will override the href parameter
 		if (isset($this->params['id']) && $this->params['id'] !== 0) {

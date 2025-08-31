@@ -9,7 +9,7 @@ class DocumentBase extends \Arembi\Xfw\Core\ModuleCore {
 	protected static $hasModel = false;
 
 
-	public function main()
+	public function init()
 	{
 		$this->loadPathParams();
 

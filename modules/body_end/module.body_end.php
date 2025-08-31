@@ -17,7 +17,7 @@ class Body_EndBase extends \Arembi\Xfw\Core\ModuleCore {
 		];
 
 
-	protected function main()
+	protected function init()
 	{
 		$JS = '';
 		$custom = '';
@@ -34,7 +34,7 @@ class Body_EndBase extends \Arembi\Xfw\Core\ModuleCore {
 			} else {
 				$JS .= '<script';
 				$JS .= $js[1] ? ' async' : '';
-				$JS .= ' src="' . (strpos($js[0], '//') !== false ? '' : Router::$hostURL) . htmlspecialchars($js[0]) . '"';
+				$JS .= ' src="' . (strpos($js[0], '//') !== false ? '' : Router::getHostUrl()) . htmlspecialchars($js[0]) . '"';
 				$JS .= '></script>' . PHP_EOL;
 			}
 		}

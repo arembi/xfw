@@ -11,7 +11,7 @@ class Static_PageBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	public $unavailableInfo;
 
-	protected function main()
+	protected function init()
 	{
 		$this->loadModel();
 		$this->loadPathParams();

@@ -29,7 +29,7 @@ Recursion
 	you can do it by setting the $params['recursive'] to 'no'.
 
 Actions
-	Actions are methods of module classes. They can be triggered by HTTP requests.
+	Actions are methods of module classes. They can be triggered via HTTP requests.
 
 [LAYOUTS]
 
@@ -80,11 +80,11 @@ has to be put before them in the output.
 
 !!! DO NOT FORGET !!!
 If you instatiate a module without giving it an ID,
-remember to set the params['id']. (If not, it will get one in its main())
+remember to set the params['id']. (If not, it will get one in its init())
 
 !!! DO NOT FORGET !!!
 Each module class has to call the loadModel() and the loadPathParams() functions
-in their main() function in order to be able to use the database and have access
+in their init() function in order to be able to use the database and have access
 to the path parameters.
 Had to move those 2 functions out of the constructor, because we need to use
 them before the parent's constructor is called.
@@ -169,8 +169,11 @@ abstract class ModuleCore {
 	// Data sent by forms defined within the system, used by IH module extensions
 	protected $formData;
 
-	// Whether the main() function executed properly
-	protected $mainSuccess;
+	// Whether to run init() automatically
+	protected $autoInit;
+
+	// Whether to run init() automatically
+	protected $autoFinalize;
 
 
 	public static function hasModel()
@@ -193,7 +196,8 @@ abstract class ModuleCore {
 			'errorOccured'=>false,
 			'message'=>''
 		];
-		$this->triggerAction = $params['triggerAction'] ?? false;
+		
+		$this->triggerAction = $params['triggerAction'] ?? $this->triggerAction ?? false;
 		$this->layout = $params['layout'] ?? Settings::get('defaultModuleLayout');
 		$this->layoutVariant = $params['layoutVariant'] ?? Settings::get('defaultModuleLayoutVariant');
 		$this->layoutProcessed = false;
@@ -205,41 +209,42 @@ abstract class ModuleCore {
 		$this->embedId = 0;
 		$this->parentModule = $params['parentModule'] ?? null;
 		$this->recursive = $params['recursive'] ?? true;
-		$this->mainSuccess = true;
 
 		// Checking whether it is an addon
-		$parts = explode('_', $this->name, 2);
-
-		if (count($parts) > 1) {
-			if (in_array($parts[0], array_keys(Config::get('moduleAddons')))) {
-				$this->addonType = $parts[0];
+		$nameParts = explode('_', $this->name, 2);
+		if (count($nameParts) > 1) {
+			if (in_array($nameParts[0], array_keys(Config::get('moduleAddons')))) {
+				$this->addonType = $nameParts[0];
 			} else {
 				$this->addonType = null;
 			}
 		} else {
 			$this->addonType = null;
 		}
+
+		/*
+		Code that should run every time the module is instantiated
+		shall be put into its init() function
+		The module addons will not run the init function by default, but you can
+		override this via a constructor parameter, or by assigning a non-null value to it for the addon
+		*/
+
+		$this->autoInit = $params['autoInit'] ?? $this->autoInit ?? ($this->addonType === null);
+		$this->autoFinalize = $params['autoFinalize'] ?? $this->autoFinalize ?? ($this->addonType === null);
+		
 		$this->params = $params;
 		$this->params['id'] = $this->params['id'] ?? 0;
 
 		/*
-		Code that should run every time the module is instantiated
-		shall be put into its main() function
-		The module addons will not run the main function by default
-		For unique functionality on a request, use actions
+		For unique functionality on a request, use actions)
 		If you want to use a model, create a class in the model.{modulename}.php file,
-		and call the loadModel() in the controllers main() function
-		To access URL parameters call the loadPathParams()
+		and call the loadModel() in the controller's init() function
+		To access URL parameters call loadPathParams() within the module class
 		*/
 		
-		if ($this->addonType === null && method_exists($this, 'main')) {
-			$this->mainSuccess = $this->main();
+		if ($this->autoInit) {
+			$this->init();
 		}
-
-		if ($this->mainSuccess === false) {
-			Debug::alert('Error during execution of main() at module %' . $this->name . '#' . ($this->params['id']), 'e');
-		}
-
 
 		/*
 		Triggering an action if requested
@@ -247,20 +252,39 @@ abstract class ModuleCore {
 		*/
 
 		if ($this->triggerAction) {
-			// actions sent as a REQUEST will override default actions
-			$action = Router::$REQUEST['_action'] ?? Router::getMatchedRouteAction();
+			$action = Router::getRequestedAction();
 			if ($action) {
 				$this->triggerAction($action);
-			} else {
-				Debug::alert('No action was triggered for %' . $this->class . '.');
 			}
 		}
+
+		if ($this->autoFinalize) {
+			$this->finalize();
+		}
+
 	}
 
 
 	public function __toString()
 	{
 		return $this->processLayout()->getLayoutHtml() ?? '';
+	}
+
+
+	protected function init(){}
+
+
+	protected function finalize(){}
+
+
+	protected function autoInit(?bool $trigger = null)
+	{
+		if ($trigger === null) {
+			return $this->autoInit;
+		}
+
+		$this->autoInit = $trigger;
+		return $this;
 	}
 
 
@@ -276,6 +300,17 @@ abstract class ModuleCore {
 	}
 
 
+	protected function autoFinalize(?bool $trigger = null)
+	{
+		if ($trigger === null) {
+			return $this->autoFinalize;
+		}
+
+		$this->autoFinalize = $trigger;
+		return $this;
+	}
+
+
 	protected function error($message = null)
 	{
 		if ($message === null) {
@@ -288,6 +323,7 @@ abstract class ModuleCore {
 			$this->error = ['errorOccured'=>true, 'message'=>$message];
 			Debug::alert($message, 'f');
 		}
+		return $this;
 	}
 
 
@@ -295,10 +331,10 @@ abstract class ModuleCore {
 	{
 		if ($layout === null) {
 			return $this->layout;
-		} else {
-			$this->layout = $layout;
-			return $this;
 		}
+		
+		$this->layout = $layout;
+		return $this;
 	}
 
 
@@ -306,10 +342,10 @@ abstract class ModuleCore {
 	{
 		if ($variant === null) {
 			return $this->layoutVariant;
-		} else {
-			$this->layoutVariant = $variant;
-			return $this;
 		}
+		
+		$this->layoutVariant = $variant;
+		return $this;
 	}
 
 
@@ -424,8 +460,9 @@ abstract class ModuleCore {
 		if (!$this->recursive){
 			return false;
 		}
-
 		$params['id'] ??= 0;
+		$params['autoInit'] ??= true;
+		$params['autoFinalize'] ??= true;
 
 		if (empty($name)) {
 			Debug::alert('Trying to embed an unspecified module, will be ignored', 'n');
@@ -482,7 +519,7 @@ abstract class ModuleCore {
 
 
 	// Adds the variable to the layout variables
-	public function lv(string $var, $value = null)
+	public function lv(string $var, $value)
 	{
 		$this->layoutVariables[$var] = $value;
 		return $this;
@@ -512,17 +549,30 @@ abstract class ModuleCore {
 	}
 
 
-	// Prints $str in the layouts after applying the layoutFilters
-	// $layoutFilters can be given as a single or an array of strings
-	// A module can impose the layout filters via the module params
-	protected function print(string $str, string|array|null $layoutFilter = null)
-	{
+	/* 
+		Prints $value (in the layouts) after applying the layoutFilters
+		If $value is passed as an array, it is assumed to contain the
+		different language-variations
+		Filters can be given as a single or an array of strings
+		A module can impose the layout filters via the module params
+	*/
+	protected function print(string|array $value, ?array $mutators = null)
+	{	
+		$lang = '';
+		$printedValue = '';
 		$filters = [];
+		
+		if (is_array($value)) {
+			$lang = $mutators['lang'] ?? App::getLang();
+			if (isset($value[$lang])) {
+				$printedValue = $value[$lang];
+			}
+		} else {
+			$printedValue = $value;
+		}
 
-		if (is_array($layoutFilter)) {
-			$filters = $layoutFilter;
-		} elseif (is_string($layoutFilter)) {
-			$filters[] = $layoutFilter;
+		if (isset($mutators['filters'])) {
+			$filters = (array) $mutators['filters'];
 		}
 
 		// Inheriting the filter demands from the module
@@ -533,15 +583,14 @@ abstract class ModuleCore {
 			if (class_exists($filterClass)) {
 				$filter = new $filterClass();
 			}
-			$str = $filter->filter($str);
+			$printedValue = $filter->filter($printedValue);
 		}
 
-		echo $str;
+		echo $printedValue;
 	}
 
 
-	// Embeds a link in a layout
-	protected function a(string $href, string $anchor = '', ?array $params = null)
+	protected function a(string $href, string|array $anchor = '', array $params = [])
 	{
 		$linkParams = [
 			'href'=>$href,
@@ -553,14 +602,13 @@ abstract class ModuleCore {
 	}
 
 
-	// Embeds an image in a layout
 	protected function img(string $src, ?array $attributes = null)
 	{
-		$att = [
+		$imageAttributes = [
 			'src'=>$src,
 			...$attributes
 		];
-		$this->embed('image', $att);
+		$this->embed('image', $imageAttributes);
 	}
 
 
@@ -602,9 +650,7 @@ abstract class ModuleCore {
 	}
 
 
-	/*
-	* Transfers the parameters set in the URI to the module params
-	* */
+	// Transfers the parameters set in the URI to the module params
 	protected function loadPathParams()
 	{
 		$pathParams = Router::getPathParams();
@@ -643,7 +689,6 @@ abstract class ModuleCore {
 	}
 
 
-	// Returns the nth child
 	public function child(int $n)
 	{
 		return $this->embeddedModules[$n] ?? null;

@@ -4,138 +4,136 @@ namespace Arembi\Xfw\Inc;
 
 class FormField {
 
-    private $name;
-    private $type;
-    private $label;
-    private $tag;
-    private $attributes;
-    private $options;
-    private $text;
+	private $name;
+	private $type;
+	private $label;
+	private $tag;
+	private $attributes;
+	private $options;
+	private $text;
 
 
-    public function __construct()
-    {
-        $this->name = '';
-        $this->type = '';
-        $this->label = '';
-        $this->tag = '';
-        $this->attributes = [];
-        $this->options = [];
-        $this->text = '';
-    }
+	public function __construct(
+		string $name = '',
+		string $type = '',
+		string|array $label = '',
+		string $tag = '',
+		array $attributes = [],
+		array $options = [],
+		string $text = ''
+	)
+	{
+		$this->name = $name;
+		$this->type = $type;
+		$this->label = $label;
+		$this->tag = $tag;
+		$this->attributes = $attributes;
+		$this->options = $options;
+		$this->text = $text;
+	}
 
 
-    public function name($name = null)
-    {
-        if ($name === null) {
-            return $this->name;
-        }   else {
-            $this->name = $name;
-            return $this;
-        }
-    }
-    
-
-    public function type($type = null)
-    {
-        if ($type === null) {
-            return $this->type;
-        }   else {
-            $this->type = $type;
-            return $this;
-        }
-    }
+	public function name(?string $name = null): FormField|string
+	{
+		if ($name === null) {
+			return $this->name;
+		}
+		$this->name = $name;
+		return $this;
+	}
 
 
-    public function label($label = null)
-    {
-        if ($label === null) {
-            return $this->label;
-        }   else {
-            $this->label = $label;
-            return $this;
-        }
-    }
+	public function type(?string $type = null): FormField|string
+	{
+		if ($type === null) {
+			return $this->type;
+		}
+		$this->type = $type;
+		return $this;
+	}
 
 
-    public function tag($tag = null)
-    {
-        if ($tag === null) {
-            return $this->tag;
-        }   else {
-            $this->tag = $tag;
-            return $this;
-        }
-    }
+	public function label(string|array|null $label = null): FormField|array|string|null
+	{
+		if ($label === null) {
+			return $this->label;
+		}
+		$this->label = $label;
+		return $this;
+	}
 
 
-    public function attributes($attributes = null)
-    {
-        if ($attributes === null) {
-            return $this->attributes;
-        }   else {
-            $this->attributes = $attributes;
-            return $this;
-        }
-    }
+	public function tag(?string $tag = null)
+	{
+		if ($tag === null) {
+			return $this->tag;
+		}
+		$this->tag = $tag;
+		return $this;
+	}
 
 
-    public function attribute($attribute, $value = null)
-    {
-        if ($value === null) {
-            return $this->attributes[$attribute];
-        }   else {
-            $this->attributes[$attribute] = $value;
-            return $this;
-        }
-    }
+	public function attributes($attributes = null)
+	{
+		if ($attributes === null) {
+			return $this->attributes;
+		}
+		$this->attributes = $attributes;
+		return $this;
+	}
 
 
-    public function options($options = null)
-    {
-        if ($options === null) {
-            return $this->options;
-        }   else {
-            $this->options = $options;
-            return $this;
-        }
-    }
+	public function attribute(?string $attribute, $value = null)
+	{
+		if ($value === null) {
+			return $this->attributes[$attribute];
+		}
+		$this->attributes[$attribute] = $value;
+		return $this;
+	}
 
 
-    public function option($option = null, $value = null)
-    {
-        if ($option === null) {
-            return $this->options[$option];
-        }   else {
-            $this->options[$option] = $value;
-            return $this;
-        }
-    }
-    
-
-    public function text($text = null)
-    {
-        if ($text === null) {
-            return $this->text;
-        }   else {
-            $this->text = $text;
-            return $this;
-        }
-    }
+	public function options(?array $options = null)
+	{
+		if ($options === null) {
+			return $this->options;
+		}
+		$this->options = $options;
+		return $this;
+	}
 
 
-    public function generateTag()
+	public function option(?string $option = null, $value = null)
+	{
+		if ($value === null) {
+			return $this->options[$option];
+		}
+		$this->options[$option] = $value;
+		return $this;
+	}
+
+
+	public function text(string|array|null $text = null)
+	{
+		if ($text === null) {
+			return $this->text;
+		}
+		$this->text = $text;
+		return $this;
+	}
+
+
+	public function generateTag()
 	{
 		$tag = '';
 
 		if ($this->type() == 'select') {
-			// Case it is a <select> tag
+			
 			$tag = '<select name="' . $this->name() . '"';
-
 			foreach ($this->attributes() as $attribute => $value) {
-				$tag .= ' ' . $attribute . '="' . $value . '"';
+				$tag .= ' ' . $attribute;
+				$tag .= $value !== true ? '="' . $value . '"' : '';
 			}
-
 			$tag .= '>';
 
 			foreach ($this->options() as $option => $attributes) {
@@ -152,13 +150,11 @@ class FormField {
 
 				$tag .= '>' . $option . '</option>';
 			}
-
 			$tag .= '</select>';
 
 		} elseif ($this->type() == 'textarea') {
-			// Case it is a <textarea> tag
+			
 			$tag = '<textarea name="' . $this->name() . '"';
-
 			foreach ($this->attributes() as $attribute => $value) {
 				$tag .= ' ' . $attribute;
 				// If an attribute is set to true, no value will be assigned
@@ -167,17 +163,34 @@ class FormField {
 					$tag .= '="' . $value . '"';
 				}
 			}
-
+			$tag .= '>';
+			$tag .= htmlspecialchars($this->text());
+			$tag .= '</textarea>';
+		
+		} elseif ($this->type() == 'datalist') {
+			
+			$tag = '<datalist id ="' . $this->name() . '"';
+			foreach ($this->attributes() as $attribute => $value) {
+				$tag .= ' ' . $attribute;
+				// If an attribute is set to true, no value will be assigned
+				// f.i. readonly
+				if ($value !== true) {
+					$tag .= '="' . $value . '"';
+				}
+			}
 			$tag .= '>';
 
-			$tag .= htmlspecialchars($this->text());
-
-			$tag .= '</textarea>';
-
+			foreach ($this->options as $o) {
+				$tag .= '<option'
+					. (' value="' . $o['value'] . '"')
+					. ($o['label'] ? ' label="' . $o['label'] . '"' : '')
+					. '></option>';
+			}
+			$tag .= '</datalist>';
+		
 		} else {
-			// Case it is an <input> tag
-			$tag = '<input type="' . $this->type() . '" name="' . $this->name() . '"';
 
+			$tag = '<input type="' . $this->type() . '" name="' . $this->name() . '"';
 			foreach ($this->attributes() as $attribute => $value) {
 				$tag .= ' ' . $attribute;
 				// If an attribute is set to true, no value will be assigned
@@ -186,13 +199,11 @@ class FormField {
 					$tag .= '="' . $value . '"';
 				}
 			}
-
 			$tag .= '/>';
 		}
 
 		$this->tag($tag);
-
-        return $this;
+		return $this;
 	}
 
 }

@@ -11,7 +11,7 @@ class Robots_TxtBase extends ModuleCore {
 
     protected $dictionary;
 
-    protected function main()
+    protected function init()
     {   
         $this->dictionary = [
             'u'=>'user-agent',

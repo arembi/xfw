@@ -17,25 +17,23 @@ class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 	private $menuType;
 	private $title;
 	private $displayTitle;
-	private $autoBuild;
 
 
-	protected function main()
+	protected function init()
 	{
 		$this->loadModel();
 		
-		// The parameter should be used to preload a menu
+		// Key is the parameter that should be used to preload a menu
 		$key = isset($this->params['id']) ? 'id' : (isset($this->params['menuName']) ? 'name' : null);
 		
-		$this->level = $this->params['level'] ?? 0;
-		$this->items = $this->params['items'] ?? new Collection();
-		$this->title = $this->params['title'] ?? '';
-		$this->displayTitle = $this->params['displayTitle'] ?? false;
-		$this->autoBuild = $this->params['autoBuild'] ?? false;
-
+		$this->level($this->params['level'] ?? 0);
+		$this->items($this->params['items'] ?? new Collection());
+		$this->title($this->params['title'] ?? []);
+		$this->displayTitle($this->params['displayTitle'] ?? false);
+		
 		// Load stored data if requested based on the given key
 		if ($key !== null) {
-			$storedMenu = $key =='id'
+			$storedMenu = $key == 'id'
 				? $this->model->getMenuByMenuId($this->params['id'])
 				: $this->model->getMenuByMenuName($this->params['menuName']);
 
@@ -50,10 +48,6 @@ class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 					}
 				}
 			}
-		}
-
-		if ($this->autoBuild) {
-			$this->build();
 		}
 	}
 
@@ -97,13 +91,29 @@ class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public function autoBuild(?bool $value = null): bool|MenuBase
+	public function level(?int $level): int|MenuBase
 	{
-		if ($value === null) {
-			return $this->autoBuild;
+		if ($level === null) {
+			return $this->level;
+		}
+
+		$this->level = $level;
+		return $this;
+	}
+
+
+	public function title(array|string|null $title): array|MenuBase
+	{
+		if ($title === null) {
+			return $this->title;
+		}
+
+		if (is_string($title)) {
+			$this->title[App::getLang()] = $title;
+		} else {
+			$this->title = $title;
 		}
 		
-		$this->autoBuild = $value;
 		return $this;
 	}
 
@@ -147,7 +157,7 @@ class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 					'id' => $o->id ?? null,
 					'level' => $this->level + 1,
 					'displayTitle' => false,
-					'autoBuild' => true
+					'autoFinalize' => true
 				]);
 				break;
 			case 'custom':
@@ -162,7 +172,7 @@ class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public function build()
+	public function finalize()
 	{
 		$this->lv('name', $this->menuName);
 		$this->lv('type', $this->menuType);
@@ -170,122 +180,6 @@ class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
 		$this->lv('displayTitle', $this->displayTitle);
 		$this->lv('title', $this->title);
 		$this->lv('items', $this->items);
-
-		return $this;
-	}
-
-
-	public function buildOld()
-	{
-		$lang = App::getLang();
-
-		foreach ($this->items as $item) {
-			if ($item['type'] == 'custom') {
-				// If the array keys are numeric, it has to be a submenu
-				// Otherwise it is a simple menuitem
-				if (Misc\array_keys_numeric($item)) {
-					$submenuData = [
-						'items'=>$item,
-						'level'=>$this->level + 1,
-						'showTitle'=>false
-					];
-					
-					$this->items[] = new Menu($submenuData);
-
-				} else {
-					$target = $item['target'] ?? null;
-					$anchorText = '';
-					$title = '';
-
-					if (isset($item['anchorText'])) {
-						// If there is no anchor text in the currently active language, use the first available one
-						if (is_array($item['anchorText'])) {
-							$anchorText = $item['anchorText'][$lang] ?? array_values($item['anchorText'])[0];
-						}
-					}
-
-					if (isset($item['title'])) {
-						// If there is no title in the currently active language, use the first available one
-						if (is_array($item['title'])) {
-							$title = $item['title'][$lang] ?? array_values($item['title'])[0];
-						}
-					}
-
-					// If the item has a href it is a link, otherwise it is a placeholder
-					if (!empty($item['href'])) {
-						$linkData = [
-							'href' => $item['href'],
-							'anchor' => $anchorText,
-							'title' => $title,
-							'target' => $target
-						];
-
-						$this->items[] = new Link($linkData);
-					} else {
-						$this->items[] = '<span class="menuitem placeholder" title="' . $title . '">' . $anchorText . '</span>';
-					}
-				}
-			} elseif ($item['type'] == 'menu') {
-				if (isset($item['id'])) {
-					$submenuData['id'] = $item['id'];
-				} elseif (isset($item['name'])) {
-					$submenuData['menuName'] = $item['name'];
-				} else {
-					return false;
-				}
-
-				$submenuData = [
-					'level' => $this->level + 1,
-					'showTitle' => false
-				];
-
-				$this->items[] = new Menu($submenuData);
-
-			} elseif ($item['type'] == 'link') {
-				$target = $item['target'] ?? null;
-				$anchorText = '';
-				$title = '';
-
-				if (isset($item['id'])) {
-					$item['href'] = '@' . $item['id'];
-				}
-
-				if (isset($item['anchorText'])) {
-					if (is_array($item['anchorText'])) {
-						$item['anchorText'] = $item['anchorText'][$lang] ?? array_values($item['anchorText'])[0];
-					}
-				}
-
-				if (isset($item['title'])) {
-					if (is_array($item['title'])) {
-						$item['title'] = $item['title'][$lang] ?? array_values($item['title'])[0];
-					}
-				}
-
-				// If the item has a href it is a link, otherwise it is a placeholder
-				if (!empty($item['href'])) {
-					$linkData = [
-						'href' => $item['href'],
-						'anchor' => $anchorText,
-						'title' => $title,
-						'target' => $target
-					];
-
-					$this->items[] = new Link($linkData);
-
-				} else {
-					$this->items[] = '<span class="menuitem placeholder" title="' . $item['title'] . '">' . $item['anchorText'] . '</span>';
-				}
-			} else {
-				Debug::alert('Menuitem type: ' . ($item['type'] ?? '(not set)') . ' not suported.');
-				$this->items[] = '<span class="menuitem placeholder">' . ($item['anchorText'] ?? 'N/A') . '</span>';
-			}
-		}
-
-		$this->lv('level', $this->level);
-		$this->lv('displayTitle', $this->displayTitle);
-		$this->lv('title', $this->title);
-		$this->lv('menuItems', $this->items);
 
 		return $this;
 	}

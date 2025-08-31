@@ -1,43 +1,52 @@
 <?php
 
 namespace Arembi\Xfw\Module;
-use Arembi\Xfw\Core\Debug;
-use Arembi\Xfw\Core\User;
+
+use Arembi\Xfw\Core\Input_Handler;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Session;
+use Arembi\Xfw\Core\User;
 
 class IH_DocumentBase extends Document {
 
-	public function login()
+	public function login(&$result)
 	{
-		$user = new User(Router::$POST['username']);
+		$user = new User(Router::post('username'));
 		$passwordHash = $user->get('password');
 		
 		if (null !== $passwordHash) {
-			if (password_verify(Router::$POST['password'], $passwordHash)) {
+			if (password_verify(Router::post('password'), $passwordHash)) {
 				$_SESSION['user'] = $user;
-				$result = [0, 'User `' . Router::$POST['username'] . '` successfully logged in.'];
+				$result
+					->status(Input_Handler::RESULT_SUCCESS)
+					->message('User `' . Router::post('username') . '` successfully logged in.');
 			} else {
-				$result = [2, 'User `' . Router::$POST['username'] . '` couldn\'t log in.'];
+				$result
+					->status(Input_Handler::RESULT_WARNING)
+					->message('Wrong passwords for `' . Router::post('username') . '`');
 			}
 		} else {
-			$result = [2, 'User `' . Router::$POST['username'] . '` couldn\'t log in.'];
+			$result
+				->status(Input_Handler::RESULT_WARNING)
+				->message('User `' . Router::post('username') . '` couldn\'t log in.');
 		}
-
-		return $result;
 	}
 
-	public function logout()
+	
+	public function logout(&$result)
 	{
 		$username = $_SESSION['user']->get('name');
 		$id = session_id();
 		
 		if ($username == '_guest') {
-			return [1, 'User _guest cannot log out.'];
+			$result
+				->status(Input_Handler::RESULT_WARNING)
+				->message('User _guest cannot log out.');
+		} else {
+			Session::reset();
+			$result
+				->status(Input_Handler::RESULT_SUCCESS)
+				->message('User ' . $username . ' successfully logged out.');
 		}
-		
-		Session::reset();
-
-		return [0, 'User ' . $username . ' successfully logged out.'];
 	}
 }
