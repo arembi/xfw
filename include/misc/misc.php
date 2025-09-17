@@ -218,18 +218,18 @@ function concatenate($to, $what, $after = false)
 }
 
 
-function parseHtmlAttributes($input1, $input2 = [])
+function parseHtmlAttributes(array $input1, array $input2 = [])
 {
 	$ret = '';
 
 	if (func_num_args() === 1) {
 		// With 1 argument, the keys have to be the attributes, the values remain the values
 		foreach ($input1 as $k => $v) {
-			if ($v !== null) {
+			if (!empty($v)) {
 				if ($ret === '') {
-					$ret .= $k . '="' . $v . '"';
+					$ret .= $k . ($v === true ? '' : '="' . $v . '"');
 				} else {
-					$ret .= ' ' . $k . '="' . $v . '"';
+					$ret .= ' ' . $k . ($v === true ? '' : '="' . $v . '"');
 				}
 			}
 		}
@@ -242,9 +242,9 @@ function parseHtmlAttributes($input1, $input2 = [])
 
 		for ($i = 0; $i < $l1; $i++) {
 			if ($ret === '') {
-				$ret .= $input1[$i] . '="' . $input2[$i] . '"';
+				$ret .= $input1[$i] . ($input2[$i] === true ? '' : '="' . $input2[$i] . '"');
 			} else {
-				$ret .= ' ' . $input1[$i] . '="' . $input2[$i] . '"';
+				$ret .= ' ' . $input1[$i] . ($input2[$i] === true ? '' : '="' . $input2[$i] . '"');
 			}
 		}
 	}

@@ -22,7 +22,6 @@ Construct hrefs by setting the route ID and the path parameters
 
 namespace Arembi\Xfw\Module;
 
-use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
 use function Arembi\Xfw\Misc\parseHtmlAttributes;
 
@@ -51,7 +50,7 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 	protected function init()
 	{
 		// If instantiated with an id present, it will override the href parameter
-		if (isset($this->params['id']) && $this->params['id'] !== 0) {
+		if (isset($this->params['id']) && $this->params['id'] != 0) {
 			$this->params['href'] = '@' . $this->params['id'];
 		}
 
@@ -66,9 +65,14 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 			return;
 		}
 
-		$lang = App::getLang();
 		$this->hrefRaw = $this->params['href'];
 		$this->href = $href;
+
+		$title = $this->params['title'] ?? [];
+		$htmlId = $this->params['htmlId'] ?? null;
+		$style = $this->params['style'] ?? null;
+		$target = $this->params['target'] ?? null;
+		$rel = $this->params['rel'] ?? null;
 		
 		if (Router::getFullURL() == $this->href) {
 			$class = 'origo ';
@@ -84,14 +88,6 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 			}
 		}
 
-		$anchor = $this->params['anchor'][$lang]
-			?? $this->params['anchor']
-			?? '';
-
-		$title = $this->params['title'][$lang]
-			?? $this->params['title']
-			?? '';
-
 		if (isset($this->params['follow']) && $this->params['follow'] === false) {
 			if (empty($this->params['rel'])) {
 				$this->params['rel'] = 'nofollow';
@@ -99,19 +95,19 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 				$this->params['rel'] .= ' nofollow';
 			}
 		}
-
+		
 		$attributes = parseHtmlAttributes([
-			'href'=>htmlspecialchars($this->href),
-			'style'=>$this->params['style'] ?? null,
-			'id'=>$this->params['htmlId'] ?? null,
+			'href'=>$this->href,
+			'style'=>$style,
+			'id'=>$htmlId,
 			'class'=>$class,
 			'title'=>$title,
-			'target'=>$this->params['target'] ?? null,
-			'rel'=>$this->params['rel'] ?? null
+			'target'=>$target,
+			'rel'=>$rel
 		]);
 
 		$this->lv('attributes', $attributes);
-		$this->lv('anchor', $anchor);
+		$this->lv('anchor', $this->params['anchor']);
 	}
 
 
@@ -127,10 +123,9 @@ class LinkBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	// Removes the nofollow rel attribute
-	protected function follow($follow = true)
+	protected function follow(bool $follow = true)
 	{
-		$this->options['follow'] = $follow;
+		$this->params['follow'] = $follow;
 		return $this;
 	}
 
