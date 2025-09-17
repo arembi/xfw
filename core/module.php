@@ -128,7 +128,7 @@ abstract class ModuleCore {
 	protected $error;
 
 	// Whether an anction has to be triggered for the module
-	protected $triggerAction;
+	protected $autoAction;
 
 	// Layout used to render the module
 	protected $layout;
@@ -197,7 +197,7 @@ abstract class ModuleCore {
 			'message'=>''
 		];
 		
-		$this->triggerAction = $params['triggerAction'] ?? $this->triggerAction ?? false;
+		$this->autoAction = $params['autoAction'] ?? $this->autoAction ?? false;
 		$this->layout = $params['layout'] ?? Settings::get('defaultModuleLayout');
 		$this->layoutVariant = $params['layoutVariant'] ?? Settings::get('defaultModuleLayoutVariant');
 		$this->layoutProcessed = false;
@@ -251,10 +251,10 @@ abstract class ModuleCore {
 		Default actions will only be triggered for the primary module matched by the router
 		*/
 
-		if ($this->triggerAction) {
+		if ($this->autoAction) {
 			$action = Router::getRequestedAction();
 			if ($action) {
-				$this->triggerAction($action);
+				$this->executeAction($action);
 			}
 		}
 
@@ -288,15 +288,14 @@ abstract class ModuleCore {
 	}
 
 
-	private function triggerAction(string $action)
+	protected function autoAction(?bool $trigger = null)
 	{
-		$actionMethod = $action . 'Action';
-		if (method_exists($this, $actionMethod)) {
-			$this->$actionMethod();
-			Debug::alert('Action ' . $action . ' for %' . $this->class . ' successfully triggered.', 'o');
-		} else {
-			Debug::alert('Action ' . $action . ' for %' . $this->class . ' could not be triggered.' , 'f');
+		if ($trigger === null) {
+			return $this->autoAction;
 		}
+
+		$this->autoAction = $trigger;
+		return $this;
 	}
 
 
@@ -308,6 +307,18 @@ abstract class ModuleCore {
 
 		$this->autoFinalize = $trigger;
 		return $this;
+	}
+
+
+	private function executeAction(string $action)
+	{
+		$actionMethod = $action . 'Action';
+		if (method_exists($this, $actionMethod)) {
+			$this->$actionMethod();
+			Debug::alert('Action ' . $action . ' for %' . $this->class . ' successfully triggered.', 'o');
+		} else {
+			Debug::alert('Action ' . $action . ' for %' . $this->class . ' could not be triggered.' , 'f');
+		}
 	}
 
 
@@ -556,8 +567,9 @@ abstract class ModuleCore {
 		Filters can be given as a single or an array of strings
 		A module can impose the layout filters via the module params
 	*/
-	protected function print(string|array $value, ?array $mutators = null)
+	protected function print(string|array|null $value, ?array $mutators = null)
 	{	
+		$value ??= '';
 		$lang = '';
 		$printedValue = '';
 		$filters = [];

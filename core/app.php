@@ -134,7 +134,7 @@ abstract class App {
 			'layout'=>$matchedRoute['documentLayout'],
 			'layoutVariant'=>$matchedRoute['documentLayoutVariant'],
 			'primaryModule'=>$matchedRoute['primary'],
-			'primaryModuleParams'=>['triggerAction'=>true, ...$matchedRoute['params']]
+			'primaryModuleParams'=>['autoAction'=>true, ...$matchedRoute['params']]
 		];
 
 		$response = new Document($documentModuleParams);
