@@ -34,18 +34,8 @@ class Input_Handler {
 	}
 
 
-	public static function processForm($formId)
+	public static function processStoredForm($formId)
 	{
-		$process = [
-			'success'=>false, // Only the handler controller should set it to true
-			'ihError'=>'', // Message in case an error occurs during the processing of the form
-			'formName'=>'',
-			'status'=>[
-				self::RESULT_SUCCESS,
-				'not processed'
-			]
-		];
-		
 		self::$model = new Input_HandlerModel();
 		$result = new Input_Handler_Result();
 
@@ -54,26 +44,22 @@ class Input_Handler {
 		$form = self::$model->getFormById($formId);
 		$moduleAddonLoaded = false;
 		$controllerClass = '';
-		$controllerModule = '';
+		$handlerModule = '';
 		$controller = null;
 		$handlerMethod = '';
 
 		if (!$form) {
-			//$process['ihError'] = 'Form with id ' . $formId . 'not found.';
 			$result->status(self::RESULT_ERROR)
 				->message('Form with id ' . $formId . 'not found.');
 			return $result;
 		}
 
 		$formName = $form->formName;
-		//$process['formName'] = $form->formName;
-
+		
 		// Sanitizing posted values
-
 		if (isset($form->formFields)) {
 			foreach ($form->formFields as $key => $value) {
 				if (!(isset($value['type']) && in_array($value['type'], self::$formDataTypes))) {
-					//$process['ihError'] .= 'Wrong type has been set for ' . $form->formFields[$key] . ' in form ' . $process['formName'] . '.';
 					$result
 						->status(self::RESULT_ERROR)
 						->message('Wrong type has been set for ' . $form->formFields[$key] . ' in form ' . $formName . '.');
@@ -108,18 +94,22 @@ class Input_Handler {
 		// If you want to use a form globally, do not assign it to a module,
 		// just put the form's handler function in the ih.document.php file
 
-		$controllerModule = $form->moduleName ?? 'document';
+		$handlerModule = $form->moduleName ?? 'document';
+		$handlerMethod = $formName;
+		$result
+			->handlerModule($handlerModule)
+			->handlerMethod($handlerMethod);
 
-		$moduleAddonLoaded = App::loadModuleAddon($controllerModule, 'ih');
+		$moduleAddonLoaded = App::loadModuleAddon($handlerModule, 'ih');
 
 		if (!$moduleAddonLoaded) {
 			$result
 				->status(self::RESULT_ERROR)
-				->message('Missing form handler addon for ' . $controllerModule . '.');
+				->message('Missing form handler addon for ' . $handlerModule . '.');
 			return $result;
 		}
 
-		$controllerClass = '\\Arembi\\Xfw\\Module\\' . 'IH_' . $controllerModule;
+		$controllerClass = '\\Arembi\\Xfw\\Module\\' . 'IH_' . $handlerModule;
 
 		if (!class_exists($controllerClass)) {
 			$result
@@ -132,7 +122,6 @@ class Input_Handler {
 			// Passing the sent data to the controller module
 			$controller->setFormData($formData);
 
-			$handlerMethod = $formName;
 			if (method_exists($controller, $handlerMethod)) {
 				$controller->$handlerMethod($result);
 				Debug::alert('Form ' . $formName . ' processed with method ' . get_class($controller) . '->' . $handlerMethod . '()', 'o');
@@ -144,12 +133,16 @@ class Input_Handler {
 	}
 
 
-	public static function processStandard(string $controllerModule, string $handlerMethod)
+	public static function processGenericRequest(string $handlerModule, string $handlerMethod)
 	{
 		$result = new Input_Handler_Result();
 		$moduleAddonLoaded = false;
 		$controllerClass = '';
 		$controller = null;
+
+		$result
+			->handlerModule($handlerModule)
+			->handlerMethod($handlerMethod);
 		
 		if (!$_SESSION['user']->allowedToSendInput()) {
 			$result
@@ -158,16 +151,16 @@ class Input_Handler {
 			return $result;
 		}
 
-		$moduleAddonLoaded = App::loadModuleAddon($controllerModule, 'ih');
+		$moduleAddonLoaded = App::loadModuleAddon($handlerModule, 'ih');
 
 		if (!$moduleAddonLoaded) {
 			$result
 				->status(self::RESULT_ERROR)
-				->message('Missing input handler file for ' . $controllerModule . '.');
+				->message('Missing input handler file for ' . $handlerModule . '.');
 			return $result;
 		}
 
-		$controllerClass = '\\Arembi\Xfw\\Module\\' . 'IH_' . $controllerModule;
+		$controllerClass = '\\Arembi\Xfw\\Module\\' . 'IH_' . $handlerModule;
 
 		if (!class_exists($controllerClass)) {
 			$result
@@ -191,13 +184,16 @@ class Input_Handler {
 	public static function uploadFile(string $uploadInput, array $acceptedMimes = [], string $targetDir = 'temp', )
 	{
 		$result = new stdClass();
-		$result->ok = false;
+		$result->success = false;
 		$result->destination = '';
 		$result->message = '';
 		$result->ext = '';
 
-		$sentFile = Router::files($uploadInput);
 		$sysFs = FS::getFilesystem('sys');
+		$sentFile = Router::files($uploadInput);
+		$acceptedMimes ?: Config::get('uploadAllowedMimeTypes');
+		$uploadMime = '';
+		$mimeUnderscorePos = false;
 
 		try {
 			// Undefined | Multiple Files | Corruption Attack
@@ -227,8 +223,6 @@ class Input_Handler {
 			
 			$uploadMime = $sysFs->mimeType($sentFile['tmp_name']);
 			
-			$acceptedMimes = $acceptedMimes ?? Config::get('uploadAllowedMimeTypes');
-
 			$result->ext = array_search($uploadMime, $acceptedMimes, true);
 
 			if (false === $result->ext) {
@@ -236,9 +230,9 @@ class Input_Handler {
 			}
 
 			// Removing enumeration from the extension marker
-			$underscorePos = strpos($result->ext, "_");
-			if ($underscorePos !== false) {
-				$result->ext = substr($result->ext, 0, $underscorePos);
+			$mimeUnderscorePos = strpos($result->ext, "_");
+			if ($mimeUnderscorePos !== false) {
+				$result->ext = substr($result->ext, 0, $mimeUnderscorePos);
 			}
 			
 			$result->destination = UPLOADS_DIR . DS . $targetDir . DS . sprintf('%s.%s', sha1_file($sentFile['tmp_name']), $result->ext);
@@ -252,9 +246,9 @@ class Input_Handler {
 				$result->message = $exception->getMessage();
 			}
 
-			$result->ok = true;
+			$result->success = true;
 
-		} catch (\RuntimeException $e) {
+		} catch (RuntimeException $e) {
 			$result->message = $e->getMessage();
 		}
 

@@ -29,11 +29,11 @@ abstract class Router {
 	// Protocol + domain
 	private static $hostUrl;
 
-	// Equivalent to apache's %{REQUEST_URI}
+	// Equivalent to Apache's %{REQUEST_URI}
 	private static $path;
 
 	// The URL without the query string
-	private static $noQSUrl;
+	private static $noQueryStringUrl;
 
 	// Protocol + domain + path + query string
 	private static $fullUrl;
@@ -90,6 +90,7 @@ abstract class Router {
 
 	private static $FILES;
 
+	private static $inputInfo;
 	private static $inputHandlerResult;
 
 	
@@ -107,7 +108,7 @@ abstract class Router {
 		self::$protocol = '';
 		self::$hostUrl = '';
 		self::$path = '';
-		self::$noQSUrl = '';
+		self::$noQueryStringUrl = '';
 		self::$fullUrl = '';
 		self::$pathNodes = [];
 		self::$pathMain = '';
@@ -130,6 +131,10 @@ abstract class Router {
 		self::loadDomains();
 
 		self::$inputHandlerResult = null;
+		self::$inputInfo = [
+			'mode'=>'',
+			'data'=>[]
+		];
 		
 		if (empty(self::$domains)) {
 			App::hcf('Could not retrieve domains.');
@@ -271,9 +276,9 @@ abstract class Router {
 	}
 
 
-	public static function getNoQSUrl()
+	public static function getNoQueryStringUrl()
 	{
-		return self::$noQSUrl;
+		return self::$noQueryStringUrl;
 	}
 
 
@@ -366,6 +371,16 @@ abstract class Router {
 		}
 
 		self::$inputHandlerResult = $result;
+	}
+
+
+	public static function inputInfo(?array $info = null)
+	{
+		if ($info === null) {
+			return self::$inputInfo;
+		}
+
+		self::$inputInfo = $info;
 	}
 
 
@@ -495,7 +510,7 @@ abstract class Router {
 		self::$hostUrl = self::$protocol . HOST_ROOT;
 		self::$fullUrl = self::$hostUrl . self::$path;
 
-		self::$noQSUrl = self::$hostUrl . self::$pathMain;
+		self::$noQueryStringUrl = self::$hostUrl . self::$pathMain;
 
 		self::$pathNodes = explode('/', substr(self::$pathMain, 1)); // Initial '/' is removed
 	}
@@ -530,7 +545,7 @@ abstract class Router {
 				Debug::alert('Error while processing input: ' .  $inputResult->message(), 'f');
 			}
 		} else {
-			Debug::alert('No iput has been sent.');
+			Debug::alert('No input has been sent.');
 		}
 		
 		self::serveFiles();
@@ -727,16 +742,12 @@ abstract class Router {
 				$match['primary'] = 'unauthorized';
 			}
 			Debug::alert('Primary module found: %' . $match['primary'] . '.', 'o');
-
 		}
 
 		return $match;
 	}
 
 
-	/*
-	 * Determines the language that should be used by the system
-	 * */
 	private static function matchLanguage(&$pathNodes, &$pathMain)
 	{
 		// The available languages are stored in an array for each language,
@@ -823,9 +834,25 @@ abstract class Router {
 		$result = null;
 
 		if (!empty(self::$REQUEST['formId'])) {
-			$result = Input_Handler::processForm(self::$REQUEST['formId']);
+			$result = Input_Handler::processStoredForm(self::$REQUEST['formId']);
+
+			self::$inputInfo = [
+				'mode'=>'form',
+				'data'=>[
+					'id'=>'formId',
+					'handlerModule'=>$result->handlerModule(),
+					'handlerMethod'=>$result->handlerMethod()
+				]
+			];
 		} elseif (!empty(self::$REQUEST['handlerModule']) && !empty(self::$REQUEST['handlerMethod'])) {
-			$result = Input_Handler::processStandard(self::$REQUEST['handlerModule'], self::$REQUEST['handlerMethod']);
+			$result = Input_Handler::processGenericRequest(self::$REQUEST['handlerModule'], self::$REQUEST['handlerMethod']);
+			self::$inputInfo = [
+				'mode'=>'generic',
+				'data'=>[
+					'handlerModule'=>$result->handlerModule(),
+					'handlerMethod'=>$result->handlerMethod()
+				]
+			];
 		}
 
 		return $result;
@@ -852,7 +879,6 @@ abstract class Router {
 
 				if ($fs->fileExists(self::$pathMain)) {
 					$mime = $fs->mimeType(self::$pathMain) ?? 'text/plain';
-					
 					header('Content-Type: ' . $mime);
 					echo $fs->read(self::$pathMain);
 					exit;
@@ -1174,7 +1200,7 @@ abstract class Router {
 			$queryParameters = [];
 			parse_str(substr($xfwHref, 1), $queryParameters);
 			$queryString = http_build_query(array_merge(self::$queryParameters, $queryParameters));
-			$url = self::$noQSUrl . '?' . $queryString;
+			$url = self::$noQueryStringUrl . '?' . $queryString;
 		} else {
 			$url = $xfwHref;
 		}
