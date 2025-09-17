@@ -63,7 +63,7 @@ class FormField {
 	}
 
 
-	public function tag(?string $tag = null)
+	public function tag(?string $tag = null): FormField|string
 	{
 		if ($tag === null) {
 			return $this->tag;
@@ -73,7 +73,7 @@ class FormField {
 	}
 
 
-	public function attributes($attributes = null)
+	public function attributes(?array $attributes = null): FormField|array
 	{
 		if ($attributes === null) {
 			return $this->attributes;
@@ -83,7 +83,7 @@ class FormField {
 	}
 
 
-	public function attribute(?string $attribute, $value = null)
+	public function attribute(string $attribute, ?string $value = null): FormField|string
 	{
 		if ($value === null) {
 			return $this->attributes[$attribute];
@@ -93,7 +93,7 @@ class FormField {
 	}
 
 
-	public function options(?array $options = null)
+	public function options(?array $options = null): FormField|array
 	{
 		if ($options === null) {
 			return $this->options;
@@ -103,7 +103,7 @@ class FormField {
 	}
 
 
-	public function option(?string $option = null, $value = null)
+	public function option(?string $option = null, ?string $value = null): FormField|string
 	{
 		if ($value === null) {
 			return $this->options[$option];
@@ -113,7 +113,7 @@ class FormField {
 	}
 
 
-	public function text(string|array|null $text = null)
+	public function text(string|array|null $text = null): Formfield|string|array
 	{
 		if ($text === null) {
 			return $this->text;
@@ -123,7 +123,7 @@ class FormField {
 	}
 
 
-	public function generateTag()
+	public function generateTag(): FormField
 	{
 		$tag = '';
 
