@@ -2,10 +2,11 @@
 
 namespace Arembi\Xfw\Module;
 
+use Arembi\Xfw\Core\ModuleBase;
 use \Arembi\Xfw\Core\Router;
 use function \Arembi\Xfw\Misc\parseHtmlAttributes;
 
-class ImageBase extends \Arembi\Xfw\Core\ModuleCore {
+class ImageBase extends ModuleBase {
 
 	protected static $hasModel = false;
 	/*

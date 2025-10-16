@@ -117,13 +117,20 @@ abstract class App {
 		Debug::alert('Modules loaded.');
 
 		Router::loadData();
+		
+		Router::processInput();
+		
+		Router::serveFiles();
+
+		/*
+		TODO Router::autoRedirect();
+		*/
 
 		/*
 		 * The system requires the document layout and a primary module from the router
 		 * For the primary module, the action is also required
 		 * */
-
-		$matchedRoute = Router::parseRoute();
+		$matchedRoute = Router::parsePath();
 		Debug::alert('URI parsed');
 		Debug::alert('Active user: ' . $_SESSION['user']->get('username'));
 
@@ -140,9 +147,11 @@ abstract class App {
 		$response = new Document($documentModuleParams);
 		
 		Debug::alert(
-			'Document Layout ready for processing. Layout / variant in use: ['
+			'Document Layout ready for processing. Layout / variant in use: '
+			. '['
 			. $documentModuleParams['layout']
-			. ' / ' . $documentModuleParams['layoutVariant']
+			. ' / '
+			. $documentModuleParams['layoutVariant']
 			. '].'
 		);
 
@@ -575,6 +584,12 @@ abstract class App {
 	public static function getActiveModules(?string $attribute = null)
 	{
 		return $attribute === null ? self::$activeModules : self::$activeModules->select($attribute)->flatten();
+	}
+
+
+	public static function isActiveModule(string $moduleName)
+	{
+		return self::getActiveModules('name')->contains($moduleName);
 	}
 
 

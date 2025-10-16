@@ -2,9 +2,9 @@
 
 namespace Arembi\Xfw\Module;
 
+use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\Router;
-use Arembi\Xfw\Core\ModuleCore;
 use Arembi\Xfw\Inc\Seo;
 
 /*
@@ -24,7 +24,7 @@ their own operating area
 */
 
 
-class Control_PanelBase extends ModuleCore {
+class Control_PanelBase extends ModuleBase {
 
 	protected static $hasModel = true;
 
@@ -34,7 +34,7 @@ class Control_PanelBase extends ModuleCore {
 		$this->loadPathParams();
 
 		// Executing default action
-		if (Router::getMatchedRouteAction() === null) {
+		if (Router::getRequestedAction() === null) {
 			$this->panelAction();
 		}
 	}
@@ -42,29 +42,30 @@ class Control_PanelBase extends ModuleCore {
 
 	public function panelAction()
 	{
+		$main = '';
 		$module = $this->params['module'] ?? 'control_panel';
 		$task = Router::get('task') ?? 'home';
-		$controllerClass = 'Arembi\Xfw\\Module\\CP_' . $module;
+		$controllerClass = 'Arembi\\Xfw\\Module\\CP_' . $module;
 
 		if (class_exists($controllerClass)) {
 			$controller = new $controllerClass();
-			if (method_exists($controller, $task)) {
-				// The module addons use the same model as the main modules
+			$action = $task . 'Action';
+			if (method_exists($controller, $action)) {
 				$controller->loadModel();
-				// The output of the module addons will be stored in $main
-				ob_start();
-				$controller->$task();
-				$main = ob_get_clean();
+				$controller
+					->layout('cp')
+					->layoutVariant($task);
+				$controller->$action();
+				$controller->finalize();
+				
+				$main = $controller->__toString();
 			} else {
 				Debug::alert("Task $task for module %$module does not exist.", 'f');
 			}
 		}
 
-		if (!isset($main)) {
-			$main = '';
-		}
-
 		$this->lv('main', $main);
+		
 		Seo::title($task . ' - Control Panel', __CLASS__);
 		Seo::metaDescription($task . ' task of ' . $module . ' module', __CLASS__);
 	}

@@ -2,9 +2,9 @@
 
 namespace Arembi\Xfw\Module;
 
-use Arembi\Xfw\Core\ModuleCore;
+use Arembi\Xfw\Core\ModuleBase;
 
-class ContainerBase extends ModuleCore {
+class ContainerBase extends ModuleBase {
 
 	protected static $hasModel = false;
 

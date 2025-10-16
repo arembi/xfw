@@ -1,11 +1,13 @@
 <?php
 
 namespace Arembi\Xfw\Module;
+
+use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Inc\Seo;
 
-class Static_PageBase extends \Arembi\Xfw\Core\ModuleCore {
+class Static_PageBase extends ModuleBase {
 
 	protected static $hasModel = true;
 

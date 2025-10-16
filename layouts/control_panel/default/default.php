@@ -1,3 +1,3 @@
 <div id="cp-main">
-  <?php $this->print($main) ?>
+  <?php $this->print($main); ?>
 </div>

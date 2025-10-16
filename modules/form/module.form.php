@@ -2,12 +2,13 @@
 
 namespace Arembi\Xfw\Module;
 
+use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Inc\FormField;
 use Arembi\Xfw\Inc\FormFieldSet;
 
-class FormBase extends \Arembi\Xfw\Core\ModuleCore {
+class FormBase extends ModuleBase {
 
 	protected static $hasModel = true;
 	protected static $encTypes = [
@@ -31,39 +32,39 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 		$this->overrides = new FormFieldSet();
 		$this->actionUrl = $this->params['actionUrl'] ?? '';
 		$this->encType = $this->params['encType'] ?? 0;
+		$this->hasFileField = false;
 
 		if (!empty($this->params['formId'])) {
-			
 			$form = $this->model->getForm($this->params['formId']);
+			
 			if (!$form) {
-				return false;
-			}
-			
-			if (isset($form['fields'])) {
-				foreach ($form['fields'] as $k => $f) {
-					$this->fields->addField($k, $this->arrayToFormField($f));
+				$this->error('Could not find Form#' . $this->params['formId']);
+			} else {
+				if (isset($form['fields'])) {
+					foreach ($form['fields'] as $k => $f) {
+						$this->fields->addField($k, $this->arrayToFormField($f));
+					}
 				}
+
+				if (!empty($form->action_url)) {
+					$this->actionUrl = $form->action_url;
+				}
+
+				// Adding the non-optional formID hidden input
+				$this->addField('formId', 'hidden')
+					->attribute('value' , $this->params['formId']);
+				
+				$this
+					->layout($form['options']['layout'] ?? $form['name'])
+					->layoutVariant($form['options']['layoutVariant'] ?? $form['name']);
 			}
-
-			if (!empty($form->action_url)) {
-				$this->actionUrl = $form->action_url;
-			}
-
-			// Adding the non-optional formID hidden input
-			$this->addField('formId', 'hidden')
-				->attribute('value' , $this->params['formId']);
-			
-			$this->layout($form['options']['layout'] ?? $form['name']);
-			$this->layoutVariant($form['options']['layoutVariant'] ?? $form['name']);
-
-		} elseif (!empty($this->params['handlerModule']) && !empty($this->params['handlerMethod'])) { // Standard forms
-			
+		} elseif (!empty($this->params['handlerModule']) && !empty($this->params['handlerMethod'])) { // Generic forms
 			if (isset($this->params['fields'])) {
 				foreach ($this->params['fields'] as $k => $f) {
 					$this->fields->addField($k, $this->arrayToFormField($f));
 				}
 			}
-
+			
 			$this->addField('handlerModule', 'hidden')
 				->attribute('value', $this->params['handlerModule']);
 			
@@ -72,17 +73,17 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 
 			$this->actionUrl = $this->params['actionUrl'] ?? '';
 			
-			$this->layout($this->params['layout'] ?? $this->params['handlerMethod']);
-			$this->layoutVariant($this->params['layoutVariant'] ?? $this->params['handlerMethod']);
-		} else {
-			return false;
+			$this
+				->layout($this->params['layout'] ?? $this->params['handlerMethod'])
+				->layoutVariant($this->params['layoutVariant'] ?? $this->params['handlerMethod']);
 		}
 	}
 
 
-	public function finalize()
+	public function finalize(): FormBase
 	{
-		$this->applyOverrides()
+		$this
+			->applyOverrides()
 			->generateFieldTags();
 		
 		$actionUrl = $this->actionUrl ? Router::url($this->actionUrl) : '';
@@ -99,16 +100,16 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	private function applyOverrides()
+	private function applyOverrides(): FormBase
 	{
 		foreach ($this->overrides->fields() as $field => $override) {
-			$overrideIsASet = get_class($override) == 'Arembi\Xfw\FormFieldSet';
+			$overrideIsASet = get_class($override) == 'Arembi\Xfw\Inc\FormFieldSet';
 			
 			if ($this->fields->field($field) === null) {
 				$this->fields->addField($field, $overrideIsASet ? new FormFieldSet() : new FormField());
 			}
 			
-			$fieldIsASet = get_class($this->fields->field($field)) == 'Arembi\Xfw\FormFieldSet';
+			$fieldIsASet = get_class($this->fields->field($field)) == 'Arembi\Xfw\Inc\FormFieldSet';
 
 			if ($overrideIsASet) {
 				if ($fieldIsASet) {
@@ -175,7 +176,7 @@ class FormBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public function encType($encType = null)
+	public function encType(int|string|null $encType = null): FormBase|string|false
 	{
 		if ($encType === null) {
 			return $this->encType;

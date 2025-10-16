@@ -123,9 +123,18 @@ class FormField {
 	}
 
 
+	public function isFieldSet(): bool
+	{
+		return false;
+	}
+
+
 	public function generateTag(): FormField
 	{
 		$tag = '';
+
+		// If an attribute is set to true, no value will be assigned
+		// f.i. readonly
 
 		if ($this->type() == 'select') {
 			
@@ -141,8 +150,6 @@ class FormField {
 				
 				foreach ($attributes as $attribute => $value) {
 					$tag .= ' ' . $attribute;
-					// If an attribute is set to true, no value will be assigned
-					// f.i. readonly
 					if ($value !== true) {
 						$tag .= '="' . $value . '"';
 					}
@@ -157,8 +164,6 @@ class FormField {
 			$tag = '<textarea name="' . $this->name() . '"';
 			foreach ($this->attributes() as $attribute => $value) {
 				$tag .= ' ' . $attribute;
-				// If an attribute is set to true, no value will be assigned
-				// f.i. readonly
 				if ($value !== true) {
 					$tag .= '="' . $value . '"';
 				}
@@ -172,8 +177,6 @@ class FormField {
 			$tag = '<datalist id ="' . $this->name() . '"';
 			foreach ($this->attributes() as $attribute => $value) {
 				$tag .= ' ' . $attribute;
-				// If an attribute is set to true, no value will be assigned
-				// f.i. readonly
 				if ($value !== true) {
 					$tag .= '="' . $value . '"';
 				}
@@ -183,7 +186,7 @@ class FormField {
 			foreach ($this->options as $o) {
 				$tag .= '<option'
 					. (' value="' . $o['value'] . '"')
-					. ($o['label'] ? ' label="' . $o['label'] . '"' : '')
+					. ((isset($o['label']) && $o['label']) ? ' label="' . $o['label'] . '"' : '')
 					. '></option>';
 			}
 			$tag .= '</datalist>';
@@ -193,8 +196,6 @@ class FormField {
 			$tag = '<input type="' . $this->type() . '" name="' . $this->name() . '"';
 			foreach ($this->attributes() as $attribute => $value) {
 				$tag .= ' ' . $attribute;
-				// If an attribute is set to true, no value will be assigned
-				// f.i. readonly
 				if ($value !== true) {
 					$tag .= '="' . $value . '"';
 				}

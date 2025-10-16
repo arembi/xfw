@@ -2,12 +2,12 @@
 
 namespace Arembi\Xfw\Module;
 
+use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
-use Arembi\Xfw\Core\ModuleCore;
 
 
-class Control_Panel_MenuBase extends ModuleCore {
+class Control_Panel_MenuBase extends ModuleBase {
 
 	protected static $hasModel = false;
 
@@ -35,7 +35,8 @@ class Control_Panel_MenuBase extends ModuleCore {
 					foreach ($cpMenu['items'] as $item) {
 						$addonMenuData['items'][] = new Link([
 							'anchor' => $item[1][$lang] ?? array_values($item[1])[0] ?? $item[1],
-							'href' => '+route=' . Router::getMatchedRouteId() . '+module=' . $module . '?task=' . $item[0]
+							'href' => '+route=' . Router::getMatchedRouteId() . '+module=' . $module . '?task=' . $item[0],
+							'autoFinalize'=>true
 						]);
 					}
 

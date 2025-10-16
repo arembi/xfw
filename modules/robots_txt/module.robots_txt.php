@@ -2,11 +2,10 @@
 
 namespace Arembi\Xfw\Module;
 
-use Arembi\Xfw\Core\App;
-use Arembi\Xfw\Core\ModuleCore;
+use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\Settings;
 
-class Robots_TxtBase extends ModuleCore {
+class Robots_TxtBase extends ModuleBase {
     protected static $hasModel = false;
 
     protected $dictionary;

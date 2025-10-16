@@ -28,14 +28,6 @@ abstract class Language {
 	}
 
 
-	// Returns the proper language version of $str from the dictionary
-	// If lang is null, the current system language will be used
-	public static function _($str, $lang = null)
-	{
-		// TODO
-	}
-
-
 	// Converts a roman number to integer
 	public static function romanToInt(string $roman)
 	{

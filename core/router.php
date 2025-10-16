@@ -12,8 +12,8 @@ Router tasks:
 
 namespace Arembi\Xfw\Core;
 
-use Arembi\Xfw\Misc;
 use function Arembi\Xfw\Misc\getFileExtension;
+use function Arembi\Xfw\Misc\md_array_lookup_key;
 
 
 abstract class Router {
@@ -33,14 +33,14 @@ abstract class Router {
 	private static $path;
 
 	// The URL without the query string
-	private static $noQueryStringUrl;
+	private static $urlNoQueryString;
 
 	// Protocol + domain + path + query string
 	private static $fullUrl;
 
 	// Parts of the path
 	private static $pathNodes; // The segments of the path
-	private static $pathMain; // The path without the query string
+	private static $pathNoQueryString; // The path without the query string
 	private static $queryString; // The query string
 
 	private static $queryParameters;
@@ -108,10 +108,10 @@ abstract class Router {
 		self::$protocol = '';
 		self::$hostUrl = '';
 		self::$path = '';
-		self::$noQueryStringUrl = '';
+		self::$urlNoQueryString = '';
 		self::$fullUrl = '';
 		self::$pathNodes = [];
-		self::$pathMain = '';
+		self::$pathNoQueryString = '';
 		self::$queryString = '';
 		self::$queryParameters = [];
 		self::$pathParams = [];
@@ -119,7 +119,7 @@ abstract class Router {
 		self::$redirects = [];
 		self::$links = [];
 		self::$routes = [];
-		self::$primaryModuleRoutes;
+		self::$primaryModuleRoutes = [];
 		self::$backendModuleRoutes = [];
 		self::$hit404 = false;
 		self::$pageNumber = null;
@@ -206,7 +206,7 @@ abstract class Router {
 	// Returns the ID of the domain, or false if it can't be found
 	public static function getDomainId(string $domain)
 	{
-		return Misc\md_array_lookup_key(self::$domains, 'domain', $domain);
+		return md_array_lookup_key(self::$domains, 'domain', $domain);
 	}
 
 
@@ -217,11 +217,11 @@ abstract class Router {
 
 
 	// Returns the actual route (/lang/some/fancy/url) for the given route ID
-	public static function getRouteById(int $routeId, string $lang = 'sys')
+	public static function getPathByRouteId(int $routeId, ?string $lang = null)
 	{
 		$ret = null;
 
-		if ($lang == 'sys') {
+		if ($lang === null) {
 			$lang = App::getLang();
 		}
 
@@ -278,7 +278,7 @@ abstract class Router {
 
 	public static function getNoQueryStringUrl()
 	{
-		return self::$noQueryStringUrl;
+		return self::$urlNoQueryString;
 	}
 
 
@@ -343,7 +343,7 @@ abstract class Router {
 	}
 
 
-	public static function getIdByRoute(string $path, string $type = 'all')
+	public static function getIdByRoute(string $path, string $type = 'all'): int|false
 	{
 		if ($type == 'all') {
 			$routeCollection = self::$routes;
@@ -361,6 +361,24 @@ abstract class Router {
 			}
 		}
 		return false;
+	}
+
+
+	public static function urlInfo(): array
+	{
+		return [
+			'protocol' => self::$protocol,
+			'hostUrl' => self::$hostUrl,
+			'path' => self::$path,
+			'urlNoQueryString' => self::$urlNoQueryString,
+			'fullUrl' => self::$fullUrl,
+			'pathNodes' => self::$pathNodes,
+			'pathNoQueryString' => self::$pathNoQueryString,
+			'queryString' => self::$queryString,
+			'queryParameters' => self::$queryParameters,
+			'pathParams' => self::$pathParams,
+			'pageNumber' => self::$pageNumber
+		];
 	}
 	
 
@@ -388,29 +406,29 @@ abstract class Router {
 	 * Sets up the system environment based on configuration and the request
 	 * Assigns values to the Router URL variables
 	 * */
-	public static function getEnvironment()
+	public static function getEnvironment(): void
 	{
 		$uri = '';
-		$uriQ = [];
+		$uriQuestionmarkParts = [];
 		$uriParts = [];
 		$domain = '';
 		$domainId = null;
 		$domainRecord = null;
-		$originalDomainId = null;
-		$originalDomainRecord = null;
+		$mirroredDomainId = null;
+		$mirroredDomainRecord = null;
 		$dataDomainId = null;
-		$isLocalhost = self::amIOnLocalhost();
+		$isLocalhost = true;
 		$webRoot = '';
 		$requestProtocol = '';
 		
-		// Storing the URI
 		$uri = urldecode($_SERVER['REQUEST_URI']);
+		$isLocalhost = self::amIOnLocalhost();
 
 		// Cutting off the query string
-		$uriQ = explode('?', $uri, 2);
+		$uriQuestionmarkParts = explode('?', $uri, 2);
 
-		if (isset($uriQ[1])) {
-			self::$queryString = $uriQ[1];
+		if (isset($uriQuestionmarkParts[1])) {
+			self::$queryString = $uriQuestionmarkParts[1];
 			parse_str(self::$queryString, self::$queryParameters);
 		}
 
@@ -419,7 +437,7 @@ abstract class Router {
 		(assuming that dev is mainly performed on localhost)
 		*/
 		if ($isLocalhost) {
-			$uriParts = explode('/', $uriQ[0]);
+			$uriParts = explode('/', $uriQuestionmarkParts[0]);
 
 			/*
 			 * $uriParts[1] is the web root directory
@@ -433,57 +451,52 @@ abstract class Router {
 			if (!empty($uriParts[2])) {
 				$webRoot = $uriParts[1];
 				$domain = $uriParts[2];
-				self::$pathMain = '/' . implode('/', array_slice($uriParts, 3));
-				self::$path = self::$pathMain . (isset($uriQ[1]) ? '?' . $uriQ[1] : '');
+				self::$pathNoQueryString = '/' . implode('/', array_slice($uriParts, 3));
+				self::$path = self::$pathNoQueryString . (isset($uriQuestionmarkParts[1]) ? '?' . $uriQuestionmarkParts[1] : '');
 			} else {
-				Debug::alert('Loading root page contents.', 'o');
 				App::hcf(file_get_contents(ENGINE_DIR . DS . 'welcome.html'), false);
 			}
 		} else {
 			$domain = $_SERVER['HTTP_HOST'];
 
-			self::$pathMain = $uriQ[0];
+			self::$pathNoQueryString = $uriQuestionmarkParts[0];
 			self::$path = $uri;
 		}
 		
 		$domainId = self::getDomainId($domain);
 		
 		if ($domainId) {
-			// Retrieveing domain data if registered, otherwise false
 			$domainRecord = self::getDomainRecordById($domainId);
 		}
 
-		// If the domain is not registered, we return a 404 error
 		if (!$domainRecord) {
-			Debug::alert('The domain ' . $domain . ' has not been registered in the system.', 'f');
 			App::hcf(file_get_contents(ENGINE_DIR . DS . '404.html'), false);
 		}
 
 		/* 
 			ALIASES
-			If a domain is marked as an alias of another via the domain settings, the alias will inherit
+			If a domain is marked as an alias of another via its domain settings, the alias will inherit
 			all settings, i.e routes, content from the original domain
 		*/
-		$originalDomainId = $domainRecord['settings']['aliasOf'] ?? false;
+		$mirroredDomainId = $domainRecord['settings']['aliasOf'] ?? false;
 		
-		if ($originalDomainId) {
-			$originalDomainRecord = self::getDomainRecordById($originalDomainId);
+		if ($mirroredDomainId) {
+			$mirroredDomainRecord = self::getDomainRecordById($mirroredDomainId);
 			
-			if ($originalDomainRecord 
-				&& isset($originalDomainRecord['settings']['aliases'])
-				&& in_array($domainId, $originalDomainRecord['settings']['aliases'])) {
+			if ($mirroredDomainRecord 
+				&& isset($mirroredDomainRecord['settings']['aliases'])
+				&& in_array($domainId, $mirroredDomainRecord['settings']['aliases'])) {
 				self::$aliasOf = [
-					'id'=>$originalDomainId,
-					...$originalDomainRecord
+					'id'=>$mirroredDomainId,
+					...$mirroredDomainRecord
 				];
 				Debug::alert('ALIAS MODE, ALTERING DATA MIGHT AFFECT OTHER DOMAINS!', 'w');
-				Debug::alert('Domain identified as alias for ' . $originalDomainRecord['domain'], 'n');
+				Debug::alert('Domain identified as alias for ' . $mirroredDomainRecord['domain'], 'n');
 			}
 		}
 		
 		$dataDomainId = self::$aliasOf['id'] ?? $domainId;
 		
-		// Defining constants
 		define('WEB_ROOT', $webRoot);
 		define('DOMAIN', $domain);
 		define('DATA_DOMAIN_ID', $dataDomainId);
@@ -510,20 +523,20 @@ abstract class Router {
 		self::$hostUrl = self::$protocol . HOST_ROOT;
 		self::$fullUrl = self::$hostUrl . self::$path;
 
-		self::$noQueryStringUrl = self::$hostUrl . self::$pathMain;
+		self::$urlNoQueryString = self::$hostUrl . self::$pathNoQueryString;
 
-		self::$pathNodes = explode('/', substr(self::$pathMain, 1)); // Initial '/' is removed
+		self::$pathNodes = explode('/', mb_substr(self::$pathNoQueryString, 1)); // Initial '/' is removed
 	}
 
 
-	private static function amIOnLocalhost()
+	private static function amIOnLocalhost(): bool
 	{
 		return (in_array($_SERVER['REMOTE_ADDR'], Config::get('localhostIP'))
 			|| strpos($_SERVER['REMOTE_ADDR'], '192.168') !== false);
 	}
 
 
-	public static function loadData()
+	public static function loadData(): void
 	{
 		self::$links = self::$model->getSystemLinksByDomain();
 
@@ -533,27 +546,8 @@ abstract class Router {
 	}
 
 
-	public static function parseRoute()
+	public static function parsePath()
 	{
-		$inputResult = self::handleInput();
-		
-		if ($inputResult) {
-			if ($inputResult->status() == Input_Handler::RESULT_SUCCESS) {
-				Debug::alert('Input processing result: ' . $inputResult->message(), 'o');
-				self::inputHandlerResult($inputResult);
-			} elseif ($inputResult->status() == Input_Handler::RESULT_ERROR) {
-				Debug::alert('Error while processing input: ' .  $inputResult->message(), 'f');
-			}
-		} else {
-			Debug::alert('No input has been sent.');
-		}
-		
-		self::serveFiles();
-
-		/*
-		TODO self::autoRedirect();
-		*/
-
 		/*
 		TRAILING SLASHES
 			force: every URL ends with a slash
@@ -561,11 +555,11 @@ abstract class Router {
 			both
 		*/
 		if (Settings::get('URLTrailingSlash') == 'remove') {
-			if (self::$pathMain != '/' && substr(self::$pathMain, -1) == '/') {
-				self::redirect(substr(self::$fullUrl, 0, -1));
+			if (self::$pathNoQueryString != '/' && mb_substr(self::$pathNoQueryString, -1) == '/') {
+				self::redirect(mb_substr(self::$fullUrl, 0, -1));
 			}
 		} elseif (Settings::get('URLTrailingSlash') == 'force') {
-			if (substr(self::$pathMain, -1) != '/') {
+			if (mb_substr(self::$pathNoQueryString, -1) != '/') {
 				self::redirect(self::$fullUrl . '/');
 			}
 		}
@@ -580,19 +574,16 @@ abstract class Router {
 		 * First the path nodes and the main path need to be copied,
 		 * so the modifications during the parsing will not overwrite them
 		 * */
-		$pathNodes = self::$pathNodes;
-		$pathMain  = self::$pathMain;
+		$pathNodesWorkpiece = self::$pathNodes;
+		$pathWorkpiece  = self::$pathNoQueryString;
 
 		/*
 		 * If the site is multilingual, we have to detect which language
-		 * the user wants to load, doing that by calling self::matchLanguage()
+		 * the user wants to load, doing that by calling self::handleLanguage()
 		 * */
-		if (Settings::get('multiLang') == 'true') {
-			$lang = self::matchLanguage($pathNodes, $pathMain);
-		} else {
-			$lang = Settings::get('defaultLanguage');
-		}
-
+		
+		$lang = Settings::get('multiLang') == 'true' ? self::handleLanguage($pathNodesWorkpiece, $pathWorkpiece) : Settings::get('defaultLanguage');
+		Debug::alert('Language: ' . $lang);
 		App::setLang($lang);
 		$_SESSION['lang'] = $lang;
 
@@ -623,17 +614,85 @@ abstract class Router {
 		matchRoute will do just that
 		*/
 
-		return self::matchRoute($pathMain);
+		return self::matchRoute($pathWorkpiece);
+	}
+
+
+	private static function handleLanguage(&$pathNodes, &$path)
+	{
+		// The available languages are stored in an array for each language,
+		// beginning with the language marker used in this system (f.i. "en"), followed by other aliases,
+		// (f.i. "en-GB")
+		// The segment marking the language will be removed from the path
+
+		$langSetInURL = false;
+
+		$langIndex = 0;
+		$availableLanguages = Settings::get('availableLanguages');
+		$numberOfAvailableLanguages = count($availableLanguages);
+		
+		while (!$langSetInURL && $langIndex < $numberOfAvailableLanguages) {
+			if ($pathNodes[0] == $availableLanguages[$langIndex][0]) {
+				$langSetInURL = true;
+			} else {
+				$langIndex++;
+			}
+		}
+
+		if ($langSetInURL) {
+			// The language was set in the URL, it might override previous values
+			$lang = $pathNodes[0];
+			$path = mb_substr($path, mb_strlen($pathNodes[0]) + 1); // Removing the language segment from the path to process
+			array_shift($pathNodes); // Removing the language segment from the path nodes
+		} else {
+			if (!empty($_SESSION['lang'])) {
+				$lang = $_SESSION['lang'];
+			} else {
+				// Trying to use the client's preferred languages whether one of them is supported by the system
+				$clientLangs = explode(',' , $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+				foreach ($clientLangs as &$value) {
+					$value = explode(';' , $value)[0]; // Throwing away the weight of the language (q=0.8 parts)
+				}
+				unset($value);
+
+				$prefLangFound = false;
+				$i = 0;
+				while (!$prefLangFound && $i < $numberOfAvailableLanguages) {
+					$j = 0;
+					$k = count($availableLanguages[$j]);
+					while (!$prefLangFound && $j < $k) {
+						if (in_array($clientLangs[$i], $availableLanguages[$j])) {
+							$prefLangFound = true;
+							$lang = $availableLanguages[$j][0];
+						} else {
+							$j++;
+						}
+					}
+					$i++;
+				}
+
+				if (!$prefLangFound) {
+					$lang = Settings::read('defaultLanguage');
+				}
+			}
+
+			// Adding the language marker to the URL and redirecting
+			$to = self::$hostUrl . DS . $lang . self::$path;
+			self::redirect($to, 302);
+		}
+
+		return $lang;
 	}
 
 
 	// Returns the corresponding document layout, the primary module and its action to execute, based on th URI
-	public static function matchRoute($pathMain)
+	public static function matchRoute(string $path)
 	{
 		if (self::$hit404) {
-			return self :: assemble404Module();
+			return self::assemble404Module();
 		}
 
+		$lang = App::getLang();
 		$match = [];
 
 		/*
@@ -642,7 +701,7 @@ abstract class Router {
 		*/
 
 		// The root route is a special URI, works rather differently form the 'normal' ones
-		if ($pathMain == '/' || $pathMain == '') {
+		if ($path == '/' || $path == '') {
 			/*
 			We cannot set module parameters via URLs for the primary module at the root route,
 			everything for it has to be set somewhere else (i.e. default vaules in the sys_config table
@@ -665,7 +724,7 @@ abstract class Router {
 
 				self::$matchedRoute = self::$primaryModuleRoutes[$rootId];
 			} else {
-				return self :: assemble404Module();
+				return self::assemble404Module();
 			}
 		} else {
 			/*
@@ -686,10 +745,10 @@ abstract class Router {
 				'match' => false,
 				'accuracy' => 0
 			];
-
-			foreach (self::$primaryModuleRoutes as $id => $r) {
-				if (isset($r->path[App::getLang()])) { // the root won't be a contender because of this
-					if (strpos($pathMain, $r->path[App::getLang()]) === 0 ) {
+			
+			foreach (self::$primaryModuleRoutes as $r) {
+				if (isset($r->path[$lang])) { // the root won't be a contender because of this
+					if (strpos($path, $r->path[$lang]) === 0 ) {
 						/*
 						The whole segment has to match, so we need to check the following
 						character after the candidate route
@@ -699,9 +758,9 @@ abstract class Router {
 						here the route /pages/page1 would match both paths
 						*/
 
-						$length = strlen($r->path[App::getLang()]);
-						$nextChar = substr($pathMain, $length, 1);
-						$accuracy = substr_count($r->path[App::getLang()], '/');
+						$length = mb_strlen($r->path[$lang]);
+						$nextChar = mb_substr($path, $length, 1);
+						$accuracy = mb_substr_count($r->path[$lang], '/');
 
 						if (($nextChar == '/' || !$nextChar) && $accuracy > $bestMatch['accuracy']) {
 							$bestMatch = [
@@ -716,7 +775,7 @@ abstract class Router {
 			// The primary module has been found, the remainder of the path are the path parameters
 			if ($bestMatch['match'] !== false) {
 				// +1 for the array indexing and another +1 for the starting slash
-				self::$pathParams = explode('/', substr($pathMain, strlen($bestMatch['match']->path[App::getLang()]) + 1 ));
+				self::$pathParams = explode('/', mb_substr($path, mb_strlen($bestMatch['match']->path[App::getLang()]) + 1 ));
 				self::$matchedRoute = $bestMatch['match'];
 				$match['primary'] = self::$matchedRoute->moduleName;
 				$match['action'] = self::$matchedRoute->moduleConfig['action'] ?? null;
@@ -731,7 +790,7 @@ abstract class Router {
 
 		if (!isset($match['primary'])) {
 			// Primary module match not found
-			$match = self :: assemble404Module();
+			$match = self::assemble404Module();
 			Debug::alert('Primary module not found.', 'f');
 		} else {
 			/*
@@ -748,88 +807,7 @@ abstract class Router {
 	}
 
 
-	private static function matchLanguage(&$pathNodes, &$pathMain)
-	{
-		// The available languages are stored in an array for each language,
-		// beginning with the language marker used in this system (f.i. "en"), followed by other aliases,
-		// (f.i. "en-GB")
-
-		$langSetInURL = false;
-
-		// Searching through the available languages
-		$langIndex = 0;
-		$avLangs = Settings::get('availableLanguages');
-		$l = count($avLangs);
-		while (!$langSetInURL && $langIndex < $l) {
-			if ($pathNodes[0] == $avLangs[$langIndex][0]) {
-				$langSetInURL = true;
-			} else {
-				$langIndex++;
-			}
-		}
-
-		if ($langSetInURL) {
-			
-			// The language was set in the URL, it might override previous values
-			$lang = $pathNodes[0];
-			Debug::alert('Language detected: ' . $lang . ' (via URL).', 'o');
-			
-			// The language node wont be needed again
-			$pathMain = substr($pathMain, strlen($pathNodes[0]) + 1); // Removing the language segment from the path to process
-			array_shift($pathNodes);
-		} else {
-			
-			// The language was not set in the URL
-			// First we are looking for previously set values
-			if (!($_SESSION['lang'] && App::getLang())) {
-				
-				// Trying to use the client's preferred languages whether one of them is supported by the system
-				$clientLangs = explode(',' , $_SERVER['HTTP_ACCEPT_LANGUAGE']);
-				foreach ($clientLangs as &$value) {
-					$value = explode(';' , $value);
-					$value = $value[0]; // Throwing away the weight of the language (q=0.8 parts)
-				}
-				unset($value);
-
-				$prefLangFound = false;
-				$i = 0;
-				while (!$prefLangFound && $i < $l) {
-					$j = 0;
-					$k = count($avLangs[$j]);
-					while (!$prefLangFound && $j < $k) {
-						if (in_array($clientLangs[$i], $avLangs[$j])) {
-							$prefLangFound = true;
-							// Preferred language found
-							$lang = $avLangs[$j][0];
-							Debug::alert('Language detected: ' . $lang . ' (via HTTP_ACCEPT_LANGUAGE).', 'o');
-						} else {
-							$j++;
-						}
-					}
-					$i++;
-				}
-
-				// If no preferred language is supported, using system default. Sorry...
-				if (!$prefLangFound) {
-					$lang = Settings::read('defaultLanguage');
-					Debug::alert('Language not detected, using default: ' . $lang, 'n');
-				}
-			} else {
-				$lang = App::getLang();
-				Debug::alert('Using language: ' . $lang, 'n');
-			}
-
-			// Adding the language marker to the URL and redirecting
-			$to = self::$hostUrl . DS . $lang . self::$path;
-			self::redirect($to, 302);
-
-		}
-
-		return $lang;
-	}
-
-
-	private static function handleInput()
+	public static function processInput()
 	{
 		$result = null;
 
@@ -839,7 +817,7 @@ abstract class Router {
 			self::$inputInfo = [
 				'mode'=>'form',
 				'data'=>[
-					'id'=>'formId',
+					'id'=>self::$REQUEST['formId'],
 					'handlerModule'=>$result->handlerModule(),
 					'handlerMethod'=>$result->handlerMethod()
 				]
@@ -855,14 +833,22 @@ abstract class Router {
 			];
 		}
 
-		return $result;
+		if ($result) {
+			if ($result->status() == Input_Handler::RESULT_SUCCESS) {
+				Debug::alert('Input processing result: ' . $result->message(), 'o');
+				self::inputHandlerResult($result);
+			} elseif ($result->status() == Input_Handler::RESULT_ERROR) {
+				Debug::alert('Error while processing input: ' .  $result->message(), 'f');
+			}
+		} else {
+			Debug::alert('No input has been sent.');
+		}
 	}
 
 
-	private static function serveFiles()
+	public static function serveFiles()
 	{
-		// Files are identified by the file extensions
-		$extension = getFileExtension(self::$pathMain);
+		$extension = getFileExtension(self::$pathNoQueryString);
 		
 		if ($extension !== false) {
 			$allowedExtensionsByDefault = Config::get('fileTypesServed');
@@ -877,10 +863,10 @@ abstract class Router {
 			if (in_array($extension, $allowedExtensions)) {
 				$fs = FS::getFilesystem('site');
 
-				if ($fs->fileExists(self::$pathMain)) {
-					$mime = $fs->mimeType(self::$pathMain) ?? 'text/plain';
+				if ($fs->fileExists(self::$pathNoQueryString)) {
+					$mime = $fs->mimeType(self::$pathNoQueryString) ?? 'text/plain';
 					header('Content-Type: ' . $mime);
-					echo $fs->read(self::$pathMain);
+					echo $fs->read(self::$pathNoQueryString);
 					exit;
 				} else {
 					App::hcf('Requested file could not be found.');
@@ -951,10 +937,14 @@ abstract class Router {
 		$lang = null;
 		$baseHref = null;
 		$queryStringParts = null;
+		$pathParams = '';
 		
 		if ($source == 'link') {
 			// $data has to be the link ID
-			if (!$data || !isset(self::$links[$data])) {
+			if (!is_numeric($data)) {
+				Debug::alert('Given link ID is not numeric', 'f');
+				return false;
+			} elseif (!isset(self::$links[$data])) {
 				Debug::alert('Link with id ' . $data . ' not found.', 'f');
 				return false;
 			}
@@ -989,8 +979,6 @@ abstract class Router {
 			}
 
 			// Assembling path parameters
-			$pathParams = '';
-
 			foreach (self::$links[$data]->ppo as $id => $link) {
 				$pathParams .= (isset(self::$links[$data]->pathParams[$link]))
 					? '/' . self::$links[$data]->pathParams[$link]
@@ -1038,8 +1026,6 @@ abstract class Router {
 
 			// Assembling the path
 			// The remainder of the $data are the path parameters
-			$pathParams = '';
-
 			$routeRecord = self::getRouteRecordById($data['route']);
 			
 			if (!$routeRecord) {
@@ -1099,16 +1085,16 @@ abstract class Router {
 	*/
 	public static function url(string $xfwHref, array $overrides = [])
 	{
-		$url = null;
+		$url = '';
 		$routerHref = [];
-		$lang = App::getLang();
+		$lang = $overrides['lang'] ?? App::getLang();
 		
-		if (substr($xfwHref, 0 ,2) === '//') {
-			$xfwHref = self::getProtocol() . substr($xfwHref, 2);
+		if (mb_substr($xfwHref, 0 ,2) === '//') {
+			$xfwHref = self::getProtocol() . mb_substr($xfwHref, 2);
 		}
 
 		// First character in the href determines what to do
-		$xfwHref1 = $xfwHref[0];
+		$xfwHref1 = mb_substr($xfwHref, 0, 1);
 		
 		// Constructing the href
 		if (in_array($xfwHref1, ['@', '+', '/'])) {
@@ -1133,11 +1119,10 @@ abstract class Router {
 				//Required values
 				//	ID: the id of the link record in the database
 				
-				$linkId = substr($hrefParts[0], 1);
+				$linkId = mb_substr($hrefParts[0], 1);
 				$routerHref = self::href('link', $linkId);
 			
 			} elseif ($xfwHref1 == '+') {
-				
 				//Route mode
 
 				//Required values
@@ -1146,12 +1131,12 @@ abstract class Router {
 				//	lang: language marker (en, hu etc.), the current language will be used if not given
 				//		(if a route is not available, a 404 error will be thrown)
 				//Usage example:
-				//	href = "+route=19+lang=hu+pathParam1=abc+pathParam2=xyz"
+				//	href = "+route=19+lang=en+pathParam1=abc+pathParam2=xyz"
 				//	anchor = "sometext"
 				//
 				$data = [];
 
-				$params = explode('+', substr($hrefParts[0], 1));
+				$params = explode('+', mb_substr($hrefParts[0], 1));
 
 				foreach ($params as $p) {
 					$cp = explode('=', $p, 2);
@@ -1160,7 +1145,6 @@ abstract class Router {
 				}
 
 				$routerHref = self::href('route', $data);
-
 			} else {
 				// Starts with a /
 				$routerHref = [
@@ -1182,7 +1166,7 @@ abstract class Router {
 					$queryStringParts = array_merge($queryStringParts, $overrides['queryParams']);
 				}
 
-				// Elements in the query string can be removed with the remove moduleVar
+				// Elements in the query string can be removed with the remove parameter
 				if (isset($overrides['remove']) && is_array($overrides['remove'])) {
 					$queryStringParts = array_diff_key($queryStringParts, array_flip($overrides['remove']));
 				}
@@ -1198,9 +1182,9 @@ abstract class Router {
 			}
 		} elseif ($xfwHref1 == '?') {
 			$queryParameters = [];
-			parse_str(substr($xfwHref, 1), $queryParameters);
+			parse_str(mb_substr($xfwHref, 1), $queryParameters);
 			$queryString = http_build_query(array_merge(self::$queryParameters, $queryParameters));
-			$url = self::$noQueryStringUrl . '?' . $queryString;
+			$url = self::$urlNoQueryString . '?' . $queryString;
 		} else {
 			$url = $xfwHref;
 		}

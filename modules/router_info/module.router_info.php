@@ -2,11 +2,11 @@
 
 namespace Arembi\Xfw\Module;
 
+use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\Input_Handler;
 use Arembi\Xfw\Core\Router;
-use Arembi\Xfw\Core\ModuleCore;
 
-class Router_InfoBase extends ModuleCore {
+class Router_InfoBase extends ModuleBase {
 
 	protected $inputHandlerInfo;
 	protected $routeInfo;
@@ -28,7 +28,7 @@ class Router_InfoBase extends ModuleCore {
 			]
 		];
 
-		$this->routeInfo = (array) Router::getMatchedRoute();
+		$this->routeInfo = (array) Router::getMatchedRoute() ?: ['id'=>0, 'moduleName'=>'404'];
 		$this->routeInfo['action'] = Router::getRequestedAction();
 
 		$ihResult = Router::inputHandlerResult();

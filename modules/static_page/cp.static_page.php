@@ -3,6 +3,7 @@
 namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
+use Arembi\Xfw\Core\Settings;
 
 class CP_Static_PageBase extends Static_Page {
 
@@ -30,100 +31,45 @@ class CP_Static_PageBase extends Static_Page {
 		];
 	}
 
-	public function home()
+	public function homeAction()
 	{
-	?>
-		<div>
-			The static page module can be used to display content with little or no dynamic parts, and which do not require to be organized into hierarchy.
-		</div>
-	<?php
+		$welcomeMessage = 'The static page module can be used to display content with little or no dynamic parts, and which do not require to be organized into hierarchy.';
+		$this->lv('text', $welcomeMessage);
 	}
 
 
 
-	public function page_list()
+	public function page_listAction()
 	{
 		$pages = $this->model->getPagesByDomainId(DOMAIN_ID);
 
-		$avLangs = \Arembi\Xfw\Core\Settings::get('availableLanguages');
-
+		$avaliableLanguages = Settings::get('availableLanguages');
+		
 		foreach ($pages as &$page) {
-			$editLink = new Link(['anchor' => 'edit', 'href' => '?task=page_edit&id=' . $page->id]);
+			$page->route = Router::getRouteRecordById($page->routeId);
+			$editLink = new Link(['anchor' => 'edit', 'href' => '?task=page_edit&id=' . $page->id, 'autoFinalize'=>true]);
 			$page->editLink = $editLink->processLayout()->getLayoutHtml();
-			$deleteLink = new Link(['anchor' => 'delete', 'href' => '?task=page_delete&id=' . $page->id]);
+			$deleteLink = new Link(['anchor' => 'delete', 'href' => '?task=page_delete&id=' . $page->id, 'autoFinalize'=>true]);
 			$page->deleteLink = $deleteLink->processLayout()->getLayoutHtml();
 		}
 		unset($page);
-		?>
-		<style>
-			td, th {
-				border: 1px dotted #444;
-			}
-		</style>
-		<table>
-			<thead>
-				<tr>
-					<th>ID</th>
-					<th>Route ID</th>
-					<th>Contents</th>
-					<th title="Created By">CB</th>
-					<th title="Created At">CA</th>
-					<th title="Last Updated">UA</th>
-					<th colspan="2">Tools</th>
-				</tr>
-			</thead>
-			<tbody>
-			<?php foreach($pages as $i => $page):?>
-				<tr>
-					<td title="ID"><?php echo $page->id;?></td>
-					<td title="route ID"><?php echo $page->routeId?></td>
-					<td title="content">
-						<table>
-							<tr>
-								<th>Language</th>
-								<th>Route</th>
-								<th>Title</th>
-								<th>Content</th>
-							</tr>
-						<?php foreach ($avLangs as $lang) :?>
-							<tr>
-								<td><?php echo $lang[0] ?>:</td>
-								<td>
-									<?php echo Router::getRouteById($page->routeId, $lang[0]) ?? 'not set'?>
-								</td>
-								<td>
-									<?php echo !empty($page->pageTitle[$lang[0]]) ? $page->pageTitle[$lang[0]] : 'not set'?>
-								</td>
-								<td>
-									<?php echo !empty($page->pageContent[$lang[0]]) ? 'set' : 'not set'?>
-								</td>
-							</tr>
-						<?php endforeach;?>
-						</table>
-					</td>
-					<td title="created by"><?php echo $page->username?></td>
-					<td title="created at"><?php echo $page->createdAt?></td>
-					<td title="last updated"><?php echo $page->updatedAt?></td>
-					<td title="edit"><?php echo $page->editLink ?></td>
-					<td title="delete"><?php echo $page->deleteLink ?></td>
-				</tr>
-			<?php endforeach;?>
-			</tbody>
-		</table>
-	<?php
+
+		$this->lv('availableLanguages', $avaliableLanguages);
+		$this->lv('pages', $pages);
+
 	}
 
 
 
-	public function page_new()
+	public function page_newAction()
 	{
-		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_add'], false);
+		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_new']);
 
-		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
+		foreach (Settings::get('availableLanguages') as $lang) {
 			$form->addField('pageTitle-' . $lang[0])
-				->label('Cím (' . $lang[0] . ')');
+				->label('Title (' . $lang[0] . ')');
 		}
-		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
+		foreach (Settings::get('availableLanguages') as $lang) {
 			$form->addField('pageContent-' . $lang[0], 'textarea')
 				->label('Content (' . $lang[0] . ')');
 		}
@@ -149,19 +95,22 @@ class CP_Static_PageBase extends Static_Page {
 			->label('Path')
 			->options($routeIdSelectOptions);
 
-		$form
-			->finalize()
-			->processLayout()
-			->render();
+		$form->finalize();
+
+		$this->lv('form', $form);
 	}
 
 
 
-	public function page_edit()
+	public function page_editAction()
 	{
 		$page = $this->model->getPageById(Router::get('id'));
+		$avaliableLanguages = Settings::get('availableLanguages');
 
-		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_update'], false);
+		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_update']);
+		$form
+			->layout('page_edit')
+			->layoutVariant('page_edit');
 
 		// ID
 		$form->addField('id')
@@ -169,7 +118,7 @@ class CP_Static_PageBase extends Static_Page {
 			->label('ID');
 
 		// pageTitle
-		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
+		foreach ($avaliableLanguages as $lang) {
 			$pageTitle = $page->pageTitle[$lang[0]] ?? '';
 			
 			$form->addField('pageTitle-' . $lang[0])
@@ -178,7 +127,7 @@ class CP_Static_PageBase extends Static_Page {
 		}
 
 		// pageContent
-		foreach (\Arembi\Xfw\Core\Settings::get('availableLanguages') as $lang) {
+		foreach ($avaliableLanguages as $lang) {
 			$pageContent = $page->pageContent[$lang[0]] ?? '';
 			
 			$form->addField('pageContent-' . $lang[0], 'textarea')
@@ -219,27 +168,25 @@ class CP_Static_PageBase extends Static_Page {
 			->attribute('value', $page->createdAt)
 			->label('CA');
 
-		$form
-			->finalize()
-			->processLayout()
-			->render();
+		$form->finalize();
+		$this->lv('form', $form);
 	}
 
 
-	public function page_delete()
+	public function page_deleteAction()
 	{
 		$id = Router::get('id');
+		$page = $this->model->getPageById(Router::get('id'));
 
-		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_delete']);
+		if ($page) {
+			$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_delete']);
 		
-		$form->addField('id')
-			->attributes(['value' => $id, 'readonly' => true])
-			->label('ID');
+			$form->addField('id')
+				->attributes(['value' => $id, 'readonly' => true])
+				->label('ID');
 
-		$form
-			->finalize()
-			->processLayout()
-			->render();
-
+			$form->finalize();
+			$this->lv('form', $form);
+		}
 	}
 }

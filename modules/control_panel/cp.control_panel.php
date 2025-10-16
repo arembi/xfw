@@ -4,7 +4,7 @@ namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Settings;
-use Arembi\Xfw\FormField;
+use Arembi\Xfw\Inc\FormField;
 
 class CP_Control_PanelBase extends Control_panel {
 
@@ -41,56 +41,32 @@ class CP_Control_PanelBase extends Control_panel {
 	}
 	
 
-	public function home()
+	public function homeAction()
 	{
-		?>
-		<div style="padding-top:2em;font-weight:bold;font-size:2em;text-align:center;">
-			Control panel home page
-		</div>
-		<?php
+		$welcomeMessage = 'Control panel home page';
+		$this->lv('heading', $welcomeMessage);
 	}
 
 
-	public function domain_list()
+	public function domain_listAction()
 	{
 		$domains = Router::getDomains();
 		
 		foreach ($domains as $id => &$domainData) {
-			$editLink = new Link(['anchor'=>'edit', 'href'=>'?task=domain_edit&id=' . $id]);
-			$deleteLink = new Link(['anchor'=>'delete', 'href'=>'?task=domain_delete&id=' . $id]);
+			$editLink = new Link(['anchor'=>'edit', 'href'=>'?task=domain_edit&id=' . $id, 'autoFinalize'=>true]);
+			$deleteLink = new Link(['anchor'=>'delete', 'href'=>'?task=domain_delete&id=' . $id, 'autoFinalize'=>true]);
 
 			$domainData['editLink'] = $editLink->processLayout()->getLayoutHtml();
 			$domainData['deleteLink'] = $deleteLink->processLayout()->getLayoutHtml();
 		}
 
 		unset($domainData);
-		?>
-		<table>
-			<thead>
-				<tr>
-					<th>ID</th>
-					<th>Domain</th>
-					<th>Protocol</th>
-					<th colspan="2">Tools</th>
-				</tr>
-			</thead>
-			<tbody>
-			<?php foreach($domains as $id=>$domainData):?>
-				<tr>
-					<td title="ID"><?php echo $id;?></td>
-					<td title="domain name"><?php echo $domainData['domain']?></td>
-					<td title="domain protocol"><?php echo $domainData['protocol']?></td>
-					<td title="edit"><?php echo $domainData['editLink'] ?></td>
-					<td title="delete"><?php echo $domainData['deleteLink'] ?></td>
-				</tr>
-			<?php endforeach;?>
-			</tbody>
-		</table>
-		<?php
+
+		$this->lv('domains', $domains);
 	}
 
 
-	public function domain_new()
+	public function domain_newAction()
 	{
 		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'domain_new']);
 
@@ -113,14 +89,13 @@ class CP_Control_PanelBase extends Control_panel {
 		$form->addField('test', 'file')
 			->label('Test');
 
-		$form
-			->finalize()
-			->processLayout()
-			->render();
+		$form->finalize();
+
+		$this->lv('form', $form);
 	}
 
 
-	public function domain_edit()
+	public function domain_editAction()
 	{	
 		$domainId = Router::request('id');
 		$domain = Router::getDomainRecordById($domainId);
@@ -152,30 +127,31 @@ class CP_Control_PanelBase extends Control_panel {
 		// Domain Settings
 		if (!empty($domain['settings'])) {
 			$domainSettingsField = $form->addFieldSet('domainSettings')
-			->label('Domain Settings');
+				->label('Domain Settings');
 		
 			foreach ($domain['settings'] as $k => $s) {
 				$newField = new FormField();
-				$newField->type('textarea')
+				$newField
+					->type('textarea')
 					->label($k)
 					->text(is_string($s) ? $s : json_encode($s,JSON_UNESCAPED_UNICODE));
 
 				$domainSettingsField->addField($domainSettingsField->name() . '[' . $k . ']', $newField);
 			}
 		} else {
-			$form->addField('domainSettings', 'textarea')
+			$form
+				->addField('domainSettings', 'textarea')
 				->label('Domain Settings (JSON)')
 				->text('{}');
 		}
 		
-		$form
-			->finalize()
-			->processLayout()
-			->render();
+		$form->finalize();
+
+		$this->lv('form', $form);
 	}
 
 
-	public function domain_delete()
+	public function domain_deleteAction()
 	{
 		$domainId = Router::request('id');
 		$domain = Router::getDomainRecordById($domainId);
@@ -190,14 +166,13 @@ class CP_Control_PanelBase extends Control_panel {
 		$form->lv('id', $domainId);
 		$form->lv('domain', $domain['domain']);
 
-		$form
-			->finalize()
-			->processLayout()
-			->render();
+		$form->finalize();
+
+		$this->lv('form', $form);
 	}
 
 
-	public function route_list()
+	public function route_listAction()
 	{
 		$routes = Router::getRoutes('primary');
 		
@@ -212,61 +187,35 @@ class CP_Control_PanelBase extends Control_panel {
 				$routeData->pathLabel = Settings::get('defaultLanguage') . ': ' . $routeData->path;
 			}
 
-		$editLink = new Link(['anchor'=>'edit', 'href'=>'?task=route_edit&id=' . $id]);
+		$editLink = new Link(['anchor'=>'edit', 'href'=>'?task=route_edit&id=' . $id, 'autoFinalize'=>true]);
 		$routeData->editLink = $editLink->processLayout()->getLayoutHtml();
-		$deleteLink = new Link(['anchor'=>'delete', 'href'=>'?task=route_delete&id=' . $id]);
+		$deleteLink = new Link(['anchor'=>'delete', 'href'=>'?task=route_delete&id=' . $id, 'autoFinalize'=>true]);
 		$routeData->deleteLink = $deleteLink->processLayout()->getLayoutHtml();
 
 		}
-
 		unset($routeData);
-		
-		?>
-		<table>
-			<thead>
-				<tr>
-					<th>ID</th>
-					<th>Path</th>
-					<th>Module</th>
-					<th>Module Config</th>
-					<th title="Clearance Level">CL</th>
-					<th colspan="2">Tools</th>
-				</tr>
-			</thead>
-			<tbody>
-			<?php foreach($routes as $id=>$routeData):?>
-				<tr>
-					<td title="ID"><?php echo $routeData->id;?></td>
-					<td title="path"><?php echo $routeData->pathLabel?></td>
-					<td title="module name"><?php echo $routeData->moduleName?></td>
-					<td title="module configuration for the route"><?php echo json_encode($routeData->moduleConfig)?></td>
-					<td title="clearance level"><?php echo $routeData->clearanceLevel?></td>
-					<td title="edit"><?php echo $routeData->editLink ?></td>
-					<td title="delete"><?php echo $routeData->deleteLink ?></td>
-				</tr>
-			<?php endforeach;?>
-			</tbody>
-		</table>
-		<?php
+
+		$this->lv('routes', $routes);
 	}
 
 
-	public function route_new()
+	public function route_newAction()
 	{
 		$modules = App::getPrimaryModules();
-		$avLangs = \Arembi\Xfw\Core\Settings::get('availableLanguages');
+		$avLangs = Settings::get('availableLanguages');
 
-		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'route_new'], false);
+		$form = new Form(['handlerModule'=>'control_panel', 'handlerMethod'=>'route_new']);
 
 		$form->actionUrl('?task=route_list');
 
 		foreach ($avLangs as $l) {
-			$form->addField('path-' . $l[0])
+			$form
+				->addField('path-' . $l[0])
 				->label('Útvonal (' . $l[0] . ')');
 		}
 
 		$moduleSelectOptions = [];
-		foreach($modules as $key=>$module){
+		foreach($modules as $module){
 			$moduleSelectOptions[$module->name] = ['value'=>$module->id];
 		}
 		$form->addField('moduleId', 'select')
@@ -279,14 +228,13 @@ class CP_Control_PanelBase extends Control_panel {
 		$form->addField('clearanceLevel')
 			->label('Hozzáférési szint');
 
-		$form
-			->finalize()
-			->processLayout()
-			->render();
+		$form->finalize();
+
+		$this->lv('form', $form);
 	}
 
 
-	public function route_edit()
+	public function route_editAction()
 	{
 		// Loading route info
 		$route = Router::getRouteRecordById(Router::request('id'));
@@ -335,11 +283,12 @@ class CP_Control_PanelBase extends Control_panel {
 		// Module config
 		if (!empty($route->moduleConfig)) {
 			$moduleConfigField = $form->addFieldSet('moduleConfig')
-			->label('Module config');
+				->label('Module config');
 		
 			foreach ($route->moduleConfig as $k => $c) {
 				$newField = new FormField();
-				$newField->type('textarea')
+				$newField
+					->type('textarea')
 					->label($k)
 					->text(is_string($c) ? $c : json_encode($c));
 
@@ -356,15 +305,13 @@ class CP_Control_PanelBase extends Control_panel {
 			->label('Hozzáférési szint')
 			->attribute('value', $route->clearanceLevel);
 
-		$form
-			->finalize()
-			->processLayout()
-			->render();
+		$form->finalize();
 
+		$this->lv('form', $form);
 	}
 
 
-	public function route_delete()
+	public function route_deleteAction()
 	{
 		$routeId = Router::request('id');
 
@@ -374,10 +321,8 @@ class CP_Control_PanelBase extends Control_panel {
 			->attributes(['value'=>$routeId, 'readonly'=>true])
 			->label('ID');
 
-		$form
-			->finalize()
-			->processLayout()
-			->render();
+		$form->finalize();
 
+		$this->lv('form', $form);
 	}
 }

@@ -41,7 +41,7 @@ class FormFieldSet {
 	}
 
 
-	public function field(string $name, FormField|FormFieldSet|Datalist|null $field = null): FormField|FormFieldSet|Datalist|null
+	public function field(string $name, FormField|FormFieldSet|null $field = null): FormField|FormFieldSet|null
 	{
 		if ($field === null) {
 			return $this->fields[$name] ?? null;
@@ -61,7 +61,7 @@ class FormFieldSet {
 	}
 
 
-	public function addField(string $name, FormField|FormFieldSet $field): FormField|null
+	public function addField(string $name, FormField|FormFieldSet $field): FormField|FormFieldSet|null
 	{
 		if ($this->field($name) === null) {
 			$newField = $this
@@ -80,12 +80,18 @@ class FormFieldSet {
 		unset($this->fields[$name]);
 		return $this;
 	}
+
+
+	public function isFieldSet(): bool
+	{
+		return true;
+	}
 	
 
 	public function generateTags(): FormFieldSet
 	{
 		foreach ($this->fields() as $field) {
-			if (get_class($field) == 'Arembi\Xfw\FormFieldSet') {
+			if (get_class($field) == get_class($this)) {
 				$field->generateTags();
 			} else {
 				$field->generateTag();

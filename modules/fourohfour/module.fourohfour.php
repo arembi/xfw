@@ -2,6 +2,8 @@
 
 namespace Arembi\Xfw\Module;
 
-class FourOhFourBase extends \Arembi\Xfw\Core\ModuleCore {
+use Arembi\Xfw\Core\ModuleBase;
+
+class FourOhFourBase extends ModuleBase {
   protected static $hasModel = false;
 }

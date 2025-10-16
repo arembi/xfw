@@ -37,7 +37,7 @@ use Arembi\Xfw\Core\Router;
             <label for="domainSettings"><?php $this->print($fields['domainSettings']->label()) ?></label>
           </td>
           <td>
-          <?php if (get_class($fields['domainSettings']) == 'Arembi\Xfw\FormFieldSet'):?>
+          <?php if ($fields['domainSettings']->isFieldSet()):?>
             <table>
               <tbody>
                 <?php foreach ($fields['domainSettings']->fields() as $s):?>
@@ -74,7 +74,7 @@ use Arembi\Xfw\Core\Router;
   <?php $this->embed('form', [
     'handlerModule'=>'control_panel',
     'handlerMethod'=>'domain_delete',
-    'actionUrl'=>Router::url('+route=' . Router::getMatchedRoute()->id . '?task=domain_list'),
+    'actionUrl'=>Router::url('+route=' . Router::getMatchedRouteId() . '?task=domain_list'),
     'layoutVariant'=>'domain_delete_no_header',
     'fields'=>[
       'domainId'=>[

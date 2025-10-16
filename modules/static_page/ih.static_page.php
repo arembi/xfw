@@ -2,6 +2,7 @@
 
 namespace Arembi\Xfw\Module;
 
+use Arembi\Xfw\Core\Input_Handler;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Settings;
 
@@ -9,7 +10,7 @@ class IH_Static_PageBase extends Static_Page {
 
 	public $formData;
 
-	public function page_add(&$result)
+	public function page_new(&$result)
 	{
 		$this->loadModel();
 		$routeId = Router::post('routeId') === 0 ? null : Router::post('routeId');
@@ -97,9 +98,13 @@ class IH_Static_PageBase extends Static_Page {
 		$this->loadModel();
 
 		if ($this->model->deletePage(Router::post('id')) ) {
-			return [Router::IH_RESULT_OK, 'Route has been deleted.'];
+			$result
+				->status(Input_Handler::RESULT_SUCCESS)
+				->message('Route has been deleted.');
 		} else {
-			return [Router::IH_RESULT_ERROR, 'Route couldn\'t be deleted.'];
+			$result
+				->status(Input_Handler::RESULT_ERROR)
+				->message('Route couldn\'t be deleted.');
 		}
 	}
 

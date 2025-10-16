@@ -1,13 +1,13 @@
 <?php
 namespace Arembi\Xfw\Module;
 
+use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Debug;
-use Arembi\Xfw\Misc;
 use Arembi\Xfw\Inc\CustomMenuitem;
 use Illuminate\Database\Eloquent\Collection;
 
-class MenuBase extends \Arembi\Xfw\Core\ModuleCore {
+class MenuBase extends ModuleBase {
 
 	protected static $hasModel = true;
 	

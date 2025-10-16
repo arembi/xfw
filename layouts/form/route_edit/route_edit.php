@@ -59,7 +59,7 @@ use Arembi\Xfw\Core\Router;
             <label for="moduleConfig"><?php $this->print($fields['moduleConfig']->label()) ?></label>
           </td>
           <td>
-          <?php if (get_class($fields['moduleConfig']) == 'Arembi\Xfw\FormFieldSet'):?>
+          <?php if ($fields['moduleConfig']->isFieldSet()):?>
             <table>
               <tbody>
                 <?php foreach ($fields['moduleConfig']->fields() as $c):?>

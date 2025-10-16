@@ -9,11 +9,16 @@ The <head>
 */
 
 namespace Arembi\Xfw\Module;
+
+use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Inc\Seo;
+use Arembi\Xfw\Inc\Js;
+use function Arembi\Xfw\Misc\getFileExtension;
+use function Arembi\Xfw\Misc\parseHtmlAttributes;
 
-class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
+class HeadBase extends ModuleBase {
 	protected static $hasModel = false;
 
 	private static $title = '';
@@ -28,41 +33,43 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	private static $css = [];
 	private static $custom = ['top'=>[], 'bottom'=>[]];
 
-	protected $params = [
-		'title' => null,
-		'base' => null,
-		'meta' => null,
-		'link' => null,
-		'favicon' => null,
-		'css' => null,
-		'js' => null
-	];
-
 
 	protected function init()
 	{
-		if(!empty(self::$setBy['title'])){
-			Debug::alert('The title was set by ' . self::$setBy['title'] . '.', 'n');
-		}
+		
+	}
 
+
+	public function finalize()
+	{	
+		$robotsMeta = self::generateRobotsMeta();
+		$robotsMetaContent = implode(', ', array_filter($robotsMeta));
+		
+		self::addMeta(['name' => 'robots', 'content' => $robotsMetaContent]);
 		self::addMeta(['name' => 'description', 'content' => self::$metaDescription]);
 		
-		if (!empty(self::$setBy['metaDescription'])) {
-			Debug::alert('The title was set by ' . self::$setBy['metaDescription'] . '.', 'n');
+		if (!empty(self::$canonicalUrl)) {
+			self::addLink([
+				'rel'=>'canonical',
+				'href'=>Router::url(self::$canonicalUrl)
+			]);
 		}
 
-		self::$favicon['imageType'] = \Arembi\Xfw\Misc\getFileExtension(self::$favicon['url']);
-
-		// Get the robots meta tag contents
-		self::addMeta(['name' => 'robots', 'content' => self::generateRobotsMeta()]);
-		
-		// Adding the canonical link
-		if (!empty(self::$canonicalUrl)) {
-			$l = new Link(['href'=>self::$canonicalUrl]);
+		if (!empty(self::$favicon['url'])) {
+			self::$favicon['imageType'] = getFileExtension(self::$favicon['url']);
 			self::addLink([
-				['rel', 'canonical'],
-				['href', Router::url(self::$canonicalUrl)]
+				'rel'=>'icon',
+				'type'=>'image/' . self::$favicon['imageType'],
+				'href'=> self::$favicon['url']
 			]);
+		}
+
+		if(!empty(self::$setBy['title'])){
+			Debug::alert('The title has been set by ' . self::$setBy['title'] . '.', 'n');
+		}
+		
+		if (!empty(self::$setBy['metaDescription'])) {
+			Debug::alert('The meta description has been set by ' . self::$setBy['metaDescription'] . '.', 'n');
 		}
 
 		$this->lv('title', self::$title);
@@ -78,76 +85,61 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 
 	public static function title(?string $title = null)
 	{
-		if ($title !== null) {
-			self::$title = $title;
+		if ($title === null) {
+			return self::$title;
 		}
-		return self::$title;
+		self::$title = $title;
 	}
 
 
 	public static function metaDescription(?string $description = null)
 	{
-		if ($description !== null) {
-			self::$metaDescription = $description;
+		if ($description == null) {
+			return self::$metaDescription;
 		}
-		return self::$metaDescription;
+		self::$metaDescription = $description;
 	}
 
 
 	public static function baseUrl(?string $url = null)
 	{
-		if ($url !== null) {
-			self::$baseUrl = $url;
+		if ($url === null) {
+			return self::$baseUrl;
 		}
-		return self::$baseUrl;
+		self::$baseUrl = $url;
 	}
 
 
 	public static function faviconUrl(?string $url = null)
 	{
-		if ($url !== null) {
-			self::$favicon['url'] = $url;
+		if ($url === null) {
+			return self::$favicon['url'];
 		}
-		return self::$favicon['url'];
+		self::$favicon['url'] = $url;
 	}
 
 
-	public static function addJs($js, bool $async = false)
+	public static function canonical(?string $url = null)
 	{
-		if (is_array($js)) {
-			foreach ($js as $cjs) {
-				$cjs = trim($cjs);
-				if (!in_array($cjs, self::$js)) {
-					self::$js[] = [$cjs, $async];
-				}
-			}
-		} else {
-			$js = trim($js);
-			if (!in_array($js, self::$js)) {
-				self::$js[] = [$js, $async];
-			}
+		if ($url === null) {
+			return self::$canonicalUrl;
 		}
+		self::$canonicalUrl = $url;
+	}
+
+
+	public static function addJs(string $type, string $content, bool $async = false)
+	{
+		self::$js[] = new Js($type, $content, $async);
 	}
 
 
 	public static function addCss($css)
 	{
-		if (is_array($css)) {
-			foreach ($css as $ccss) {
-				$ccss = trim($ccss);
-				$ccss = str_replace(SITES_DIR, Router::getHostUrl(), $ccss);
-				if (!in_array($ccss, self::$css)) {
-					self::$css[] = $ccss;
-				}
-			}
-		} elseif (is_string($css)) {
-			$css = trim($css);
-			$css = str_replace(SITES_DIR, Router::getHostUrl(), $css);
-			if (!in_array($css, self::$css)) {
-				self::$css[] = $css;
-			}
-		} else {
-			Debug::alert('Not supported css: ' . print_r($css, true));
+		$css = trim($css);
+		$css = Router::url($css);
+		if (!in_array($css, self::$css)) {
+			self::$css[] = $css;
 		}
 	}
 
@@ -179,42 +171,26 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 	}
 
 
-	public static function removeMeta(string $type, string $key)
+	public static function removeMeta(string $type, ?string $key = null)
 	{
-		unset(self::$meta[$type][$key]);
+		if ($key === null) {
+			unset(self::$meta[$type]);
+		} else {
+			unset(self::$meta[$type][$key]);
+		}
 	}
 
 
-	public static function addLink($link)
+	public static function addLink(array $attributes)
 	{
-		if (is_array($link)) {
-			if (!empty($link[0]) && is_array($link[0])) {
-				foreach ($link as $l) {
-					if (!in_array($l, self::$link)) {
-						self::$link[] = $l;
-					}
-				}
-			} else {
-				if (!in_array($link, self::$link)) {
-					self::$link[] = $link;
-				}
-			}
-		}
+		array_walk($attributes, fn($e) => htmlspecialchars($e));
+		self::$link[] = parseHtmlAttributes($attributes);
 	}
 
 
 	public static function removeLink(int $key)
 	{
 		unset(self::$link[$key]);
-	}
-
-
-	public static function canonical(?string $url = null)
-	{
-		if ($url !== null) {
-			self::$canonicalUrl = $url;
-		}
-		return self::$canonicalUrl;
 	}
 
 
@@ -242,8 +218,6 @@ class HeadBase extends \Arembi\Xfw\Core\ModuleCore {
 		$meta['noTranslate'] = Seo::translatable() ? false : 'notranslate';
 		$meta['noImageIndex'] = Seo::imagesIndexable() ? false : 'noimageindex';
 
-		$content = implode(', ', array_filter($meta));
-
-		return $content;
+		return $meta;
 	}
 }

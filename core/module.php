@@ -99,18 +99,22 @@ use Arembi\Xfw\Misc;
 use Arembi\Xfw\Module\Head;
 use ReflectionClass;
 
-abstract class ModuleCore {
+abstract class ModuleBase {
+	
 	// Whether the autoloader should look for a model
 	protected static $hasModel;
+
+	// The module's name
+	protected $name;
+
+	// The module's name without the addon's prefix
+	protected $noAddonName;
 
 	// Registration ID, used by the system to identify instantiated modules
 	protected $rId;
 
 	// Parameters used beyond the module's basic functionality
 	protected $params;
-
-	// The module's name
-	protected $name;
 
 	// The module class's name
 	protected $class;
@@ -191,13 +195,14 @@ abstract class ModuleCore {
 		if (substr($this->name, -4) == 'base') {
 			$this->name = substr($this->name, 0, -4);
 		};
+
+		$this->noAddonName = '';
 		
 		$this->error = [
 			'errorOccured'=>false,
 			'message'=>''
 		];
 		
-		$this->autoAction = $params['autoAction'] ?? $this->autoAction ?? false;
 		$this->layout = $params['layout'] ?? Settings::get('defaultModuleLayout');
 		$this->layoutVariant = $params['layoutVariant'] ?? Settings::get('defaultModuleLayoutVariant');
 		$this->layoutProcessed = false;
@@ -212,28 +217,34 @@ abstract class ModuleCore {
 
 		// Checking whether it is an addon
 		$nameParts = explode('_', $this->name, 2);
-		if (count($nameParts) > 1) {
+		if (count($nameParts) == 2) {
 			if (in_array($nameParts[0], array_keys(Config::get('moduleAddons')))) {
 				$this->addonType = $nameParts[0];
+				$this->noAddonName = $nameParts[1];
 			} else {
 				$this->addonType = null;
+				$this->noAddonName = $this->name;
 			}
 		} else {
 			$this->addonType = null;
+			$this->noAddonName = $this->name;
 		}
-
+		
 		/*
 		Code that should run every time the module is instantiated
-		shall be put into its init() function
-		The module addons will not run the init function by default, but you can
-		override this via a constructor parameter, or by assigning a non-null value to it for the addon
+		shall be put into its init() and finalize() functions
+		init() runs right after instantiation
+		finalize() runs after actions
+		The module addons will not run the init() and finalize() function by default, but you can
+		override this via a constructor parameter, or by assigning a non-null value to the class properties off the addon
 		*/
 
 		$this->autoInit = $params['autoInit'] ?? $this->autoInit ?? ($this->addonType === null);
-		$this->autoFinalize = $params['autoFinalize'] ?? $this->autoFinalize ?? ($this->addonType === null);
+		$this->autoAction = $params['autoAction'] ?? $this->autoAction ?? false;
+		$this->autoFinalize = $params['autoFinalize'] ?? $this->autoFinalize ?? false;
 		
 		$this->params = $params;
-		$this->params['id'] = $this->params['id'] ?? 0;
+		$this->params['id'] ??= 0;
 
 		/*
 		For unique functionality on a request, use actions)
@@ -247,7 +258,7 @@ abstract class ModuleCore {
 		}
 
 		/*
-		Triggering an action if requested
+		Executing an action if requested
 		Default actions will only be triggered for the primary module matched by the router
 		*/
 
@@ -322,14 +333,14 @@ abstract class ModuleCore {
 	}
 
 
-	protected function error($message = null)
+	protected function error(?string $message = null): array|ModuleBase
 	{
 		if ($message === null) {
 			return $this->error;
 		}
 
-		if ($message === false) {
-			$this->error = ['errorOccured'=>false, 'message'=>''];
+		if ($message == '') {
+			$this->error = ['errorOccured'=>false, 'message'=>$message];
 		} else {
 			$this->error = ['errorOccured'=>true, 'message'=>$message];
 			Debug::alert($message, 'f');
@@ -368,7 +379,7 @@ abstract class ModuleCore {
 	public function processLayout()
 	{
 		if ($this->error()['errorOccured']) {
-			Debug::alert("Cannot process layout of %$this->name #" . $this->params['id']);
+			Debug::alert("Cannot process layout of %$this->name #" . $this->params['id'] . ' due to an error.');
 			$this->layoutHtml = null;
 			return $this;
 		}
@@ -422,11 +433,11 @@ abstract class ModuleCore {
 
 					// Loading the embedded modules
 					foreach ($this->embeddedModules as $module) {
-						$embeddedModule = $this->loadModule($module['params']['name'], $module['params']);
+						$embeddedModule = $this->invokeModule($module['params']['name'], $module['params']);
 						
 						if ($embeddedModule !== false) {
 							// The module has been successfully loaded
-							$embedHtml = $embeddedModule->processLayout()->getLayoutHtml() ?? '';
+							$embedHtml = $embeddedModule->__toString() ?? '';
 						} else {
 							$embedHtml = '';
 						}
@@ -445,21 +456,19 @@ abstract class ModuleCore {
 
 	protected function findLayoutFile(string $layout, ?string $variant = null)
 	{
-		if ($variant === null) {
-			$variant = $layout;
-		}
-
-		if (file_exists(DOMAIN_DIR . DS . 'layouts' . DS . $this->name . DS . $layout . DS . $variant . '.php')) {
-			$layoutDir = DOMAIN_DIR . DS . 'layouts' . DS . $this->name . DS . $layout;
+		$variant ??= $layout;
+		
+		if (file_exists(DOMAIN_DIR . DS . 'layouts' . DS . $this->noAddonName . DS . $layout . DS . $variant . '.php')) {
+			$layoutDir = DOMAIN_DIR . DS . 'layouts' . DS . $this->noAddonName . DS . $layout;
 			$layoutFile = $layoutDir . DS . $variant . '.php';
-		} elseif (file_exists(ENGINE_DIR . DS . 'layouts' . DS . $this->name . DS . $layout . DS . $variant . '.php')) {
+		} elseif (file_exists(ENGINE_DIR . DS . 'layouts' . DS . $this->noAddonName . DS . $layout . DS . $variant . '.php')) {
 			// Trying to fallback to the base module layout
-			$layoutDir = ENGINE_DIR . DS . 'layouts' . DS . $this->name . DS . $layout;
+			$layoutDir = ENGINE_DIR . DS . 'layouts' . DS . $this->noAddonName . DS . $layout;
 			$layoutFile = $layoutDir . DS . $variant . '.php';
 		} else {
 			$layoutFile = null;
 			$layoutDir = null;
-			Debug::alert('Layout ' . $variant . ' for module %' . $this->name . ' not found.', 'f');
+			Debug::alert('Layout/variant [' . $layout . '/' . $variant . '] for module %' . $this->name . ' not found.', 'f');
 		}
 
 		return ['layoutFile' => $layoutFile, 'layoutDir' => $layoutDir];
@@ -471,6 +480,7 @@ abstract class ModuleCore {
 		if (!$this->recursive){
 			return false;
 		}
+		
 		$params['id'] ??= 0;
 		$params['autoInit'] ??= true;
 		$params['autoFinalize'] ??= true;
@@ -484,9 +494,9 @@ abstract class ModuleCore {
 				|| !array_key_exists($params['name'] . '#' . $params['id'] , App::getRegisteredModules())) {
 				
 				// Adding the embedded module to the list
-				$module = App::getActiveModules()->first(function($value, $key) use ($params){
-						return $value->name === $params['name'];
-					});
+				$module = App::getActiveModules()->first(function($value, $key) use ($params) {
+					return $value->name === $params['name'];
+				});
 
 				if (!empty($module)) {
 					$this->embeddedModules[] = [
@@ -510,20 +520,18 @@ abstract class ModuleCore {
 	}
 
 
-	// Loads a module and registers it in the system (App)
-	// Sets the parent module's name and ID for further use
-	protected function loadModule(string $moduleName, array $params)
+	protected function invokeModule(string $moduleName, array $params)
 	{
 		// Only active module classes can be instantiated
-		if (App::getActiveModules('name')->contains($moduleName)) {
+		if (App::isActiveModule($moduleName)) {
 			$params['parentModule'] = $this;
-			$moduleName = '\\Arembi\Xfw\\Module\\' . $moduleName;
+			$moduleName = '\\Arembi\\Xfw\\Module\\' . $moduleName;
 
 			$module = new $moduleName($params);
 
 			return $module;
 		} else {
-			Debug::alert('Embedded module %' . $moduleName . ' could not be found.', 'f');
+			Debug::alert('Module %' . $moduleName . ' could not be found.', 'f');
 			return false;
 		}
 	}

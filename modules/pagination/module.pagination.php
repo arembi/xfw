@@ -27,10 +27,11 @@
 
 namespace Arembi\Xfw\Module;
 
+use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Language;
 
-class PaginationBase extends \Arembi\Xfw\Core\ModuleCore {
+class PaginationBase extends ModuleBase {
 
 	protected static $hasModel = false;
 

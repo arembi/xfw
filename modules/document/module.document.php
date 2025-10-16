@@ -1,10 +1,13 @@
 <?php
 
 namespace Arembi\Xfw\Module;
+
+use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Inc\Seo;
 
-class DocumentBase extends \Arembi\Xfw\Core\ModuleCore {
+
+class DocumentBase extends ModuleBase {
 
 	protected static $hasModel = false;
 

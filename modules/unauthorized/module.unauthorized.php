@@ -2,6 +2,8 @@
 
 namespace Arembi\Xfw\Module;
 
-class UnauthorizedBase extends \Arembi\Xfw\Core\ModuleCore {
+use Arembi\Xfw\Core\ModuleBase;
+
+class UnauthorizedBase extends ModuleBase {
 	protected static $hasModel = false;
 }

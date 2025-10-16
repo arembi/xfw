@@ -2,7 +2,9 @@
 
 namespace Arembi\Xfw\Module;
 
-class User_StatusBase extends \Arembi\Xfw\Core\ModuleCore {
+use Arembi\Xfw\Core\ModuleBase;
+
+class User_StatusBase extends ModuleBase {
   
 	protected static $hasModel = false;
 

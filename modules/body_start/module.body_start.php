@@ -1,9 +1,11 @@
 <?php
 
 namespace Arembi\Xfw\Module;
+
+use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\Router;
 
-class Body_StartBase extends \Arembi\Xfw\Core\ModuleCore {
+class Body_StartBase extends ModuleBase {
 	protected static $hasModel = false;
 
 	private static $meta = [];
