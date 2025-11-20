@@ -461,6 +461,8 @@ abstract class Router {
 			 * */
 			if (!empty($uriParts[2])) {
 				$webRoot = $uriParts[1];
+
+		self::$paginationParams = Settings::get('paginationParam');
 				$domain = $uriParts[2];
 				self::$pathNoQueryString = '/' . implode('/', array_slice($uriParts, 3));
 				self::$path = self::$pathNoQueryString . (isset($uriQuestionmarkParts[1]) ? '?' . $uriQuestionmarkParts[1] : '');
@@ -598,6 +600,13 @@ abstract class Router {
 		Debug::alert('Language: ' . $lang);
 		App::setLang($lang);
 		$_SESSION['lang'] = $lang;
+		
+		$correctUrl = self::$hostUrl . DS . $lang . (self::$path == '/' && Settings::get('URLTrailingSlash') == 'remove' ? '' : $pathWorkpiece);
+
+		if ($correctUrl != self::$fullUrl) {
+			self::redirect($correctUrl, 302);
+		}
+		
 
 		if (!self::$hit404 && !self::$routes) {
 			return [
@@ -657,40 +666,7 @@ abstract class Router {
 			$path = mb_substr($path, mb_strlen($pathNodes[0]) + 1); // Removing the language segment from the path to process
 			array_shift($pathNodes); // Removing the language segment from the path nodes
 		} else {
-			if (!empty($_SESSION['lang'])) {
-				$lang = $_SESSION['lang'];
-			} else {
-				// Trying to use the client's preferred languages whether one of them is supported by the system
-				$clientLangs = explode(',' , $_SERVER['HTTP_ACCEPT_LANGUAGE']);
-				foreach ($clientLangs as &$value) {
-					$value = explode(';' , $value)[0]; // Throwing away the weight of the language (q=0.8 parts)
-				}
-				unset($value);
-
-				$prefLangFound = false;
-				$i = 0;
-				while (!$prefLangFound && $i < $numberOfAvailableLanguages) {
-					$j = 0;
-					$k = count($availableLanguages[$j]);
-					while (!$prefLangFound && $j < $k) {
-						if (in_array($clientLangs[$i], $availableLanguages[$j])) {
-							$prefLangFound = true;
-							$lang = $availableLanguages[$j][0];
-						} else {
-							$j++;
-						}
-					}
-					$i++;
-				}
-
-				if (!$prefLangFound) {
-					$lang = Settings::read('defaultLanguage');
-				}
-			}
-
-			// Adding the language marker to the URL and redirecting
-			$to = self::$hostUrl . DS . $lang . self::$path;
-			self::redirect($to, 302);
+			$lang = !empty($_SESSION['lang']) ? $_SESSION['lang'] : Settings::get('defaultLanguage');
 		}
 
 		return $lang;
