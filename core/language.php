@@ -4,13 +4,11 @@ namespace Arembi\Xfw\Core;
 
 abstract class Language {
 
-	private static $model;
 	private static $alphabets;
 
 
 	public static function init()
 	{
-		self::$model = new LanguageModel();
 		self::$alphabets = [];
 		self::$alphabets['en'] = range('a','z');
 		self::$alphabets['hu'] = [
