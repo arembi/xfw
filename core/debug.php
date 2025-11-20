@@ -2,6 +2,8 @@
 
 namespace Arembi\Xfw\Core;
 
+use Arembi\Xfw\Core\Config;
+
 abstract class Debug {
 	private static $suppressed;
 
@@ -18,7 +20,7 @@ abstract class Debug {
 	
 	public static function init()
 	{
-		self::$suppressed = false;
+		self::$suppressed = !Config::get('debugMode');
 		self::$alertLevels = [
 			'default' => ['&#128421;', '#FFF'],
 			'i' => ['&#128712;', '#C0C'],
