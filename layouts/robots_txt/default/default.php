@@ -1,1 +1,1 @@
-<?php $this->print($contents); ?>
+<?php $this->print($content); ?>

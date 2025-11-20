@@ -4,9 +4,9 @@ namespace Arembi\Xfw\Module;
 
 use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\App;
-use Arembi\Xfw\Misc;
 use Arembi\Xfw\Core\Settings;
 use Arembi\Xfw\Core\Models\Static_Page;
+use DateTime;
 
 class Static_PageBaseModel {
 
@@ -23,7 +23,9 @@ class Static_PageBaseModel {
 				'static_pages.id as id',
 				'static_pages.route_id as routeId',
 				'static_pages.title as pageTitle',
+				'static_pages.excerpt as pageExcerpt',
 				'static_pages.content as pageContent',
+				'static_pages.thumbnail as pageThumbnail',
 				'static_pages.created_at AS createdAt',
 				'static_pages.created_by as createdBy',
 				'static_pages.updated_at as updatedAt',
@@ -45,7 +47,7 @@ class Static_PageBaseModel {
 		$pages->transform(function ($page) {
 			return $this->normalize($page);
 		});
-
+		
 		return $pages;
 	}
 
@@ -62,7 +64,9 @@ class Static_PageBaseModel {
 				'static_pages.id as id',
 				'static_pages.route_id as routeId',
 				'static_pages.title as pageTitle',
+				'static_pages.excerpt as pageExcerpt',
 				'static_pages.content as pageContent',
+				'static_pages.thumbnail as pageThumbnail',
 				'static_pages.created_at AS createdAt',
 				'static_pages.created_by as createdBy',
 				'static_pages.updated_at as updatedAt',
@@ -75,7 +79,7 @@ class Static_PageBaseModel {
 				)
 			->where('routes.domain_id', '=', $domainId)
 			->get();
-
+		
 		$pages->transform(function ($page) {
 			return $this->normalize($page);
 		});
@@ -101,11 +105,13 @@ class Static_PageBaseModel {
 				'static_pages.id as id',
 				'static_pages.route_id as routeId',
 				'static_pages.title as pageTitle',
+				'static_pages.excerpt as pageExcerpt',
 				'static_pages.content as pageContent',
+				'static_pages.thumbnail as pageThumbnail',
 				'static_pages.created_at as createdAt',
 				'static_pages.created_by as createdBy',
 				'static_pages.updated_at as updatedAt',
-				'users.username as username',
+				'users.username as creator',
 				'seo.title as seoTitle',
 				'seo.description as seoDescription',
 				'seo.head_end as seoHeadEnd',
@@ -125,17 +131,20 @@ class Static_PageBaseModel {
 
 	private function normalize($page)
 	{
-		$date = new \DateTime($page->createdAt);
+		$date = new DateTime($page->createdAt);
 		$page->createdAt = $date->format(Settings::get('dateTimeFormat')[App::getLang()]);
 
 		if ($page->updatedAt !== null) {
-			$date = new \DateTime($page->updatedAt);
+			$date = new DateTime($page->updatedAt);
 			$page->updatedAt = $date->format(Settings::get('dateTimeFormat')[App::getLang()]);
 		}
 
 		$page->pageTitle = json_decode($page->pageTitle ?? '', true);
+		$page->pageExcerpt = json_decode($page->pageExcerpt ?? '', true);
 		$page->pageContent = json_decode($page->pageContent ?? '', true);
-
+		$page->seoTitle = json_decode($page->seoTitle ?? '', true);
+		$page->seoDescription = json_decode($page->seoDescription ?? '', true);
+		
 		return $page;
 	}
 
@@ -146,7 +155,9 @@ class Static_PageBaseModel {
 
 		$page->route_id = $pageData['routeId'];
 		$page->title = $pageData['title'];
+		$page->excerpt = $pageData['excerpt'];
 		$page->content = $pageData['content'];
+		$page->thumbnail = $pageData['thumbnail'];
 		$page->created_by = $pageData['createdBy'];
 
 		return $page->save();
@@ -159,22 +170,20 @@ class Static_PageBaseModel {
 
 		$page->route_id = $pageData['routeId'];
 		$page->title = $pageData['title'];
+		$page->excerpt = $pageData['excerpt'];
 		$page->content = $pageData['content'];
+		$page->thumbnail = $pageData['thumbnail'];
 		$page->created_by = $pageData['createdBy'];
 
 		return $page->save();
 	}
 
 
-	public function deletePage($id)
+	public function deletePage(int $id)
 	{
 		$page = Static_Page::find($id);
 
-		if ($page) {
-			return $page->delete();
-		} else {
-			return false;
-		}
+		return $page ? $page->delete() : false;
 	}
 
 }

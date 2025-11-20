@@ -3,6 +3,8 @@
 
 namespace Arembi\Xfw\Misc;
 
+use Arembi\Xfw\Core\App;
+
 
 // Simple Timer class to measeure for instance load speeds
 class Timer {
@@ -106,45 +108,6 @@ function md_array_sort($inputArray, $column)
 }
 
 
-/* Lists files in a directory
- * $recursive: if set to true, files in subdirectories will be listed as well
- * $extFilter: if set, only files having the given extension will be listed, supports strings and arrays
- * */
-function listFiles($dir, $outputDS = DS, $recursive = false, $extFilter = NULL)
-{
-	$result = [];
-
-	$cdir = array_diff(scandir($dir), ['..', '.']); // Excluding the dots
-	foreach ($cdir as $key => $value) {
-		if (is_dir($dir . DS . $value)) { // case it's a directory
-			if ($recursive) {
-				$subdirFiles = listFiles($dir . DS . $value);
-				foreach ($subdirFiles as $k => &$v) {
-					$v = str_replace(DS, $outputDS, $dir) . $outputDS . $value . $outputDS . $v;
-				}
-				$result = array_merge($result, $subdirFiles);
-			}
-		} else { // case it's a file
-			if ($extFilter) {
-				$ext = explode('.', $value);
-				$ext = strtolower(end($ext));
-				if(is_array($extFilter)){
-					array_map('strtolower', $extFilter);
-					if(in_array($ext, $extFilter)){
-						$result[] = str_replace(DS, $outputDS, $dir) . $outputDS . $value;
-					}
-				} elseif(is_string($extFilter) && $ext == strtolower($extFilter))	{
-					$result[] = str_replace(DS, $outputDS, $dir) . $outputDS . $value;
-				}
-			} else {
-				$result[] = str_replace(DS, $outputDS, $dir) . $outputDS . $value;
-			}
-		}
-	}
-	return $result;
-}
-
-
 /*
  * Returns the $child element of the $parent element
  * The parent-child relation means the following:
@@ -163,7 +126,7 @@ function getMixedChild($parent, $child, $tryGet = false)
 	} elseif (is_object($parent)) {
 		if (isset($parent->$child)) {
 			return $parent->$child;
-		} elseif($tryGet) {
+		} elseif ($tryGet) {
 			$method = 'get' . $child;
 			if (method_exists($parent, $method)) {
 				return $parent->$method();
@@ -224,13 +187,15 @@ function parseHtmlAttributes(array $input1, array $input2 = [])
 
 	if (func_num_args() === 1) {
 		// With 1 argument, the keys have to be the attributes, the values remain the values
-		foreach ($input1 as $k => $v) {
-			if (!empty($v)) {
-				if ($ret === '') {
-					$ret .= $k . ($v === true ? '' : '="' . $v . '"');
-				} else {
-					$ret .= ' ' . $k . ($v === true ? '' : '="' . $v . '"');
+		foreach ($input1 as $attribute => $value) {
+			if (!empty($value)) {
+				$spacer = $ret === '' ? '' : ' ';
+
+				if (is_array($value)) {
+					$value = $value[App::getLang()];
 				}
+
+				$ret .= $spacer . $attribute . ($value === true ? '' : '="' . $value . '"');
 			}
 		}
 	} else {

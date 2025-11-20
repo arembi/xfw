@@ -27,18 +27,6 @@ class Module extends Model {
 		);
 	}
 
-	/*
-	protected function getPathParamOrderAttribute($value)
-	{
-		return json_decode($value ?? '', true);
-	}
-
-
-	protected function setPathParamOrderAttribute($value)
-	{
-		return json_encode($value);
-	}*/
-
 
 	public function routes(): HasMany
 	{

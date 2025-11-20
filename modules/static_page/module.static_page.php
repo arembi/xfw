@@ -5,84 +5,184 @@ namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
+use Arembi\Xfw\Core\Settings;
 use Arembi\Xfw\Inc\Seo;
 
 class Static_PageBase extends ModuleBase {
 
-	protected static $hasModel = true;
+	protected static $autoloadModel = true;
 
-	public $unavailableInfo;
+	protected static $unavailableInfo = [
+		'title'=>[
+			'hu'=>'Hamarosan&hellip;',
+			'en'=>'Coming soon&hellip;'
+		],
+		'excerpt'=>[
+			'hu'=>'',
+			'en'=>''
+		],
+		'content'=>[
+			'hu'=>'Az oldal tartalma feltöltés alatt áll, kérjük látogasson vissza később.',
+			'en'=>'The contents of this page have not been uploaded yet.'
+		]
+	];
+
+	protected $title;
+	protected $excerpt;
+	protected $content;
+	protected $routeId;
+	protected $thumbnail;
+	protected $createdAt;
+	protected $createdBy;
+	protected $updatedAt;
+
 
 	protected function init()
 	{
-		$this->loadModel();
-		$this->loadPathParams();
+		$this->invokeModel();
+		
+		$this->title = [];
+		$this->excerpt = [];
+		$this->content = [];
+		$this->routeId = 0;
+		$this->createdAt = '';
+		$this->createdBy = '';
+		$this->updatedAt = '';
 
-		$this->unavailableInfo = [
-			'hu' => [
-				'contentTitle' => 'Hamarosan&hellip;',
-				'content' => 'Az oldal tartalma feltöltés alatt áll, kérjük látogasson vissza később.'
-			],
-			'en' => [
-				'contentTitle' => 'Coming soon&hellip;',
-				'content' => 'The contents of this page have not been uploaded yet.'
-			]
-		];
+		$lang = App::getLang();
 
 		if (!$this->params['id']) {
 			$routeId = Router::getMatchedRouteId();
 			$page = $this->model->getPageByRouteId($routeId);
 		} else {
-			$page = $this->model->getPages([$this->params['id']]);
+			$page = $this->model->getPages([$this->params['id']])->first();
 		}
-
-		$lang = App::getLang();
 
 		if (!$page) {
-			// If the page was not found
-			$contentTitle = $this->unavailableInfo[$lang]['contentTitle'] ?? '';
-			$content = $this->unavailableInfo[$lang]['content'] ?? '';
-			$id = 0;
-
-			$createdAt = false;
-			$createdBy = false;
-			$updatedAt = false;
-
+			$this
+				->title(self::$unavailableInfo['title'] ?? '')
+				->excerpt(self::$unavailableInfo['excerpt'] ?? '')
+				->content(self::$unavailableInfo['content'] ?? '')
+				->thumbnail('');
 		} else {
-			// The page was found, preparing content and meta information
-			$id = $page->id;
+			$this
+				->title($page->pageTitle ?? self::$unavailableInfo[$lang]['title'] ?? '')
+				->excerpt($page->pageExcerpt ?? self::$unavailableInfo['excerpt'] ?? '')	
+				->content($page->pageContent ?? self::$unavailableInfo['content'] ?? '')
+				->routeId($page->routeId ?? 0)
+				->thumbnail($page->pageThumbnail ?? '')
+				->createdBy($page->createdBy)
+				->createdAt($page->createdAt)
+				->updatedAt($page->updatedAt);
 
-			if (!empty($page->seoDescription[$lang])) {
-				Seo::metaDescription($page->seoDescription[$lang]);
+			if (isset($page->seoDescription)) {
+				Seo::metaDescription($page->seoDescription);
 			}
-			if (!empty($page->seoTitle[$lang])) {
-				Seo::title($page->seoTitle[$lang]);
+			if (isset($page->seoTitle)) {
+				Seo::title($page->seoTitle);
 			}
-
-			// Showing error message when the content is not available in the requested language
-			if (!empty($page->pageContent[$lang])) {
-				$content = $page->pageContent[$lang];
-			} else {
-				$content = $this->unavailableInfo[$lang]['content'] ?? '';
-			}
-
-			if (!empty($page->pageTitle[$lang])) {
-				$contentTitle = $page->pageTitle[$lang];
-			} else {
-				$contentTitle = $this->unavailableInfo[$lang]['contentTitle'] ?? '';
-			}
-
-			$createdAt = $page->createdAt;
-			$createdBy = $page->createdBy;
-			$updatedAt = $page->updatedAt;
-
 		}
+	}
 
-		$this->lv('content', $content);
-		$this->lv('contentTitle', $contentTitle);
-		$this->lv('createdAt', $createdAt);
-		$this->lv('createdBy', $createdBy);
-		$this->lv('updatedAt', $updatedAt);
+
+	public function finalize()
+	{
+		$this
+			->lv('title', $this->title)
+			->lv('excerpt', $this->excerpt)
+			->lv('content', $this->content)
+			->lv('createdAt', $this->createdAt)
+			->lv('createdBy', $this->createdBy)
+			->lv('updatedAt', $this->updatedAt);
+	}
+
+
+	public function title(string|array|null $title = null): string|array|Static_PageBase
+	{
+		if ($title === null) {
+			return $this->title;
+		}
+		if (is_array($title)) {
+			$title = array_filter($title, fn ($key) => !in_array($key, Settings::get('availableLanguages')), ARRAY_FILTER_USE_KEY);
+		}
+		$this->title = $title;
+		return $this;
+	}
+
+
+	public function excerpt(string|array|null $excerpt = null): string|array|Static_PageBase
+	{
+		if ($excerpt === null) {
+			return $this->excerpt;
+		}
+		if (is_array($excerpt)) {
+			$excerpt = array_filter($excerpt, fn ($key) => !in_array($key, Settings::get('availableLanguages')), ARRAY_FILTER_USE_KEY);
+		}
+		$this->excerpt = $excerpt;
+		return $this;
+	}
+
+
+	public function content(string|array|null $content = null): string|array|Static_PageBase
+	{
+		if ($content === null) {
+			return $this->content;
+		}
+		if (is_array($content)) {
+			$content = array_filter($content, fn ($key) => !in_array($key, Settings::get('availableLanguages')), ARRAY_FILTER_USE_KEY);
+		}
+		$this->content = $content;
+		return $this;
+	}
+
+
+	public function thumbnail(?string $url = null): string|Static_PageBase
+	{
+		if ($url === null) {
+			return $this->thumbnail;
+		}
+		$this->thumbnail = $url;
+		return $this;
+	}
+
+
+	public function routeId(?int $routeId = null): int|null|Static_PageBase
+	{
+		if ($routeId === null) {
+			return $this->routeId;
+		}
+		$this->routeId = $routeId;
+		return $this;
+	}
+
+
+	public function createdAt(?string $createdAt = null): string|Static_PageBase
+	{
+		if ($createdAt === null) {
+			return $this->createdAt;
+		}
+		$this->createdAt = $createdAt;
+		return $this;
+	}
+
+
+	public function createdBy(?string $createdBy = null): string|Static_PageBase
+	{
+		if ($createdBy === null) {
+			return $this->createdBy;
+		}
+		$this->createdBy = $createdBy;
+		return $this;
+	}
+
+
+	public function updatedAt(?string $updatedAt = null): string|Static_PageBase
+	{
+		if ($updatedAt === null) {
+			return $this->updatedAt;
+		}
+		$this->updatedAt = $updatedAt;
+		return $this;
 	}
 
 }

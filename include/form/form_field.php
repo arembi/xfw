@@ -23,17 +23,17 @@ class FormField {
 		string $text = ''
 	)
 	{
-		$this->name = $name;
-		$this->type = $type;
-		$this->label = $label;
-		$this->tag = $tag;
-		$this->attributes = $attributes;
-		$this->options = $options;
-		$this->text = $text;
+		$this->name($name);
+		$this->type($type);
+		$this->label($label);
+		$this->tag($tag);
+		$this->attributes($attributes);
+		$this->options($options);
+		$this->text($text);
 	}
 
 
-	public function name(?string $name = null): FormField|string
+	public function name(?string $name = null): string|FormField
 	{
 		if ($name === null) {
 			return $this->name;
@@ -43,7 +43,7 @@ class FormField {
 	}
 
 
-	public function type(?string $type = null): FormField|string
+	public function type(?string $type = null): string|FormField
 	{
 		if ($type === null) {
 			return $this->type;
@@ -53,7 +53,7 @@ class FormField {
 	}
 
 
-	public function label(string|array|null $label = null): FormField|array|string|null
+	public function label(string|array|null $label = null): array|string|null|FormField
 	{
 		if ($label === null) {
 			return $this->label;
@@ -63,7 +63,7 @@ class FormField {
 	}
 
 
-	public function tag(?string $tag = null): FormField|string
+	public function tag(?string $tag = null): string|FormField
 	{
 		if ($tag === null) {
 			return $this->tag;
@@ -73,7 +73,7 @@ class FormField {
 	}
 
 
-	public function attributes(?array $attributes = null): FormField|array
+	public function attributes(?array $attributes = null): array|FormField
 	{
 		if ($attributes === null) {
 			return $this->attributes;
@@ -83,7 +83,7 @@ class FormField {
 	}
 
 
-	public function attribute(string $attribute, ?string $value = null): FormField|string
+	public function attribute(string $attribute, ?string $value = null): string|FormField
 	{
 		if ($value === null) {
 			return $this->attributes[$attribute];
@@ -93,7 +93,7 @@ class FormField {
 	}
 
 
-	public function options(?array $options = null): FormField|array
+	public function options(?array $options = null): array|FormField
 	{
 		if ($options === null) {
 			return $this->options;
@@ -103,7 +103,7 @@ class FormField {
 	}
 
 
-	public function option(?string $option = null, ?string $value = null): FormField|string
+	public function option(?string $option = null, ?string $value = null): string|FormField
 	{
 		if ($value === null) {
 			return $this->options[$option];
@@ -113,7 +113,7 @@ class FormField {
 	}
 
 
-	public function text(string|array|null $text = null): Formfield|string|array
+	public function text(string|array|null $text = null): string|array|FormField
 	{
 		if ($text === null) {
 			return $this->text;
@@ -138,7 +138,7 @@ class FormField {
 
 		if ($this->type() == 'select') {
 			
-			$tag = '<select name="' . $this->name() . '"';
+			$tag = '<select name="' . $this->name() . '" id="' . $this->name() . '"';
 			foreach ($this->attributes() as $attribute => $value) {
 				$tag .= ' ' . $attribute;
 				$tag .= $value !== true ? '="' . $value . '"' : '';

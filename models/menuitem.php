@@ -16,18 +16,7 @@ class Menuitem extends Model {
 			set: fn ($value) => json_encode($value)
 		);
 	}
-
-	/*
-	protected function getItemAttribute($value)
-	{
-		return decodeIfJson($value);
-	}
-
-
-	protected function setItemAttribute($value)
-	{
-		return json_encode($value);
-	}*/
+	
 
 	public function menu(): BelongsTo
 	{

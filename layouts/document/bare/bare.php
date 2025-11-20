@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php $this->print($lang); ?>">
 <head>
     <?php $this->embed('head');?>
 </head>

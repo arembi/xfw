@@ -12,7 +12,7 @@ class IH_Control_PanelBase extends Control_Panel {
 
 	public function domain_new(&$result)
 	{
-		$this->loadModel();
+		$this->invokeModel();
 
 		$data = [
 			'domain'=>Router::post('domain'),
@@ -34,7 +34,7 @@ class IH_Control_PanelBase extends Control_Panel {
 
 	public function domain_edit(&$result)
 	{
-		$this->loadModel();
+		$this->invokeModel();
 
 		$domainSettings = Router::post('domainSettings');
 
@@ -70,7 +70,7 @@ class IH_Control_PanelBase extends Control_Panel {
 
 	public function domain_delete(&$result)
 	{
-		$this->loadModel();
+		$this->invokeModel();
 
 		if ($this->model->deleteDomain(Router::post('domainId'))) {
 			$result
@@ -86,7 +86,7 @@ class IH_Control_PanelBase extends Control_Panel {
 
 	public function route_new(&$result)
 	{
-		$this->loadModel();
+		$this->invokeModel();
 
 		$path = [];
 		foreach (Settings::get('availableLanguages') as $lang) {
@@ -117,7 +117,7 @@ class IH_Control_PanelBase extends Control_Panel {
 
 	public function route_edit(&$result)
 	{
-		$this->loadModel();
+		$this->invokeModel();
 
 		$path = [];
 		foreach (Settings::get('availableLanguages') as $lang) {
@@ -161,7 +161,7 @@ class IH_Control_PanelBase extends Control_Panel {
 
 	public function route_delete(&$result)
 	{
-		$this->loadModel();
+		$this->invokeModel();
 
 		if ($this->model->deleteRoute(Router::post('routeId'))) {
 			$result

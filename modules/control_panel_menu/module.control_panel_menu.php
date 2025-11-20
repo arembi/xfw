@@ -9,14 +9,16 @@ use Arembi\Xfw\Core\Router;
 
 class Control_Panel_MenuBase extends ModuleBase {
 
-	protected static $hasModel = false;
+	protected static $autoloadModel = false;
+	protected $menuItems;
+
 
     public function init()
 	{
         $lang = App::getLang();
 		$activeModules = App::getActiveModules('name');
 		
-		$menuItems = [];
+		$this->menuItems = [];
 
 		// Loading controller modules
 		foreach ($activeModules as $module) {
@@ -39,12 +41,15 @@ class Control_Panel_MenuBase extends ModuleBase {
 							'autoFinalize'=>true
 						]);
 					}
-
-					$menuItems[] = new Menu($addonMenuData);
+					$this->menuItems[] = new Menu($addonMenuData);
 				}
 			}
 		}
+	}
 
-        $this->lv('cpMenuItems', $menuItems);
+
+	public function finalize()
+	{
+		$this->lv('cpMenuItems', $this->menuItems);
 	}
 }

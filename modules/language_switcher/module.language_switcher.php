@@ -8,7 +8,17 @@ use Arembi\Xfw\Core\Settings;
 
 class Language_SwitcherBase extends ModuleBase {
   
-	protected static $hasModel = false;
+	protected static $autoloadModel = false;
+
+	protected static $flags = [
+		'en'=>'🇬🇧',
+		'hu'=>'🇭🇺'
+	];
+
+	protected $switcherMenu;
+	protected $menuLayout;
+	protected $menuLayoutVariant;
+
 
 	protected function init()
 	{
@@ -16,17 +26,21 @@ class Language_SwitcherBase extends ModuleBase {
 			$this->error('Site is not nultilingual, cannot load the Language Switcher.');
 		}
 
+		$this
+			->menuLayout($this->params['menuLayout'] ?? Settings::get('defaultModuleLayout'))
+			->menuLayoutVariant($this->params['menuLayoutVariant'] ?? Settings::get('defaultModuleLayoutVariant'));
+
 		$availableLanguages = Settings::get('availableLanguages');
 		
-		$switcherMenu = new Menu([
-			'layout'=>'default',
-			'layoutVariant'=>'default',
+		$this->switcherMenu(new Menu([
+			'layout'=>$this->menuLayout,
+			'layoutVariant'=>$this->menuLayoutVariant,
 			'title'=>[
 				'en'=>'Languages',
 				'hu'=>'Nyelvek'
 			],
 			'displayTitle'=>false
-		]);
+		]));
 		
 		foreach ($availableLanguages as $language) {
 			$route = Router::getMatchedRoute();
@@ -49,15 +63,52 @@ class Language_SwitcherBase extends ModuleBase {
 
 				$languageLink = new Link([
 					'href'=>$linkHref,
-					'anchor'=>$language[0],
+					'anchor'=>self::$flags[$language[0]] ?? $language[0],
 					'autoFinalize'=>true
 				]);
 
-				$switcherMenu->addItem($languageLink);
+				$this->switcherMenu->addItem($languageLink);
 			}
 		}
+		$this->switcherMenu->finalize();
+	}
 
-		$switcherMenu->finalize();
-		$this->lv('switcherMenu', $switcherMenu);
+
+	public function finalize(): void
+	{
+		$this->lv('switcherMenu', $this->switcherMenu);
+	}
+
+
+	public function switcherMenu(?Menu $menu = null): Menu|Language_SwitcherBase
+	{
+		if ($menu === null) {
+			return $this->switcherMenu;
+		}
+
+		$this->switcherMenu = $menu;
+		return $this;
+	}
+
+
+	public function menuLayout(?string $layout): string|Language_SwitcherBase
+	{
+		if ($layout === null) {
+			return $this->menuLayout;
+		}
+
+		$this->menuLayout = $layout;
+		return $this;
+	}
+
+
+	public function menuLayoutVariant(?string $layoutVariant): string|Language_SwitcherBase
+	{
+		if ($layoutVariant === null) {
+			return $this->menuLayoutVariant;
+		}
+
+		$this->menuLayoutVariant = $layoutVariant;
+		return $this;
 	}
 }

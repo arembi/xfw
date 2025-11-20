@@ -24,21 +24,25 @@ namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\Router;
+use Arembi\Xfw\Core\Settings;
+
 use function Arembi\Xfw\Misc\parseHtmlAttributes;
 
 class LinkBase extends ModuleBase {
 
-	protected static $hasModel = false;
+	protected static $autoloadModel = false;
 	
-	private $href;
-	private $hrefOverrides;
-	private $anchor;
-	private $htmlTitle;
-	private $htmlId;
-	private $htmlClass;
-	private $htmlStyle;
-	private $htmlTarget;
-	private $htmlRel;
+	protected $href;
+	protected $hrefLang;
+	protected $hrefOverrides;
+	protected $anchor;
+	protected $htmlTitle;
+	protected $htmlId;
+	protected $htmlClass;
+	protected $htmlStyle;
+	protected $htmlTarget;
+	protected $htmlRel;
+	
 	/*
 	params:
 		'href' => null,
@@ -59,6 +63,7 @@ class LinkBase extends ModuleBase {
 	protected function init()
 	{
 		$this->href = '';
+		$this->hrefLang = '';
 		$this->hrefOverrides = $this->params['hrefOverrides'] ?? [];
 		$this->anchor = '';
 		$this->htmlTitle = '';
@@ -77,21 +82,16 @@ class LinkBase extends ModuleBase {
 		if (isset($this->params['id']) && $this->params['id'] != 0) {
 			$this->params['href'] = '@' . $this->params['id'];
 		}
-
-		$href = Router::url($this->params['href'], $this->hrefOverrides);
-		if ($href === null) {
-			$this->error('Could not retrieve href.');
-			return;
-		}
-
-		$this->href = $href;
-		$this->anchor = $this->params['anchor'] ?? '';
-		$this->htmlTitle = $this->params['title'] ?? [];
-		$this->htmlId = $this->params['htmlId'] ?? null;
-		$this->htmlClass = Router::getFullURL() == $this->href ? 'origo ' : '' ;
-		$this->htmlStyle = $this->params['style'] ?? null;
-		$this->htmlTarget = $this->params['target'] ?? null;
-		$this->htmlRel = $this->params['rel'] ?? null;
+		
+		$this
+			->href($this->params['href'], $this->hrefOverrides)
+			->anchor($this->params['anchor'] ?? '')
+			->htmlTitle($this->params['title'] ?? '')
+			->htmlId($this->params['htmlId'] ?? '')
+			->htmlClass(Router::getFullURL() == $this->href ? 'origo ' : '')
+			->htmlStyle($this->params['style'] ?? '')
+			->htmlTarget($this->params['target'] ?? '')
+			->htmlRel($this->params['rel'] ?? '');
 
 		if (!empty($this->params['class'])) {
 			if (is_array($this->params['class'])) {
@@ -111,7 +111,7 @@ class LinkBase extends ModuleBase {
 	}
 
 
-	public function finalize()
+	public function finalize(): void
 	{
 		$attributes = parseHtmlAttributes([
 			'href'=>$this->href,
@@ -123,35 +123,60 @@ class LinkBase extends ModuleBase {
 			'rel'=>$this->htmlRel
 		]);
 
-		$this->lv('attributes', $attributes);
-		$this->lv('anchor', $this->anchor);
+		$this
+			->lv('attributes', $attributes)
+			->lv('anchor', $this->anchor);
 	}
 
 
-	public function href(?string $href = null): string|LinkBase
+	public function href(?string $href = null, array $hrefOverrides = []): string|LinkBase
 	{
 		if ($href === null) {
 			return $this->href;
 		}
-		$this->href = $href;
+		$url = Router::url($href, $hrefOverrides, true);
+		if ($url) {
+			$this->href = $url['url'];
+			$this->hrefLang = $url['lang'];	
+		} else {
+			$this->error('Cannot assign href to link: href not valid.');
+		}
 		return $this;
 	}
 
 
-	public function anchor(?string $anchor = null): string|LinkBase
+	public function hrefLang(): string
+	{
+		return $this->hrefLang;
+	}
+
+
+	public function lang(): string
+	{
+		return $this->hrefLang();
+	}
+
+
+	public function anchor(string|array|null $anchor = null): string|array|LinkBase
 	{
 		if ($anchor === null) {
 			return $this->anchor;
+		}
+		if (is_array($anchor)) {
+			$anchor = array_filter($anchor, fn ($key) => !in_array($key, Settings::get('availableLanguages')), ARRAY_FILTER_USE_KEY);
 		}
 		$this->anchor = $anchor;
 		return $this;
 	}
 
 
-	public function htmlTitle(?string $htmlTitle = null): string|LinkBase
+	public function htmlTitle(string|array|null $htmlTitle = null): string|array|LinkBase
 	{
 		if ($htmlTitle === null) {
 			return $this->htmlTitle;
+		}
+		if (is_array($htmlTitle)) {
+			$htmlTitle = array_filter($htmlTitle, fn ($key) => !in_array($key, Settings::get('availableLanguages')), ARRAY_FILTER_USE_KEY);
 		}
 		$this->htmlTitle = $htmlTitle;
 		return $this;

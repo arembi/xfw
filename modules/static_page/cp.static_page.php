@@ -56,7 +56,6 @@ class CP_Static_PageBase extends Static_Page {
 
 		$this->lv('availableLanguages', $avaliableLanguages);
 		$this->lv('pages', $pages);
-
 	}
 
 
@@ -64,15 +63,25 @@ class CP_Static_PageBase extends Static_Page {
 	public function page_newAction()
 	{
 		$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_new']);
+		$avaliableLanguages = Settings::get('availableLanguages');
 
-		foreach (Settings::get('availableLanguages') as $lang) {
+		foreach ($avaliableLanguages as $lang) {
 			$form->addField('pageTitle-' . $lang[0])
 				->label('Title (' . $lang[0] . ')');
 		}
-		foreach (Settings::get('availableLanguages') as $lang) {
+
+		foreach ($avaliableLanguages as $lang) {
+			$form->addField('pageExcerpt-' . $lang[0], 'textarea')
+				->label('Excerpt (' . $lang[0] . ')');
+		}
+
+		foreach ($avaliableLanguages as $lang) {
 			$form->addField('pageContent-' . $lang[0], 'textarea')
 				->label('Content (' . $lang[0] . ')');
 		}
+
+		$form->addField('thumbnail')
+			->label('Thumbnail');
 
 		$createdBySelectOptions = [];
 		foreach (App::getUsersByDomain() as $user) {
@@ -95,7 +104,9 @@ class CP_Static_PageBase extends Static_Page {
 			->label('Path')
 			->options($routeIdSelectOptions);
 
-		$form->finalize();
+		$form
+			->lv('availableLanguages', $avaliableLanguages)
+			->finalize();
 
 		$this->lv('form', $form);
 	}
@@ -122,8 +133,17 @@ class CP_Static_PageBase extends Static_Page {
 			$pageTitle = $page->pageTitle[$lang[0]] ?? '';
 			
 			$form->addField('pageTitle-' . $lang[0])
-				->label('Cím (' . $lang[0] . ')')
+				->label('Title (' . $lang[0] . ')')
 				->attribute('value', $pageTitle);
+		}
+
+		// pageExcerpt
+		foreach ($avaliableLanguages as $lang) {
+			$pageExcerpt = $page->pageExcerpt[$lang[0]] ?? '';
+			
+			$form->addField('pageExcerpt-' . $lang[0], 'textarea')
+				->label('Excerpt (' . $lang[0] . ')')
+				->text($pageExcerpt);
 		}
 
 		// pageContent
@@ -131,9 +151,16 @@ class CP_Static_PageBase extends Static_Page {
 			$pageContent = $page->pageContent[$lang[0]] ?? '';
 			
 			$form->addField('pageContent-' . $lang[0], 'textarea')
-				->label('Tartalom (' . $lang[0] . ')')
+				->attribute('class', 'rt-editor')
+				->label('Content (' . $lang[0] . ')')
 				->text($pageContent);
 		}
+
+		// pageThumbnail
+		$pageThumbnail = $page->thumbnail ?? '';
+		$form->addField('thumbnail')
+			->label('Thumbnail')
+			->attribute('value', $pageThumbnail);
 
 		// createdBy
 		$createdBySelectOptions = [];
@@ -168,22 +195,27 @@ class CP_Static_PageBase extends Static_Page {
 			->attribute('value', $page->createdAt)
 			->label('CA');
 
-		$form->finalize();
+		$form
+			->lv('availableLanguages', $avaliableLanguages)
+			->finalize();
+		
 		$this->lv('form', $form);
+		$this->lv('upUrl', Router::getNoQueryStringUrl());
 	}
 
 
 	public function page_deleteAction()
 	{
 		$id = Router::get('id');
-		$page = $this->model->getPageById(Router::get('id'));
+		$page = $this->model->getPageById($id);
 
 		if ($page) {
 			$form = new Form(['handlerModule' => 'static_page', 'handlerMethod' => 'page_delete']);
-		
-			$form->addField('id')
-				->attributes(['value' => $id, 'readonly' => true])
-				->label('ID');
+			$form
+				->actionUrl(Router::getNoQueryStringUrl())
+				->addField('id')
+					->attributes(['value' => $id, 'readonly' => true])
+					->label('ID');
 
 			$form->finalize();
 			$this->lv('form', $form);

@@ -26,7 +26,7 @@ their own operating area
 
 class Control_PanelBase extends ModuleBase {
 
-	protected static $hasModel = true;
+	protected static $autoloadModel = true;
 
 	
 	public function init()
@@ -51,7 +51,7 @@ class Control_PanelBase extends ModuleBase {
 			$controller = new $controllerClass();
 			$action = $task . 'Action';
 			if (method_exists($controller, $action)) {
-				$controller->loadModel();
+				$controller->invokeModel();
 				$controller
 					->layout('cp')
 					->layoutVariant($task);

@@ -1,8 +1,8 @@
 <div class="staticPage">
 	<header>
-		<h1><?php echo $contentTitle ?></h1>
-		<div>készült: <time><?php echo $createdAt ?></time></div>
-		<div>Last Updated: <time><?php echo $updatedAt ?></time></div>
+		<h1><?php $this->print($title); ?></h1>
+		<div><?php $this->print(['en'=> 'Created at:']); ?> <time><?php echo $createdAt ?></time></div>
+		<div><?php $this->print(['en'=> 'Last updated:']); ?> <time><?php echo $updatedAt ?></time></div>
 	</header>
 	<section>
 		<?php echo $content ?>

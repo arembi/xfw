@@ -11,11 +11,8 @@ class Database {
 	public static function init()
 	{
 		self::$capsule = new Capsule;
-
 		self::connect('sys', 'default');
-
 		self::$capsule->setAsGlobal();
-
 		self::$capsule->bootEloquent();
 	}
 

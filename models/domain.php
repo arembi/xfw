@@ -18,23 +18,7 @@ class Domain extends Model {
 			set: fn ($value) => !is_string($value) ? json_encode($value,JSON_UNESCAPED_UNICODE) : $value
         );
 	}
-
-	/*
-	protected function getSettingsAttribute($value)
-    {
-    	return decodeIfJson($value, true);
-    }
-
-
-    protected function setSettingsAttribute($value)
-    {
-		if (!is_string($value)) {
-			$this->attributes['settings'] = json_encode($value,JSON_UNESCAPED_UNICODE);
-		} else {
-			$this->attributes['settings'] =  $value;
-		}
-    }*/
-
+	
 
     public function routes(): HasMany
     {

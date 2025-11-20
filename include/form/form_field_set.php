@@ -2,6 +2,8 @@
 
 namespace Arembi\Xfw\Inc;
 
+use Arembi\Xfw\Core\Debug;
+
 class FormFieldSet {
 
 	private $name;

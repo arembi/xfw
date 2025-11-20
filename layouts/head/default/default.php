@@ -28,14 +28,8 @@
     <link <?php $this->print($attributes); ?>/>
 <?php endforeach; ?>
 
-<?php foreach ($js as $javascript): ?>
-    <?php if ($javascript->type() == 'src'):?>
-        <script src="<?php $this->print($javascript->content())?>" <?php $this->print($javascript->async() ? 'async' : ''); ?>></script>
-    <?php else: ?>
-        <script>
-            <?php $this->print($javascript->content())?>
-        </script>
-    <?php endif;?>
+<?php foreach ($javascript as $jsTag): ?>
+        <script <?php $this->print($jsTag['attributes']); ?>><?php $this->print($jsTag['content'])?></script>
 <?php endforeach;?>
 
 <?php foreach ($css as $c): ?>

@@ -10,7 +10,7 @@ use Arembi\Xfw\Inc\FormFieldSet;
 
 class FormBase extends ModuleBase {
 
-	protected static $hasModel = true;
+	protected static $autoloadModel = true;
 	protected static $encTypes = [
 		'application/x-www-form-urlencoded',
 		'multipart/form-data',
@@ -26,12 +26,14 @@ class FormBase extends ModuleBase {
 	
 	public function init()
 	{
-		$this->loadModel();
+		$this->invokeModel();
 
-		$this->fields = new FormFieldSet();
-		$this->overrides = new FormFieldSet();
-		$this->actionUrl = $this->params['actionUrl'] ?? '';
-		$this->encType = $this->params['encType'] ?? 0;
+		$this
+			->fields(new FormFieldSet())
+			->overrides(new FormFieldSet())
+			->actionUrl($this->params['actionUrl'] ?? '')
+			->encType($this->params['encType'] ?? 0);
+		
 		$this->hasFileField = false;
 
 		if (!empty($this->params['formId'])) {
@@ -47,10 +49,9 @@ class FormBase extends ModuleBase {
 				}
 
 				if (!empty($form->action_url)) {
-					$this->actionUrl = $form->action_url;
+					$this->actionUrl($form->action_url);
 				}
 
-				// Adding the non-optional formID hidden input
 				$this->addField('formId', 'hidden')
 					->attribute('value' , $this->params['formId']);
 				
@@ -71,7 +72,7 @@ class FormBase extends ModuleBase {
 			$this->addField('handlerMethod', 'hidden')
 				->attribute('value', $this->params['handlerMethod']);
 
-			$this->actionUrl = $this->params['actionUrl'] ?? '';
+			$this->actionUrl($this->params['actionUrl'] ?? '');
 			
 			$this
 				->layout($this->params['layout'] ?? $this->params['handlerMethod'])
@@ -92,9 +93,10 @@ class FormBase extends ModuleBase {
 			$this->encType = 1;
 		}
 
-		$this->lv('enctype', self::$encTypes[$this->encType]);
-		$this->lv('fields', $this->fields->fields());
-		$this->lv('action', $actionUrl);
+		$this
+			->lv('enctype', self::$encTypes[$this->encType])
+			->lv('fields', $this->fields->fields())
+			->lv('action', $actionUrl);
 
 		return $this;
 	}
@@ -176,24 +178,24 @@ class FormBase extends ModuleBase {
 	}
 
 
-	public function encType(int|string|null $encType = null): FormBase|string|false
+	public function encType(int|string|null $encType = null): FormBase|string
 	{
 		if ($encType === null) {
 			return $this->encType;
-		} elseif (is_string($encType)) {
+		}
+		if (is_string($encType)) {
 			$key = array_search($encType, self::$encTypes);
 			if ($key !== false) {
 				$this->encType = $key;
-				return $this;
 			} else {
-				return false;
+				$this->error('encType not found.');
 			}
 		} elseif (is_int($encType) && in_array($encType, array_keys(self::$encTypes))) {
 			$this->encType = $encType;
-			return $this;
 		} else {
-			return false;
+			$this->error('encType not found.');
 		}
+		return $this;
 	}
 
 

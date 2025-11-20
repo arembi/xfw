@@ -19,7 +19,7 @@ use function Arembi\Xfw\Misc\getFileExtension;
 use function Arembi\Xfw\Misc\parseHtmlAttributes;
 
 class HeadBase extends ModuleBase {
-	protected static $hasModel = false;
+	protected static $autoloadModel = false;
 
 	private static $title = '';
 	private static $metaDescription = '';
@@ -34,13 +34,10 @@ class HeadBase extends ModuleBase {
 	private static $custom = ['top'=>[], 'bottom'=>[]];
 
 
-	protected function init()
-	{
-		
-	}
+	protected function init() {}
 
 
-	public function finalize()
+	public function finalize(): void
 	{	
 		$robotsMeta = self::generateRobotsMeta();
 		$robotsMetaContent = implode(', ', array_filter($robotsMeta));
@@ -72,10 +69,29 @@ class HeadBase extends ModuleBase {
 			Debug::alert('The meta description has been set by ' . self::$setBy['metaDescription'] . '.', 'n');
 		}
 
+		$jsTags = [];
+
+		foreach (self::$js as $j) {
+			$attributes = [
+				'src'=>$j->src(),
+				'type'=>$j->type(),
+				'async'=>$j->async(),
+				'defer'=>$j->defer(),
+				'crossorigin'=>$j->crossorigin(),
+				'integrity'=>$j->integrity(),
+				'nomodule'=>$j->nomodule(),
+				'referrerpolicy'=>$j->referrerpolicy()
+			];
+			$jsTags[] = [
+				'attributes'=>parseHtmlAttributes($attributes),
+				'content'=>$j->content()
+			];
+		}
+
 		$this->lv('title', self::$title);
 		$this->lv('meta', self::$meta);
 		$this->lv('css', self::$css);
-		$this->lv('js', self::$js);
+		$this->lv('javascript', $jsTags);
 		$this->lv('custom', self::$custom);
 		$this->lv('link', self::$link);
 		$this->lv('base', self::$base);
@@ -83,7 +99,7 @@ class HeadBase extends ModuleBase {
 	}
 
 
-	public static function title(?string $title = null)
+	public static function title(string|array|null $title = null)
 	{
 		if ($title === null) {
 			return self::$title;
@@ -92,7 +108,7 @@ class HeadBase extends ModuleBase {
 	}
 
 
-	public static function metaDescription(?string $description = null)
+	public static function metaDescription(string|array|null $description = null)
 	{
 		if ($description == null) {
 			return self::$metaDescription;
@@ -115,7 +131,7 @@ class HeadBase extends ModuleBase {
 		if ($url === null) {
 			return self::$favicon['url'];
 		}
-		self::$favicon['url'] = $url;
+		self::$favicon['url'] = Router::url($url);
 	}
 
 
@@ -128,23 +144,43 @@ class HeadBase extends ModuleBase {
 	}
 
 
-	public static function addJs(string $type, string $content, bool $async = false)
+	public static function addJs(
+		string $src = '',
+		string $type = '',
+		bool $async = false,
+		bool $defer = false,
+		string $crossorigin = '',
+		string $integrity = '',
+		string $nomodule = '',
+		string $referrerpolicy = '',
+		string $content = ''
+	): void
 	{
-		self::$js[] = new Js($type, $content, $async);
+		self::$js[] = new Js(
+			$src,
+			$type,
+			$async,
+			$defer,
+			$crossorigin,
+			$integrity,
+			$nomodule,
+			$referrerpolicy,
+			$content
+		);
 	}
 
 
-	public static function addCss($css)
+	public static function addCss(string $url): void
 	{
-		$css = trim($css);
-		$css = Router::url($css);
-		if (!in_array($css, self::$css)) {
-			self::$css[] = $css;
+		$url = trim($url);
+		$url = Router::url($url);
+		if (!in_array($url, self::$css)) {
+			self::$css[] = $url;
 		}
 	}
 
 
-	public static function removeCss(int $key)
+	public static function removeCss(int $key): void
 	{
 		unset(self::$css[$key]);
 	}
@@ -155,7 +191,7 @@ class HeadBase extends ModuleBase {
 	// 'attr1' => 'value1',
 	// 'attr2' => 'value2'
 	// ]
-	public static function addMeta(array $meta)
+	public static function addMeta(array $meta): void
 	{
 		if (!isset($meta['content'])) {
 			$meta['content'] = '';
@@ -171,7 +207,7 @@ class HeadBase extends ModuleBase {
 	}
 
 
-	public static function removeMeta(string $type, ?string $key = null)
+	public static function removeMeta(string $type, ?string $key = null): void
 	{
 		if ($key === null) {
 			unset(self::$meta[$type]);
@@ -181,43 +217,42 @@ class HeadBase extends ModuleBase {
 	}
 
 
-	public static function addLink(array $attributes)
+	public static function addLink(array $attributes): void
 	{
 		array_walk($attributes, fn($e) => htmlspecialchars($e));
 		self::$link[] = parseHtmlAttributes($attributes);
 	}
 
 
-	public static function removeLink(int $key)
+	public static function removeLink(int $key): void
 	{
 		unset(self::$link[$key]);
 	}
 
 
-	public static function addCustomHtml(string $custom, string $position = 'bottom')
+	public static function addCustomHtml(string $custom, string $position = 'bottom'): void
 	{
 		self::$custom[$position] = $custom;
 	}
 
 
-	public static function removeCustomHtml(string $position, int $key)
+	public static function removeCustomHtml(string $position, int $key): void
 	{
 		unset(self::$custom[$position][$key]);
 	}
 
 
-	public static function generateRobotsMeta()
+	public static function generateRobotsMeta(): array
 	{
-		$meta = [];
-		$meta['index'] = Seo::indexable() ? 'index' : 'noindex';
-		$meta['follow'] = Seo::followable() ? 'follow' : 'nofollow';
-		$meta['noArchive'] = Seo::archivable() ? false : 'noarchive';
-		$meta['maxSnippet'] = 'max-snippet:' . Seo::maxSnippet();
-		$meta['maxImagePreview'] = 'max-image-preview:' . Seo::maxImagePreview();
-		$meta['max-video-preview'] = 'max-video-preview:' . Seo::maxVideoPreview();
-		$meta['noTranslate'] = Seo::translatable() ? false : 'notranslate';
-		$meta['noImageIndex'] = Seo::imagesIndexable() ? false : 'noimageindex';
-
-		return $meta;
+		return [
+			'index'=>Seo::indexable() ? 'index' : 'noindex',
+			'follow'=>Seo::followable() ? 'follow' : 'nofollow',
+			'noArchive'=>Seo::archivable() ? false : 'noarchive',
+			'maxSnippet'=>'max-snippet:' . Seo::maxSnippet(),
+			'maxImagePreview'=>'max-image-preview:' . Seo::maxImagePreview(),
+			'max-video-preview'=>'max-video-preview:' . Seo::maxVideoPreview(),
+			'noTranslate'=>Seo::translatable() ? false : 'notranslate',
+			'noImageIndex'=>Seo::imagesIndexable() ? false : 'noimageindex'
+		];
 	}
 }

@@ -4,14 +4,16 @@ namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Debug;
+use Arembi\Xfw\Core\Settings;
 use Arembi\Xfw\Inc\CustomMenuitem;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection;
 
 class MenuBase extends ModuleBase {
 
-	protected static $hasModel = true;
+	protected static $autoloadModel = true;
 	
 	private $level;
+	private $lang;
 	private $items;
 	private $menuName;
 	private $menuType;
@@ -21,16 +23,29 @@ class MenuBase extends ModuleBase {
 
 	protected function init()
 	{
-		$this->loadModel();
-		
+		$this->level = 0;
+		$this->lang = '';
+		$this->items = new Collection();
+		$this->menuName = '';
+		$this->menuType = '';
+		$this->title = [];
+		$this->displayTitle = true;
+
 		// Key is the parameter that should be used to preload a menu
 		$key = isset($this->params['id']) ? 'id' : (isset($this->params['menuName']) ? 'name' : null);
 		
-		$this->level($this->params['level'] ?? 0);
-		$this->items($this->params['items'] ?? new Collection());
-		$this->title($this->params['title'] ?? []);
-		$this->displayTitle($this->params['displayTitle'] ?? false);
-		
+		if ($key) {
+			$this->invokeModel();
+		}
+
+		$this
+			->lang($this->params['lang'] ?? App::getLang())
+			->level($this->params['level'] ?? 0)
+			->title($this->params['title'] ?? [])
+			->menuName($this->params['menuName'] ?? '')
+			->menuType($this->params['menuType'] ?? '')
+			->displayTitle($this->params['displayTitle'] ?? false);
+
 		// Load stored data if requested based on the given key
 		if ($key !== null) {
 			$storedMenu = $key == 'id'
@@ -38,29 +53,85 @@ class MenuBase extends ModuleBase {
 				: $this->model->getMenuByMenuName($this->params['menuName']);
 
 			if ($storedMenu) {
-				$this->menuName = $storedMenu->name;
-				$this->menuType = $storedMenu->type;
+				$this->menuName($storedMenu->name);
+				$this->menuType($storedMenu->type);
 
 				foreach ($storedMenu->menuitems as $menuitemRecord) {
 					$convertedItem = $this->toMenuitem($menuitemRecord->item);
 					if ($convertedItem) {
-						$this->items->push($convertedItem);
+						$this->addItem($convertedItem);
 					}
 				}
 			}
 		}
+
+		if (isset($this->params['items'])) {
+			$this->items($this->params['items']);
+		}
+		
 	}
 
 
-	public function item(int|string $key, Link|Menu|CustomMenuitem|null $value = null)
+	public function finalize(): void
 	{
-		if ($value === null) {
-			return $this->items[$key] ?? null;
+		foreach ($this->items as $item) {
+			$item->finalize();
+		}
+		$this
+			->lv('lang', $this->lang)
+			->lv('name', $this->menuName)
+			->lv('type', $this->menuType)
+			->lv('level', $this->level)
+			->lv('displayTitle', $this->displayTitle)
+			->lv('title', $this->title)
+			->lv('items', $this->items);
+	}
+
+
+	public function lang(?string $lang = null): string|MenuBase
+	{
+		if ($lang === null) {
+			return $this->lang;
+		}
+		if (in_array($lang, array_column(Settings::get('availableLanguages'), 0))) {
+			$this->lang = $lang;
+		} else {
+			$this->error('Cannot set unsupported language.');
+		}
+		return $this;
+	}
+
+
+	public function menuName(?string $name = null): string|MenuBase
+	{
+		if ($name === null) {
+			return $this->menuName;
 		}
 
-		$this->items->put($key, $value);
+		$this->menuName = $name;
 		return $this;
-		
+	}
+
+
+	public function menuType(?string $type = null): string|MenuBase
+	{
+		if ($type === null) {
+			return $this->menuType;
+		}
+
+		$this->menuType = $type;
+		return $this;
+	}
+
+
+	public function item(int|string $key, Link|MenuBase|CustomMenuitem|null $item = null)
+	{
+		if ($item === null) {
+			return $this->items->get($key);
+		}
+
+		$this->addItem($item, $key);
+		return $this;
 	}
 
 
@@ -69,29 +140,47 @@ class MenuBase extends ModuleBase {
 		if ($items === null) {
 			return $this->items;
 		}
-		
-		if(is_array($items)) {
-			$items = collect($items);
+
+		$this->items = new Collection(); // resetting item collection
+
+		foreach($items as $item) {
+			$this->addItem($item);
 		}
-		$this->items = $items;
 		return $this;
 	}
 
 
-	public function addItem(Link|Menu|CustomMenuitem $item): MenuBase
+	public function numberOfItems(): int
 	{
-		$this->items->push($item);
+		return $this->items->count();
+	}
+
+
+	public function addItem(Link|Menu|CustomMenuitem $item, int|string|null $key = null): MenuBase|false
+	{
+		if ($item->error()['errorOccured']) {
+			return false;
+		}
+		if ($item->moduleName() == 'menu') {
+			$item->level($this->level + 1);
+		}
+		if ($key) {
+			$this->items->put($key, $item);
+		} else {
+			$this->items->push($item);
+		}
 		return $this;
 	}
+
 
 	public function removeItem(int|string $key): MenuBase
 	{
-		$this->items->pull($key);
+		$this->items->forget($key);
 		return $this;
 	}
 
 
-	public function level(?int $level): int|MenuBase
+	public function level(?int $level = null): int|MenuBase
 	{
 		if ($level === null) {
 			return $this->level;
@@ -102,7 +191,7 @@ class MenuBase extends ModuleBase {
 	}
 
 
-	public function title(array|string|null $title): array|MenuBase
+	public function title(array|string|null $title = null): array|MenuBase
 	{
 		if ($title === null) {
 			return $this->title;
@@ -129,10 +218,10 @@ class MenuBase extends ModuleBase {
 	}
 
 
-	protected function toMenuitem(object|array $o): Link|Menu|CustomMenuitem|false
+	protected function toMenuitem(object|array $o): Link|MenuBase|CustomMenuitem|null
 	{
-		$menuitem = false;
 		$o = (object) $o;
+		$menuItem = null;
 		
 		$o->type ??= 'custom';
 
@@ -145,15 +234,16 @@ class MenuBase extends ModuleBase {
 
 		switch ($o->type) {
 			case 'link':
-				$menuitem = new Link([
+				$menuItem = new Link([
 					'href' => $o->href ?? null,
 					'anchor' => $o->anchor[$lang] ?? array_values($o->anchor)[0] ?? '',
 					'title' => $o->title[$lang] ?? array_values($o->title)[0] ?? '',
-					'target' => $o->target ?? null
+					'target' => $o->target ?? null,
+					'autoFinalize'=>true
 				]);
 				break;
 			case 'menu':
-				$menuitem = new Menu([
+				$menuItem = new Menu([
 					'id' => $o->id ?? null,
 					'level' => $this->level + 1,
 					'displayTitle' => false,
@@ -161,26 +251,13 @@ class MenuBase extends ModuleBase {
 				]);
 				break;
 			case 'custom':
-				$menuitem = new CustomMenuitem($o->content);
+				$menuItem = new CustomMenuitem($o->content);
 				break;
 			default:
 				Debug::alert('Menuitem type: ' . ($o->type ?? '(not set)') . ' not suported.');
-				$menuitem = false;
+				$menuItem = false;
 		}
 
-		return $menuitem;
-	}
-
-
-	public function finalize()
-	{
-		$this->lv('name', $this->menuName);
-		$this->lv('type', $this->menuType);
-		$this->lv('level', $this->level);
-		$this->lv('displayTitle', $this->displayTitle);
-		$this->lv('title', $this->title);
-		$this->lv('items', $this->items);
-
-		return $this;
+		return $menuItem;
 	}
 }

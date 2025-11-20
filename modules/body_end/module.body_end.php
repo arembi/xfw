@@ -6,17 +6,12 @@ use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\Router;
 
 class Body_EndBase extends ModuleBase {
-	protected static $hasModel = false;
+	protected static $autoloadModel = false;
 
 	private static $meta = [];
 	private static $JS = [];
 	private static $CSS = [];
 	private static $custom = [];
-
-	protected $options = [
-		'JS'=>null,
-		'custom'=>null
-		];
 
 
 	protected function init()

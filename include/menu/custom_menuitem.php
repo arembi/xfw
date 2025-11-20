@@ -7,7 +7,7 @@ class CustomMenuitem {
     private $content;
 
 
-    public function __construct(?string $content = null)
+    public function __construct(string $content = '')
     {
         $this->content = $content;
     }
@@ -15,16 +15,16 @@ class CustomMenuitem {
 
     public function __toString()
     {
-        return $this->content ?? '';
+        return $this->content;
     }
 
     
-    public function content(?string $data = null)
+    public function content(?string $content = null): string|CustomMenuitem
     {
-        if ($data === null) {
+        if ($content === null) {
             return $this->content;
-        } else {
-            $this->content = $data;
         }
+        $this->content = $content;
+        return $this;
     }
 }

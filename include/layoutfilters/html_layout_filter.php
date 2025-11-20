@@ -1,12 +1,11 @@
 <?php
 
-namespace Arembi\Xfw\Filter;
+namespace Arembi\Xfw\Inc\Filter;
 
 class HtmlLayoutFilter implements LayoutFilter {
 
-  public function filter(string $str)
+  public function filter(string $str): string
   {
     return htmlspecialchars($str);
   }
-
 }

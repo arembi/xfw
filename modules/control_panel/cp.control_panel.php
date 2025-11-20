@@ -135,7 +135,6 @@ class CP_Control_PanelBase extends Control_panel {
 					->type('textarea')
 					->label($k)
 					->text(is_string($s) ? $s : json_encode($s,JSON_UNESCAPED_UNICODE));
-
 				$domainSettingsField->addField($domainSettingsField->name() . '[' . $k . ']', $newField);
 			}
 		} else {
@@ -282,7 +281,7 @@ class CP_Control_PanelBase extends Control_panel {
 		
 		// Module config
 		if (!empty($route->moduleConfig)) {
-			$moduleConfigField = $form->addFieldSet('moduleConfig')
+			$moduleConfigFieldSet = $form->addFieldSet('moduleConfig')
 				->label('Module config');
 		
 			foreach ($route->moduleConfig as $k => $c) {
@@ -291,8 +290,7 @@ class CP_Control_PanelBase extends Control_panel {
 					->type('textarea')
 					->label($k)
 					->text(is_string($c) ? $c : json_encode($c));
-
-				$moduleConfigField->addField($moduleConfigField->name() . '[' . $k . ']', $newField);
+				$moduleConfigFieldSet->addField($moduleConfigFieldSet->name() . '[' . $k . ']', $newField);
 			}
 		} else {
 			$form->addField('moduleConfig', 'textarea')

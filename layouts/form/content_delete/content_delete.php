@@ -1,9 +1,11 @@
-<div>
+<header>
+	<h1>
 	<?php $this->print([
-		'en'=>'Are you sure you want to delete this static page?',
-		'hu'=>'Biztosan törölni szeretné ezt az oldalt?'
+		'en'=>'Are you sure you want to delete this HTML content?',
+		'hu'=>'Biztosan törli ezt a HTML tartalmat?'
 	]); ?>
-</div>
+	</h1>
+</header>
 <form method="POST" action="<?php $this->print($action) ?>">
 	<table>
 		<tbody>
@@ -17,7 +19,7 @@
 			</tr>
 			<tr>
 			<td colspan="2">
-				<input type="submit" value="Delete"/>
+				<input type="submit" value="<?php $this->print(['en'=>'Delete', 'hu'=>'Törlés']); ?>"/>
 			</td>
 			</tr>
 		</tbody>

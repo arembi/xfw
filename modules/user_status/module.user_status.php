@@ -3,21 +3,39 @@
 namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\ModuleBase;
+use Arembi\Xfw\Core\User;
 
 class User_StatusBase extends ModuleBase {
   
-	protected static $hasModel = false;
+	protected static $autoloadModel = false;
+	protected $user;
 
 	protected function init()
 	{
-		$user = $_SESSION['user'];
-		$this->lv('user', $user);
-		$this->lv('username', $user->get('username'));
-		$this->lv('firstName', $user->get('firstName'));
-		$this->lv('lastName', $user->get('lastName'));
-		$this->lv('lastName', $user->get('lastName'));
-		$this->lv('userGroup', $user->get('userGroup'));
-		$this->lv('clearanceLevel', $user->get('clearanceLevel'));
-		$this->lv('sessionId', session_id());
+		$this->user($_SESSION['user']);
+	}
+
+
+	public function finalize()
+	{
+		$this
+			->lv('user', $this->user)
+			->lv('username', $this->user->get('username'))
+			->lv('firstName', $this->user->get('firstName'))
+			->lv('lastName', $this->user->get('lastName'))
+			->lv('lastName', $this->user->get('lastName'))
+			->lv('userGroup', $this->user->get('userGroup'))
+			->lv('clearanceLevel', $this->user->get('clearanceLevel'))
+			->lv('sessionId', session_id());
+	}
+
+
+	public function user(?User $user = null): User|User_StatusBase
+	{
+		if ($user === null) {
+			return $this->user;
+		}
+		$this->user = $user;
+		return $this;
 	}
 }

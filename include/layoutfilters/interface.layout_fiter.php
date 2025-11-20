@@ -1,6 +1,6 @@
 <?php
 
-namespace Arembi\Xfw\Filter;
+namespace Arembi\Xfw\Inc\Filter;
 
 interface LayoutFilter {
 

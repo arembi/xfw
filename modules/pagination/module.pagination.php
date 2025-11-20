@@ -33,7 +33,7 @@ use Arembi\Xfw\Core\Language;
 
 class PaginationBase extends ModuleBase {
 
-	protected static $hasModel = false;
+	protected static $autoloadModel = false;
 
 	protected static $defaults = [
 		'itemsPerPage' => 10,
@@ -47,7 +47,7 @@ class PaginationBase extends ModuleBase {
 		// If the number of items has not been set, there is no point to place a
 		// paginator on the site
 		if (empty($this->params['numberOfItems'])) {
-			return false;
+			$this->error('Number of items not set.');
 		}
 
 		// Setting default values if needed
@@ -123,11 +123,12 @@ class PaginationBase extends ModuleBase {
 			$links[] = $linkData;
 		 }
 
-		 $this->lv('links', $links);
-		 $this->lv('id', $id);
-		 $this->lv('class', $class);
-		 $this->lv('style', $style);
-		 $this->lv('etc', $etc);
+		$this
+			->lv('links', $links)
+			->lv('id', $id)
+			->lv('class', $class)
+			->lv('style', $style)
+			->lv('etc', $etc);
 
 	}
 

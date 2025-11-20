@@ -40,28 +40,20 @@ the file hierarchy looks like this:
 				|- modules
 				|- layouts
 					|- layout1
-						|- css
-						|- img
-						|- js
-						|- layout1.php
+						|- variant1.php
+						|- variant2.php
 					|- layout2
-						|- css
-						|- img
-						|- js
-						|- layout2.php
+						|- variant1.php
+						|- variant2.php
 			|- domain2.com
 				|- modules
 				|- layouts
 					|- layout1
-						|- css
-						|- img
-						|- js
-						|- layout1.php
+						|- variant1.php
+						|- variant2.php
 					|- layout2
-						|- css
-						|- img
-						|- js
-						|- layout2.php
+						|- variant1.php
+						|- variant2.php
 
 [HOW THE SYSTEM WORKS]
 
@@ -83,7 +75,7 @@ If you instatiate a module without giving it an ID,
 remember to set the params['id']. (If not, it will get one in its init())
 
 !!! DO NOT FORGET !!!
-Each module class has to call the loadModel() and the loadPathParams() functions
+Each module class has to call the invokeModel() and the loadPathParams() functions
 in their init() function in order to be able to use the database and have access
 to the path parameters.
 Had to move those 2 functions out of the constructor, because we need to use
@@ -97,146 +89,96 @@ namespace Arembi\Xfw\Core;
 
 use Arembi\Xfw\Misc;
 use Arembi\Xfw\Module\Head;
+use Arembi\Xfw\Module\Image;
 use ReflectionClass;
 
 abstract class ModuleBase {
 	
-	// Whether the autoloader should look for a model
-	protected static $hasModel;
-
-	// The module's name
-	protected $name;
-
-	// The module's name without the addon's prefix
-	protected $noAddonName;
-
-	// Registration ID, used by the system to identify instantiated modules
-	protected $rId;
-
-	// Parameters used beyond the module's basic functionality
-	protected $params;
-
-	// The module class's name
-	protected $class;
-
-	// Holds the module addon type, or false if it is not an addon
-	protected $addonType;
-
-	// Reference to the module which embedded this
-	protected $parentModule;
-
-	// The model
-	protected $model;
-
-	// Error that can prevent layout processing
-	protected $error;
-
-	// Whether an anction has to be triggered for the module
-	protected $autoAction;
-
-	// Layout used to render the module
-	protected $layout;
-
-	// Layout variant used to render the module
-	protected $layoutVariant;
-
-	// The HTML output for the module after processing its layout
-	protected $layoutHtml;
-
-	// Shows whether the module's layout has already been processed
-	protected $layoutProcessed;
-
-	// Variables that can be accessed in layouts
-	protected $layoutVariables;
-
-	// Mutators of the printed values
-	protected $layoutFilters;
-
-	// Whether javascript files should be loaded automatically from the layout's folder
-	protected $layoutJsAutoLoad;
-
-	// Whether CSS files should be loaded automatically from the layout's folder
-	protected $layoutCssAutoLoad;
-
-	// The array of embedded modules in the layout
-	protected $embeddedModules;
-
-	// Instance of the Reflector class
-	protected $reflector;
-
-	// Used for ordering of embedded modules within a layout
-	private $embedId;
-
-	// Whether the loop should continue through the current layout
-	protected $recursive;
-
-	// Data sent by forms defined within the system, used by IH module extensions
-	protected $formData;
-
-	// Whether to run init() automatically
-	protected $autoInit;
-
-	// Whether to run init() automatically
-	protected $autoFinalize;
+	protected static $autoloadModel; // Whether the autoloader should look for a model
+	
+	protected $moduleName; // The module's name
+	protected $noAddonName; // The module's name without the addon's prefix
+	protected $rId; // Registration ID, used by the system to identify instantiated modules
+	protected $params; // Parameters used beyond the module's basic functionality
+	protected $objectClass; // The module class's name
+	protected $addonType; // Module addon type, or false if it is not an addon
+	protected $parentModule; // Reference to the module which embedded this
+	protected $model; // The model module extension
+	protected $error; // Error that can prevent layout processing
+	protected $action; // The action to be execeuted upon request
+	protected $autoAction; // Whether an anction has to be triggered for the module
+	protected $layout; // Layout used to render the module
+	protected $layoutVariant; // Layout variant used to render the module
+	protected $layoutHtml; // The HTML output for the module after processing its layout
+	protected $layoutProcessed; // Shows whether the module's layout has already been processed
+	protected $layoutVariables; // Variables that can be accessed in layouts
+	protected $layoutFilters; // Mutators of the printed values
+	protected $embeddedModules; // The array of embedded modules in the layout
+	protected $reflector; // Instance of the Reflector class
+	protected $embedId; // Used for ordering of embedded modules within a layout
+	protected $recursive; // Whether the loop should continue through the current layout
+	protected $formData; // Data sent by forms defined within the system, used by IH module extensions
+	protected $autoInit; // Whether to run init() automatically
+	protected $autoFinalize; // Whether to run finalize() automatically
 
 
-	public static function hasModel()
+	public static function autoloadModel()
 	{
-		return static::$hasModel;
+		return static::$autoloadModel;
 	}
 
 
 	final public function __construct(array $params = [])
 	{
 		$this->reflector = new ReflectionClass($this);
-		$this->class = $this->reflector->getShortName();
+		$this->objectClass = $this->reflector->getShortName();
 		
-		$this->name = strtolower($this->class);
-		if (substr($this->name, -4) == 'base') {
-			$this->name = substr($this->name, 0, -4);
+		$moduleName = strtolower($this->objectClass);
+		if (substr($moduleName, -4) == 'base') {
+			$moduleName = substr($moduleName, 0, -4);
 		};
-
-		$this->noAddonName = '';
+		$this->moduleName = $moduleName;
 		
+		$this->noAddonName = '';
 		$this->error = [
 			'errorOccured'=>false,
 			'message'=>''
 		];
-		
 		$this->layout = $params['layout'] ?? Settings::get('defaultModuleLayout');
 		$this->layoutVariant = $params['layoutVariant'] ?? Settings::get('defaultModuleLayoutVariant');
 		$this->layoutProcessed = false;
 		$this->layoutVariables = [];
 		$this->layoutFilters = $params['layoutFilters'] ?? [];
-		$this->layoutJsAutoLoad = $params['layoutJsAutoLoad'] ?? true;
-		$this->layoutCssAutoLoad = $params['layoutCssAutoLoad'] ?? true;
 		$this->embeddedModules = [];
 		$this->embedId = 0;
 		$this->parentModule = $params['parentModule'] ?? null;
 		$this->recursive = $params['recursive'] ?? true;
 
-		// Checking whether it is an addon
-		$nameParts = explode('_', $this->name, 2);
+		// Determining addon type
+		$nameParts = explode('_', $this->moduleName, 2);
 		if (count($nameParts) == 2) {
 			if (in_array($nameParts[0], array_keys(Config::get('moduleAddons')))) {
 				$this->addonType = $nameParts[0];
 				$this->noAddonName = $nameParts[1];
 			} else {
 				$this->addonType = null;
-				$this->noAddonName = $this->name;
+				$this->noAddonName = $this->moduleName;
 			}
 		} else {
 			$this->addonType = null;
-			$this->noAddonName = $this->name;
+			$this->noAddonName = $this->moduleName;
 		}
+
+		$this->action = $params['action'] ?? Router::getRequestedAction();
 		
 		/*
 		Code that should run every time the module is instantiated
 		shall be put into its init() and finalize() functions
 		init() runs right after instantiation
 		finalize() runs after actions
-		The module addons will not run the init() and finalize() function by default, but you can
-		override this via a constructor parameter, or by assigning a non-null value to the class properties off the addon
+		Embedded modules will run init() and finalize() by default.
+		The module addons will not run init() and finalize() by default,
+		This can be overriden via a constructor parameter, or by assigning a non-null value to the class properties off the addon
 		*/
 
 		$this->autoInit = $params['autoInit'] ?? $this->autoInit ?? ($this->addonType === null);
@@ -249,7 +191,7 @@ abstract class ModuleBase {
 		/*
 		For unique functionality on a request, use actions)
 		If you want to use a model, create a class in the model.{modulename}.php file,
-		and call the loadModel() in the controller's init() function
+		and call the invokeModel() in the controller's init() function
 		To access URL parameters call loadPathParams() within the module class
 		*/
 		
@@ -257,15 +199,9 @@ abstract class ModuleBase {
 			$this->init();
 		}
 
-		/*
-		Executing an action if requested
-		Default actions will only be triggered for the primary module matched by the router
-		*/
-
 		if ($this->autoAction) {
-			$action = Router::getRequestedAction();
-			if ($action) {
-				$this->executeAction($action);
+			if ($this->action) {
+				$this->executeAction($this->action);
 			}
 		}
 
@@ -276,7 +212,7 @@ abstract class ModuleBase {
 	}
 
 
-	public function __toString()
+	public function __toString(): string
 	{
 		return $this->processLayout()->getLayoutHtml() ?? '';
 	}
@@ -288,47 +224,66 @@ abstract class ModuleBase {
 	protected function finalize(){}
 
 
-	protected function autoInit(?bool $trigger = null)
+	protected function moduleName(): string
+	{
+		return $this->moduleName;
+	}
+	
+	
+	protected function objectClass(): string
+	{
+		return $this->objectClass;
+	}
+	
+	
+	protected function action(?string $action): string|ModuleBase
+	{
+		if ($action === null) {
+			return $this->action;
+		}
+		$this->action = $action;
+		return $this;
+	}
+
+
+	protected function autoInit(?bool $trigger = null): bool|ModuleBase
 	{
 		if ($trigger === null) {
 			return $this->autoInit;
 		}
-
 		$this->autoInit = $trigger;
 		return $this;
 	}
 
 
-	protected function autoAction(?bool $trigger = null)
+	protected function autoAction(?bool $trigger = null): bool|ModuleBase
 	{
 		if ($trigger === null) {
 			return $this->autoAction;
 		}
-
 		$this->autoAction = $trigger;
 		return $this;
 	}
 
 
-	protected function autoFinalize(?bool $trigger = null)
+	protected function autoFinalize(?bool $trigger = null): bool|ModuleBase
 	{
 		if ($trigger === null) {
 			return $this->autoFinalize;
 		}
-
 		$this->autoFinalize = $trigger;
 		return $this;
 	}
 
 
-	private function executeAction(string $action)
+	protected function executeAction(string $action): void
 	{
 		$actionMethod = $action . 'Action';
 		if (method_exists($this, $actionMethod)) {
 			$this->$actionMethod();
-			Debug::alert('Action ' . $action . ' for %' . $this->class . ' successfully triggered.', 'o');
+			Debug::alert('Action ' . $action . ' for %' . $this->objectClass . ' successfully triggered.', 'o');
 		} else {
-			Debug::alert('Action ' . $action . ' for %' . $this->class . ' could not be triggered.' , 'f');
+			Debug::alert('Action ' . $action . ' for %' . $this->objectClass . ' could not be triggered.' , 'f');
 		}
 	}
 
@@ -338,34 +293,26 @@ abstract class ModuleBase {
 		if ($message === null) {
 			return $this->error;
 		}
-
-		if ($message == '') {
-			$this->error = ['errorOccured'=>false, 'message'=>$message];
-		} else {
-			$this->error = ['errorOccured'=>true, 'message'=>$message];
-			Debug::alert($message, 'f');
-		}
+		$this->error = ['errorOccured'=>($message != ''), 'message'=>$message];
 		return $this;
 	}
 
 
-	protected function layout(?string $layout = null)
+	protected function layout(?string $layout = null): string|ModuleBase
 	{
 		if ($layout === null) {
 			return $this->layout;
 		}
-		
 		$this->layout = $layout;
 		return $this;
 	}
 
 
-	protected function layoutVariant(?string $variant = null)
+	protected function layoutVariant(?string $variant = null): string|ModuleBase
 	{
 		if ($variant === null) {
 			return $this->layoutVariant;
 		}
-		
 		$this->layoutVariant = $variant;
 		return $this;
 	}
@@ -376,11 +323,11 @@ abstract class ModuleBase {
 	* - put the layoutVariables into the layout
 	* - if recursive, load embedded modules
 	* */
-	public function processLayout()
+	public function processLayout(): ModuleBase
 	{
 		if ($this->error()['errorOccured']) {
-			Debug::alert("Cannot process layout of %$this->name #" . $this->params['id'] . ' due to an error.');
-			$this->layoutHtml = null;
+			Debug::alert("Cannot process layout of %$this->moduleName #" . $this->params['id'] . ': ' . $this->error()['message'], 'f');
+			$this->layoutHtml = '';
 			return $this;
 		}
 
@@ -397,30 +344,11 @@ abstract class ModuleBase {
 
 		// Loading layout file
 		if ($layout['layoutFile']) {
-			// Extract the variabless to local namespace
 			extract($this->layoutVariables);
-
-			// Start output buffering
 			ob_start();
-
-			include($layout['layoutFile']);
-
-			// Get the contents of the buffer
+			require($layout['layoutFile']);
 			$this->layoutHtml = ob_get_contents();
-
-			// End buffering and discard
 			ob_end_clean();
-		}
-
-		// CSS, JS autoload
-		// Adding the module layout's assets to the head
-		if (!empty($layout['layoutDir'])) {
-			if ($this->layoutJsAutoLoad) {
-				$this->jsAutoLoad($layout['layoutDir']);
-			}
-			if ($this->layoutCssAutoLoad) {
-				$this->cssAutoLoad($layout['layoutDir']);
-			}
 		}
 
 		if (!empty($this->layoutHtml)) {
@@ -468,7 +396,7 @@ abstract class ModuleBase {
 		} else {
 			$layoutFile = null;
 			$layoutDir = null;
-			Debug::alert('Layout/variant [' . $layout . '/' . $variant . '] for module %' . $this->name . ' not found.', 'f');
+			Debug::alert('Layout/variant [' . $layout . '/' . $variant . '] for module %' . $this->moduleName . ' not found.', 'f');
 		}
 
 		return ['layoutFile' => $layoutFile, 'layoutDir' => $layoutDir];
@@ -490,7 +418,7 @@ abstract class ModuleBase {
 		} else {
 			$params['name'] = $name;
 			// Preventing infinite loop: the embedded module with the same name as its parent has to have a different ID from the parent
-			if ($this->name != $params['name']
+			if ($this->moduleName != $params['name']
 				|| !array_key_exists($params['name'] . '#' . $params['id'] , App::getRegisteredModules())) {
 				
 				// Adding the embedded module to the list
@@ -544,26 +472,28 @@ abstract class ModuleBase {
 		return $this;
 	}
 
-
-	protected function loadModel()
+	
+	protected function invokeModel()
 	{
 		// Attempting to activate the module's model
-		$moduleModel = $this->reflector->getShortName() . 'Model';
+		$modelName = $this->reflector->getShortName() . 'Model';
 
-		// Module extensions cp and ih use the same model as their parent class
-		$parts = explode('_', $moduleModel, 2);
+		// Module extensions use the same model as their parent class
+		$parts = explode('_', $modelName, 2);
 		if (in_array(strtolower($parts[0]), array_keys(Config::get('moduleAddons')))) {
-			$moduleModel = $parts[1];
+			$modelName = $parts[1];
 		}
 		// Adding namespace
-		$moduleModel = '\\Arembi\\Xfw\\Module\\' . $moduleModel;
+		$modelClass = '\\Arembi\\Xfw\\Module\\' . $modelName;
 
 		// Instantiating and initialising the module's model
-		if (class_exists($moduleModel)) {
-			$this->model = new $moduleModel();
+		if (class_exists($modelClass)) {
+			$this->model = new $modelClass();
 			if (method_exists($this->model, 'init')) {
 				$this->model->init();
 			}
+		} else {
+			Debug::alert('Could not invoke model ' . $modelName . '.', 'f');
 		}
 	}
 
@@ -599,7 +529,7 @@ abstract class ModuleBase {
 		$filters = array_merge($filters, $this->layoutFilters);
 
 		foreach ($filters as $filter) {
-			$filterClass = "\\Arembi\\Xfw\\Filter\\$filter" . "LayoutFilter";
+			$filterClass = '\\Arembi\\Xfw\\Inc\\Filter\\' . $filter . 'LayoutFilter';
 			if (class_exists($filterClass)) {
 				$filter = new $filterClass();
 			}
@@ -610,7 +540,7 @@ abstract class ModuleBase {
 	}
 
 
-	protected function a(string $href, string|array $anchor = '', array $params = [])
+	protected function a(string $href, string|array $anchor = '', array $params = [], bool $embed = true)
 	{
 		$linkParams = [
 			'href'=>$href,
@@ -618,53 +548,72 @@ abstract class ModuleBase {
 			...$params
 		];
 
-		$this->embed('link', $linkParams);
+		if ($embed) {
+			$this->embed('link', $linkParams);
+		} else {
+			$a = new Link($linkParams);
+			$a->finalize();
+			return $a->__toString();
+		}
 	}
 
 
-	protected function img(string $src, ?array $attributes = null)
+	protected function img(string $src, array $attributes = [], bool $embed = true)
 	{
+		$keys = array_keys($attributes);
+		$htmlKeys = array_map(function($key) {
+			$newKey = mb_strtolower($key);
+			if (mb_strpos($newKey, 'html') === 0) {
+				$newKey = mb_substr($newKey, 4);
+			}
+			$newKey = 'html' . mb_ucfirst($newKey);
+			return $newKey;
+		}, $keys);
+		$htmlAttributes = array_combine($htmlKeys, $attributes);
 		$imageAttributes = [
 			'src'=>$src,
-			...$attributes
+			...$htmlAttributes
 		];
-		$this->embed('image', $imageAttributes);
+		
+		if ($embed) {
+			$this->embed('image', $imageAttributes);
+		} else {
+			$img = new Image($imageAttributes);
+			$img->finalize();
+			return $img->__toString();
+		}
 	}
 
 
-	public function getLayoutHtml()
+	public function css(string $url): void
+	{
+		Head::addCss($url);
+	}
+
+
+	public function js(
+		string $src = '',
+		string $type = '',
+		bool $async = false,
+		bool $defer = false,
+		string $crossorigin = '',
+		string $integrity = '',
+		string $nomodule = '',
+		string $referrerpolicy = '',
+		string $content = ''
+	): void
+	{
+		Head::addJs($src, $type, $async, $defer, $crossorigin, $integrity, $nomodule, $referrerpolicy, $content);
+	}
+
+
+	public function getLayoutHtml(): string
 	{
 		return $this->layoutHtml;
 	}
 
 
-	public function jsAutoLoad(string $layoutDir)
-	{
-		if (is_dir($layoutDir . DS . 'js')) {
-			$JSList = Misc\listFiles($layoutDir . DS . 'js', '/', FALSE, 'js');
-			foreach ($JSList as &$JS) {
-				$JS = str_replace(SITES_DIR . DS . DOMAIN , '', $JS);
-			}
-			unset($JS);
-			Head::addJS($JSList);
-		}
-	}
-
-
-	public function cssAutoLoad(string $layoutDir)
-	{
-		if (is_dir($layoutDir . DS . 'css')) {
-			$cssList = Misc\listFiles($layoutDir . DS . 'css', '/', FALSE, 'css');
-			foreach ($cssList as &$css) {
-				$css = str_replace(SITES_DIR . DS . DOMAIN , '', $css);
-			}
-			unset($css);
-			Head::addCSS($cssList);
-		}
-	}
-
-
-	public function render()
+	public function render(): void
 	{
 		echo $this->layoutHtml;
 	}
@@ -675,7 +624,7 @@ abstract class ModuleBase {
 	{
 		$pathParams = Router::getPathParams();
 
-		$pathParamOrder = Router::getMatchedRoutePpo() ?? App::getPathParamOrder($this->name) ?? [];
+		$pathParamOrder = Router::getMatchedRoutePpo() ?? App::getPathParamOrder($this->moduleName) ?? [];
 
 		// Assigning the pathParams to the params
 		// Path params WILL NOT OVERRIDE already existing module params
@@ -695,21 +644,19 @@ abstract class ModuleBase {
 	}
 
 
-	// Returns the parent module
-	public function parent()
+	public function parent(): ModuleBase
 	{
 		return $this->parentModule;
 	}
 
 
-	// Returns the embedded modules
-	public function children()
+	public function children(): array
 	{
 		return $this->embeddedModules;
 	}
 
 
-	public function child(int $n)
+	public function child(int $n): ModuleBase|null
 	{
 		return $this->embeddedModules[$n] ?? null;
 	}

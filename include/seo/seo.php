@@ -35,13 +35,13 @@ abstract class Seo {
 	}
 
 
-	public static function title(?string $title = null)
+	public static function title(string|array|null $title): void
 	{
 		Head::title($title);
 	}
 
 
-	public static function metaDescription(?string $description = null)
+	public static function metaDescription(?string $description = null):void
 	{
 		Head::metaDescription($description);
 	}
@@ -49,81 +49,81 @@ abstract class Seo {
 
 	public static function indexable(?bool $state = null)
 	{
-		if ($state !== null) {
-			self::$indexable = $state;
+		if ($state === null) {
+			return self::$indexable;
 		}
-		return self::$indexable;
+		self::$indexable = $state;
 	}
 
 
 	public static function followable(?bool $state = null)
 	{
-		if ($state !== null) {
-			self::$followable = $state;
+		if ($state === null) {
+			return self::$followable;
 		}
-		return self::$followable;
+		self::$followable = $state;
 	}
 
 
 	public static function archivable(?bool $state = null)
 	{
-		if ($state !== null) {
-			self::$archivable = $state;
+		if ($state === null) {
+			return self::$archivable;
 		}
-		return self::$archivable;
+		self::$archivable = $state;
 	}
 
 
 	public static function maxSnippet(?int $characterCount = null)
 	{
-		if ($characterCount !== null) {
-			self::$maxSnippet = $characterCount;	
+		if ($characterCount === null) {
+			return self::$maxSnippet;
 		}
-		return self::$maxSnippet;
+		self::$maxSnippet = $characterCount;
 	}
 
 
 	public static function maxImagePreview($setting = null)
 	{
-		if ($setting !== null) {
-			if (in_array($setting, self::$allowedmaxImagePreviewSettings)) {
-				self::$maxImagePreview = $setting;
-			} else {
-				Debug::alert('max-image-preview could not be set, invalid value given.', 'f');
-			}
+		if ($setting === null) {
+			return self::$maxImagePreview;
 		}
-		return self::$maxImagePreview;
+		if (in_array($setting, self::$allowedmaxImagePreviewSettings)) {
+			self::$maxImagePreview = $setting;
+		} else {
+			Debug::alert('max-image-preview could not be set, invalid value given.', 'f');
+		}
 	}
 
 
 	public static function maxVideoPreview(?int $seconds = null)
 	{
-		if ($seconds !== null) {
-			if ($seconds >= -1) {
-				self::$maxVideoPreview = $seconds;
-			} else {
-				Debug::alert('max-video-preview could not be set, invalid value given.', 'f');
-			}	
+		if ($seconds === null) {
+			return self::$maxVideoPreview;
 		}
-		return self::$maxVideoPreview;
+		if ($seconds >= -1) {
+			self::$maxVideoPreview = $seconds;
+		} else {
+			Debug::alert('max-video-preview could not be set, invalid value given.', 'f');
+		}	
 	}
 
 
 	public static function translatable(?bool $state = null)
 	{
-		if ($state !== null) {
-			self::$translatable = $state;
+		if ($state === null) {
+			return self::$translatable;
 		}
-		return self::$translatable;
+		self::$translatable = $state;
 	}
 
 
 	public static function imagesIndexable(?bool $state = null)
 	{
-		if ($state !== null) {
-			self::$imagesIndexable = $state;
+		if ($state === null) {
+			return self::$imagesIndexable;
 		}
-		return self::$imagesIndexable;
+		self::$imagesIndexable = $state;
 	}
 
 

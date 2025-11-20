@@ -13,8 +13,6 @@ class Router_InfoBase extends ModuleBase {
 
 	protected function init()
 	{
-		$this->loadPathParams();
-		
 		$this->inputHandlerInfo = [
 			'inputInfo'=>Router::inputInfo(),
 			'status'=>'null',
@@ -38,8 +36,33 @@ class Router_InfoBase extends ModuleBase {
 			$this->inputHandlerInfo['message'] = $ihResult->message();
 			$this->inputHandlerInfo['dataType'] = gettype($ihResult->data());
 		}
-		$this->lv('input', $this->inputHandlerInfo);
-		$this->lv('route', $this->routeInfo);
 	}
 
+
+	public function finalize()
+	{
+		$this
+			->lv('input', $this->inputHandlerInfo)
+			->lv('route', $this->routeInfo);
+	}
+
+
+	public function routeInfo(?array $info): array|Router_InfoBase
+	{
+		if ($info === null) {
+			return $this->routeInfo;
+		}
+		$this->routeInfo = $info;
+		return $this;
+	}
+
+
+	public function inputHandlerInfo(?array $info): array|Router_InfoBase
+	{
+		if ($info === null) {
+			return $this->inputHandlerInfo;
+		}
+		$this->inputHandlerInfo = $info;
+		return $this;
+	}
 }
