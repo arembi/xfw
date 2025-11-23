@@ -408,7 +408,6 @@ abstract class Router {
 		if ($info === null) {
 			return self::$inputInfo;
 		}
-
 		self::$inputInfo = $info;
 	}
 
@@ -555,19 +554,30 @@ abstract class Router {
 		self::$redirects = self::$model->getRedirects();
 
 		self::$routes = self::$model->getAvailableRoutes(DATA_DOMAIN_ID);
+
+		foreach (self::$routes as $r) {
+			if ($r->moduleClass == 'b') {
+				self::$backendModuleRoutes[$r->id] = $r;
+			} else {
+				self::$primaryModuleRoutes[$r->id] = $r;
+			}
+		}
 	}
 
 
 	public static function parsePath()
 	{
-		$lang = '';
-		
+		// First the path nodes and the main path need to be copied,
+		// so the modifications during the parsing will not overwrite them
+		$pathNodesWorkpiece = self::$pathNodes;
+		$pathWorkpiece  = self::$pathNoQueryString;
+
 		/*
-		TRAILING SLASHES
-			force: every URL ends with a slash
-			remove: none of them ends with a slash
-			both
-		*/
+		 * TRAILING SLASHES
+		 *  force: every URL ends with a slash
+		 *  remove: none of them ends with a slash
+		 *  both
+		 */
 		if (Settings::get('URLTrailingSlash') == 'remove') {
 			if (self::$pathNoQueryString != '/' && mb_substr(self::$pathNoQueryString, -1) == '/') {
 				self::redirect(mb_substr(self::$fullUrl, 0, -1));
@@ -578,35 +588,9 @@ abstract class Router {
 			}
 		}
 
-		/*
-		 * LANGUAGE MARKERS
-		 * The indicator in the URL can only be the first segment of the path
-		 * for instance example.com/en
-		 * */
 
-		/*
-		 * First the path nodes and the main path need to be copied,
-		 * so the modifications during the parsing will not overwrite them
-		 * */
-		$pathNodesWorkpiece = self::$pathNodes;
-		$pathWorkpiece  = self::$pathNoQueryString;
-
-		/*
-		 * If the site is multilingual, we have to detect which language
-		 * the user wants to load, doing that by calling self::handleLanguage()
-		 * */
-		
-		$lang = Settings::get('multiLang') == 'true' ? self::handleLanguage($pathNodesWorkpiece, $pathWorkpiece) : Settings::get('defaultLanguage');
-		Debug::alert('Language: ' . $lang);
-		App::setLang($lang);
-		$_SESSION['lang'] = $lang;
-		
-		$correctUrl = self::$hostUrl . DS . $lang . (self::$path == '/' && Settings::get('URLTrailingSlash') == 'remove' ? '' : $pathWorkpiece);
-
-		if ($correctUrl != self::$fullUrl) {
-			self::redirect($correctUrl, 302);
-		}
-		
+		// Detecting multiLang mode, and requested language
+		self::handleLanguage($pathNodesWorkpiece, $pathWorkpiece);
 
 		if (!self::$hit404 && !self::$routes) {
 			return [
@@ -616,60 +600,72 @@ abstract class Router {
 			];
 		}
 
-		foreach (self::$routes as $r) {
-			if ($r->moduleClass == 'b') {
-				self::$backendModuleRoutes[$r->id] = $r;
-			} else {
-				self::$primaryModuleRoutes[$r->id] = $r;
-			}
-		}
-		unset($r);
-
 		self::$paginationParams = Settings::get('paginationParam');
-		self::$paginationParam = self::$paginationParams[$lang];
+		self::$paginationParam = self::$paginationParams[App::getLang()];
 		self::$pageNumber = !empty(self::$GET[self::$paginationParam]) ? self::$GET[self::$paginationParam] : null;
 
 		/*
-		The APP needs only the DOCUMENT LAYOUT and the PRIMARY MOODULE and
-		the primary module's ACTION to load
-		matchRoute will do just that
-		*/
+		 * The APP needs only the DOCUMENT LAYOUT and the PRIMARY MOODULE and
+		 * the primary module's ACTION to load
+		 * matchRoute will do just that
+		 */
 
 		return self::matchRoute($pathWorkpiece);
 	}
 
 
-	private static function handleLanguage(&$pathNodes, &$path)
+	private static function handleLanguage(&$pathNodes, &$path): void
 	{
-		// The available languages are stored in an array for each language,
-		// beginning with the language marker used in this system (f.i. "en"), followed by other aliases,
-		// (f.i. "en-GB")
-		// The segment marking the language will be removed from the path
-
-		$langSetInURL = false;
-
-		$langIndex = 0;
-		$availableLanguages = Settings::get('availableLanguages');
-		$numberOfAvailableLanguages = count($availableLanguages);
+		/*
+		 * LANGUAGE MARKERS
+		 * The indicator in the URL can only be the first segment of the path
+		 * for instance example.com/en
+		 * 
+		 * Language markers will overwrite the default or the session language
+		 * 
+		 * The segment marking the language will be removed from the path
+		 */
 		
-		while (!$langSetInURL && $langIndex < $numberOfAvailableLanguages) {
-			if ($pathNodes[0] == $availableLanguages[$langIndex][0]) {
-				$langSetInURL = true;
-			} else {
-				$langIndex++;
+		$detectedLanguage = $_SESSION['lang'] ?? Settings::get('defaultLanguage');
+		
+		if (Settings::get('multiLang') == 'true') {
+			$languageSetInUrl = false;
+
+			$langIndex = 0;
+			$availableLanguages = Settings::get('availableLanguages');
+			$numberOfAvailableLanguages = count($availableLanguages);
+			
+			while (!$languageSetInUrl && $langIndex < $numberOfAvailableLanguages) {
+				if ($pathNodes[0] == $availableLanguages[$langIndex][0]) {
+					$languageSetInUrl = true;
+				} else {
+					$langIndex++;
+				}
+			}
+
+			if ($languageSetInUrl) {
+				$detectedLanguage = $pathNodes[0];
+				$path = mb_substr($path, mb_strlen($pathNodes[0]) + 1); // Removing the language segment from the path to process
+				array_shift($pathNodes); // Removing the language segment from the path nodes
+			}
+
+			$_SESSION['lang'] = $detectedLanguage;
+			
+			// Redirecting URLs without the language markers to the appropriate URL
+			$correctLanguageUrl = 
+				self::$hostUrl
+				. DS
+				. $detectedLanguage
+				. (self::$path == '/' && Settings::get('URLTrailingSlash') == 'remove' ? '' : $path)
+				. (self::$queryString ? '?' : '')
+				. self::$queryString;
+
+			if ($correctLanguageUrl != self::$fullUrl) {
+				self::redirect($correctLanguageUrl, 302);
 			}
 		}
-
-		if ($langSetInURL) {
-			// The language was set in the URL, it might override previous values
-			$lang = $pathNodes[0];
-			$path = mb_substr($path, mb_strlen($pathNodes[0]) + 1); // Removing the language segment from the path to process
-			array_shift($pathNodes); // Removing the language segment from the path nodes
-		} else {
-			$lang = !empty($_SESSION['lang']) ? $_SESSION['lang'] : Settings::get('defaultLanguage');
-		}
-
-		return $lang;
+		Debug::alert('Language: ' . $detectedLanguage);
+		App::setLang($detectedLanguage);
 	}
 
 
