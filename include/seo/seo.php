@@ -41,7 +41,7 @@ abstract class Seo {
 	}
 
 
-	public static function metaDescription(?string $description = null):void
+	public static function metaDescription(string|array|null $description = null):void
 	{
 		Head::metaDescription($description);
 	}
