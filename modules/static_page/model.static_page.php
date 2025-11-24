@@ -131,7 +131,7 @@ class Static_PageBaseModel {
 
 	private function normalize($page)
 	{
-		$date = new DateTime($page->createdAt);
+		$date = new DateTime($page->createdAt ?? 'now');
 		$page->createdAt = $date->format(Settings::get('dateTimeFormat')[App::getLang()]);
 
 		if ($page->updatedAt !== null) {
