@@ -14,20 +14,26 @@ class Domain extends Model {
 	protected function settings(): Attribute
 	{
 		return Attribute::make(
-            get: fn (string $value) => decodeIfJson($value, true),
+			get: fn (string $value) => decodeIfJson($value, true),
 			set: fn ($value) => !is_string($value) ? json_encode($value,JSON_UNESCAPED_UNICODE) : $value
-        );
+		);
 	}
 	
 
-    public function routes(): HasMany
-    {
+	public function routes(): HasMany
+	{
 		return $this->hasMany(Route::class);
-    }
+	}
 
 
-    public function menus(): BelongsToMany
-    {
-    	return $this->belongsToMany(Menu::class, 'menu_domain', 'domain_id', 'menu_id' );
-    }
+	public function menus(): BelongsToMany
+	{
+		return $this->belongsToMany(Menu::class, 'menu_domain', 'domain_id', 'menu_id' );
+	}
+
+
+	public function redirects(): HasMany
+	{
+		return $this->hasMany(Redirect::class);
+	}
 }

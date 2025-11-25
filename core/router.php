@@ -202,7 +202,7 @@ abstract class Router {
 
 
 	// Returns the domain name for the given ID, or false if it can't be found
-	public static function getDomainRecordById($id)
+	public static function getDomainRecordById(int $id)
 	{
 		return self::$domains[$id] ?? false;
 	}
@@ -550,8 +550,8 @@ abstract class Router {
 	public static function loadData(): void
 	{
 		self::$links = self::$model->getSystemLinksByDomain();
-
-		self::$redirects = self::$model->getRedirects();
+		
+		self::$redirects = self::$domains[DOMAIN_ID]->redirects;
 
 		self::$routes = self::$model->getAvailableRoutes(DATA_DOMAIN_ID);
 
@@ -588,8 +588,6 @@ abstract class Router {
 			}
 		}
 
-
-		// Detecting multiLang mode, and requested language
 		self::handleLanguage($pathNodesWorkpiece, $pathWorkpiece);
 
 		if (!self::$hit404 && !self::$routes) {
@@ -603,12 +601,6 @@ abstract class Router {
 		self::$paginationParams = Settings::get('paginationParam');
 		self::$paginationParam = self::$paginationParams[App::getLang()];
 		self::$pageNumber = !empty(self::$GET[self::$paginationParam]) ? self::$GET[self::$paginationParam] : null;
-
-		/*
-		 * The APP needs only the DOCUMENT LAYOUT and the PRIMARY MOODULE and
-		 * the primary module's ACTION to load
-		 * matchRoute will do just that
-		 */
 
 		return self::matchRoute($pathWorkpiece);
 	}
@@ -669,7 +661,7 @@ abstract class Router {
 	}
 
 
-	// Returns the corresponding document layout, the primary module and its action to execute, based on th URI
+	// Returns the corresponding document layout, the primary module and its action to execute, based on the URI
 	public static function matchRoute(string $path)
 	{
 		if (self::$hit404) {
@@ -870,7 +862,7 @@ abstract class Router {
 	}
 
 
-	public static function redirect(string $to = '', int $statusCode = 301)
+	public static function redirect(string $to = '', int $statusCode = 301): void
 	{
 		if (!$to) {
 			$to = self::$fullUrl;
@@ -887,18 +879,24 @@ abstract class Router {
 	}
 
 
-	// TODO
-	public static function autoRedirect(){}
+	public static function autoRedirect()
+	{
+		self::$redirects->each(function ($redirect) {
+			if (preg_match($redirect->rule, self::$path)) {
+				self::redirect(Router::url($redirect->destination), $redirect->type);
+			}
+		});
+	}
 
 
-	public static function hit404()
+	public static function hit404(): void
 	{
 		header('HTTP/1.1 404 Not Found');
 		self::$hit404 = true;
 	}
 
 
-	public static function loadDomains()
+	public static function loadDomains(): void
 	{
 		self::$domains = self::$model->getDomains();
 	}
@@ -1030,15 +1028,12 @@ abstract class Router {
 			return false;
 		}
 
-		if ($routeRecord->path !== '/') {
-			if (!isset($routeRecord->path[$lang])) {
-				Debug::alert('Could not build href for route #' . $data['route'] . ': path in language [' . $lang . '] missing.', 'w');
-				return false;
-			}
-			$path = $routeRecord->path[$lang];
-		} else {
-			$path = $routeRecord->path;
+		if (!isset($routeRecord->path[$lang])) {
+			Debug::alert('Could not build href for route #' . $data['route'] . ': path in language [' . $lang . '] missing.', 'w');
+			return false;
 		}
+
+		$path = $routeRecord->path[$lang] !== '/' ? $routeRecord->path[$lang] : '';
 
 		$ppo = $routeRecord->moduleConfig['ppo'] ?? $routeRecord->modulePpo;
 
@@ -1064,6 +1059,10 @@ abstract class Router {
 			. $path
 			. $pathParams;
 
+		if (Settings::get('URLTrailingSlash') == 'force') {
+			$hrefBase .= '/';
+		}
+
 		$href = [
 			'lang' => $lang,
 			'base' => $hrefBase
@@ -1086,13 +1085,13 @@ abstract class Router {
 		$xfwHrefParts = [];
 		$queryStringParts = [];
 		
-		if (mb_substr($xfwHref, 0 ,2) === '//') {
+		if (mb_substr($xfwHref, 0 , 2) === '//') {
 			$xfwHref = self::getProtocol() . mb_substr($xfwHref, 2);
 		}
 
 		$xfwHrefFirstChar = mb_substr($xfwHref, 0, 1);
 		
-		if (in_array($xfwHrefFirstChar, ['@', '+', '/'])) { // Link mode
+		if (in_array($xfwHrefFirstChar, ['@', '+', '/'])) { // Special href
 			
 			$xfwHrefParts = explode('?', $xfwHref, 2);
 

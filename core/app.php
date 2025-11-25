@@ -118,6 +118,8 @@ abstract class App {
 
 		Router::loadData();
 		
+		Router::autoRedirect();
+		
 		Router::processInput();
 		
 		Router::serveFiles();

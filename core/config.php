@@ -2,8 +2,6 @@
 
 namespace Arembi\Xfw\Core;
 
-use RuntimeException;
-
 abstract class Config {
 
 	private static $configFileName = 'config.php';
@@ -110,14 +108,14 @@ abstract class Config {
 				'en' => 'm-d-Y H:i:s'
 			],
 			'paginationParam' => [
-				'hu' => 'oldal',
 				'en' => 'page',
-				'de' => 'seite'
+				'de' => 'seite',
+				'hu' => 'oldal'
 			],
 			'siteName' => [
-				'hu' => 'XFW Oldal',
 				'en' => 'XFW Site',
-				'de' => 'XFW Seite'
+				'de' => 'XFW Seite',
+				'hu' => 'XFW Oldal'
 			]
 		]
 	];

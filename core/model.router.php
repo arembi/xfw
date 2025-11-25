@@ -24,14 +24,12 @@ class RouterModel {
 		return Domain::find($id);
 	}
 
-
-	// Returns the saved links as an array where the keys are the link IDs
-	/*
-	 * @param domain:
-	 * you can use a specific domain
+	/* 
+	 * Returns the saved links as an array where the keys are the link IDs
+	 * specific domain
 	 * 'this' refers to the current domain
-	 * to get access to all domains, use 'all'
-	 * */
+	 * 'all'
+	 */
 	public function getSystemLinksByDomain(string|int $domain = 'this')
 	{
 		$links = DB::table('links')
@@ -158,26 +156,5 @@ class RouterModel {
 	public function getLinkById(int $linkId)
 	{
 		return Link::find($linkId);
-	}
-
-
-	public function getRedirects()
-	{
-		// Load hard coded redirects
-		$hcRedirects = Config::get('redirects', []);
-
-		// Load redirects from the database
-		$dbRedirects = Redirect::all()
-			->transform(function($item, $key){
-				$domain = $item->domain;
-				if ($domain) {
-					$item->domain = $domain->domain;
-				}
-				return $item;
-			})->toArray();
-
-		$redirects = array_merge($hcRedirects, $dbRedirects);
-
-		return $redirects;
 	}
 }
