@@ -44,30 +44,22 @@ class Language_SwitcherBase extends ModuleBase {
 		
 		foreach ($availableLanguages as $language) {
 			$route = Router::getMatchedRoute();
+			
 			if (isset($route->path[$language[0]])) {
-				$trailingSlash = Settings::get('URLTrailingSlash') == 'force' ? '/' : '';
-				
-				$routeString = $route->path[$language[0]] != '/' ? $route->path[$language[0]] : $trailingSlash;	
-				
-				$pathParams = Router::getPathParams();
-				$pathParamsString = count($pathParams) > 0 ? '/' . implode('/', Router::getPathParams()) : '';
-				
-				if (!$pathParamsString) {
-					$routeString .= $trailingSlash;
-				}
 
-				$queryString = Router::getQueryString();
-				$queryString = $queryString ? '?' . $queryString : '';
+				$linkHref = Router::routeToUrl(Router::getMatchedRouteId(), $language[0], Router::getPathParameters(), Router::getQueryParameters());
 
-				$linkHref = '/' . $language[0] . $routeString . $pathParamsString . $queryString;
-
-				$languageLink = new Link([
-					'href'=>$linkHref,
+				$this->switcherMenu->addItem(new Link([
+					'href'=>$linkHref['href'],
 					'anchor'=>self::$flags[$language[0]] ?? $language[0],
 					'autoFinalize'=>true
-				]);
+				]));
 
-				$this->switcherMenu->addItem($languageLink);
+				Head::addLink([
+					'rel'=>'alternate',
+					'hreflang'=>$language[0],
+					'href'=>$linkHref['href']
+				]);
 			}
 		}
 		$this->switcherMenu->finalize();

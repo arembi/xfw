@@ -39,8 +39,8 @@ class RouterModel {
 			->select(
 				'links.id as id',
 				'links.lang as lang',
-				'links.path_params as pathParams',
-				'links.query_string as queryString',
+				'links.path_params as pathParameters',
+				'links.query_params as queryParameters',
 				'routes.id as routeId',
 				'routes.path as path',
 				'routes.module_config as moduleConfig',
@@ -58,29 +58,13 @@ class RouterModel {
 					$item->path = [Settings::get('defaultLanguage') => $item->path];
 				}
 
-				$item->pathParams = json_decode($item->pathParams ?? '', true);
+				$item->pathParameters = json_decode($item->pathParameters ?? '', true);
+				$item->queryParameters = json_decode($item->queryParameters ?? '', true);
 				$item->moduleConfig = json_decode($item->moduleConfig ?? '', true);
 
 				$item->ppo = $item->moduleConfig->ppo
 					?? json_decode($item->ppo ?? '', true)
 					?? [];
-
-				// JSON decoding the query string
-				$item->queryString = decodeIfJson($item->queryString, true);
-
-				// If the string was directly given, we convert it to an array
-				if (is_string($item->queryString)) {
-
-					// Removing questionmark if present
-					$qs = ltrim($item->queryString, '?');
-
-					$item->queryString = [];
-					// Converting to array
-					parse_str($qs, $item->queryString);
-
-				} elseif($item->queryString === null) {
-					$item->queryString = [];
-				}
 
 				return $item;
 			});

@@ -55,7 +55,7 @@ class LinkBase extends ModuleBase {
 		'follow' => true, // HTML rel nofollow attribute
 		'rel' => null, // HTML attribute
 		'anchor' => null, // the anchor text
-		'queryParams'=>null,
+		'queryParameters'=>null,
 		'pageNumber' => null
 	*/
 	

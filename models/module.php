@@ -19,7 +19,7 @@ class Module extends Model {
 	];
 
 
-	protected function pathParamOrder(): Attribute
+	protected function path_param_order(): Attribute
 	{
 		return Attribute::make(
 			get: fn (string $value) => json_decode($value ?? '', true),

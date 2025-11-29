@@ -18,7 +18,7 @@ Module extensions
 	IH - Input Handler (see Input handling)
 	CP - Control Panel (see Control panel)
 
-Module params
+Module parameters
 	Can be passed on as constructor parameters
 	parentModule->name f.i.: static_page
 	parentModule->id f.i.: 19 means the static_page with the ID 19 (not the sys_module ID)
@@ -75,7 +75,7 @@ If you instatiate a module without giving it an ID,
 remember to set the params['id']. (If not, it will get one in its init())
 
 !!! DO NOT FORGET !!!
-Each module class has to call the invokeModel() and the loadPathParams() functions
+Each module class has to call the invokeModel() and the loadPathParameters() functions
 in their init() function in order to be able to use the database and have access
 to the path parameters.
 Had to move those 2 functions out of the constructor, because we need to use
@@ -192,7 +192,7 @@ abstract class ModuleBase {
 		For unique functionality on a request, use actions)
 		If you want to use a model, create a class in the model.{modulename}.php file,
 		and call the invokeModel() in the controller's init() function
-		To access URL parameters call loadPathParams() within the module class
+		To access URL parameters call loadPathParameters() within the module class
 		*/
 		
 		if ($this->autoInit) {
@@ -542,16 +542,16 @@ abstract class ModuleBase {
 
 	protected function a(string $href, string|array $anchor = '', array $params = [], bool $embed = true)
 	{
-		$linkParams = [
+		$linkParameters = [
 			'href'=>$href,
 			'anchor'=>$anchor,
 			...$params
 		];
 
 		if ($embed) {
-			$this->embed('link', $linkParams);
+			$this->embed('link', $linkParameters);
 		} else {
-			$a = new Link($linkParams);
+			$a = new Link($linkParameters);
 			$a->finalize();
 			return $a->__toString();
 		}
@@ -620,19 +620,19 @@ abstract class ModuleBase {
 
 
 	// Transfers the parameters set in the URI to the module params
-	protected function loadPathParams()
+	protected function loadPathParameters()
 	{
-		$pathParams = Router::getPathParams();
+		$pathParameters = Router::getPathParameters();
 
-		$pathParamOrder = Router::getMatchedRoutePpo() ?? App::getPathParamOrder($this->moduleName) ?? [];
+		$pathParameterOrder = Router::getMatchedRoutePpo() ?? App::getPathParameterOrder($this->moduleName) ?? [];
 
-		// Assigning the pathParams to the params
+		// Assigning the pathParameters to the params
 		// Path params WILL NOT OVERRIDE already existing module params
-		foreach ($pathParamOrder as $key => $value) {
+		foreach ($pathParameterOrder as $key => $value) {
 			if (!isset($this->params[$value])) {
-				if (!empty($pathParams[$key])) {
-					Debug::alert('[Router] the parameter \'' . $value . '\' was set to \'' . $pathParams[$key] . '\' via URL.', 'o');
-					$this->params[$value] = $pathParams[$key];
+				if (!empty($pathParameters[$key])) {
+					Debug::alert('[Router] the parameter \'' . $value . '\' was set to \'' . $pathParameters[$key] . '\' via URL.', 'o');
+					$this->params[$value] = $pathParameters[$key];
 				} else {
 					Debug::alert('[Router] the parameter \'' . $value . '\' was not set via URL.', 'w');
 					$this->params[$value] = null;

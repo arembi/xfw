@@ -27,7 +27,7 @@ abstract class App {
 	// Autoincrementing ID for embedded modules
 	private static $registeredModuleId;
 
-	private static $pathParamOrders;
+	private static $pathParameterOrders;
 
 	private static $lang;
 
@@ -52,7 +52,7 @@ abstract class App {
 		self::$activeModules = new Collection();
 		self::$registeredModules = [];
 		self::$registeredModuleId = 0;
-		self::$pathParamOrders = [];
+		self::$pathParameterOrders = [];
 		self::$lang = '';
 		
 		self::loadConfigAndDebug();
@@ -125,10 +125,6 @@ abstract class App {
 		Router::serveFiles();
 
 		/*
-		TODO Router::autoRedirect();
-		*/
-
-		/*
 		 * The system requires the document layout and a primary module from the router
 		 * For the primary module, the action is also required
 		 * */
@@ -138,23 +134,23 @@ abstract class App {
 
 		Seo::init();
 		
-		$documentModuleParams = [
+		$documentModuleParameters = [
 			'parentModule'=>null,
 			'layout'=>$matchedRoute['documentLayout'] ?? Settings::get('defaultDocumentLayout'),
 			'layoutVariant'=>$matchedRoute['documentLayoutVariant'] ?? Settings::get('defaultDocumentLayoutVariant'),
 			'primaryModule'=>$matchedRoute['primary'],
-			'primaryModuleParams'=>['autoAction'=>true, ...$matchedRoute['params']],
+			'primaryModuleParameters'=>['autoAction'=>true, ...$matchedRoute['params']],
 			'autoFinalize'=>true
 		];
 
-		$responseDocument = new Document($documentModuleParams);
+		$responseDocument = new Document($documentModuleParameters);
 		
 		Debug::alert(
 			'Document layout / variant in use: '
 			. '['
-			. $documentModuleParams['layout']
+			. $documentModuleParameters['layout']
 			. ' / '
-			. $documentModuleParams['layoutVariant']
+			. $documentModuleParameters['layoutVariant']
 			. ']. Ready to render.'
 		);
 
@@ -348,7 +344,7 @@ abstract class App {
 					Debug::alert('Module %' . $moduleName . ' installed and active, but could not be loaded.', 'f');
 				} else {
 					// Adding path parameter order for current module
-					self::$pathParamOrders[$moduleName] = $currentModule->pathParamOrder;
+					self::$pathParameterOrders[$moduleName] = $currentModule->pathParameterOrder;
 
 					// Now loading the model class
 					$moduleObjectClass = '\\Arembi\Xfw\\Module\\' . $moduleName;
@@ -406,7 +402,7 @@ abstract class App {
 		$document->class = 'system';
 		$document->active = 1;
 		$document->priority = 0;
-		$document->pathParamOrder = null;
+		$document->pathParameterOrder = null;
 
 		$head = new stdClass();
 		$head->id = 0;
@@ -414,7 +410,7 @@ abstract class App {
 		$head->class = 'system';
 		$head->active = 1;
 		$head->priority = 99;
-		$head->pathParamOrder = null;
+		$head->pathParameterOrder = null;
 
 		$bodyStart = new stdClass();
 		$bodyStart->id = 0;
@@ -422,7 +418,7 @@ abstract class App {
 		$bodyStart->class = 'system';
 		$bodyStart->active = 1;
 		$bodyStart->priority = 98;
-		$bodyStart->pathParamOrder = null;
+		$bodyStart->pathParameterOrder = null;
 
 		$bodyEnd = new stdClass();
 		$bodyEnd->id = 0;
@@ -430,7 +426,7 @@ abstract class App {
 		$bodyEnd->class = 'system';
 		$bodyEnd->active = 1;
 		$bodyEnd->priority = 98;
-		$bodyEnd->pathParamOrder = null;
+		$bodyEnd->pathParameterOrder = null;
 
 		$image = new stdClass();
 		$image->id = 0;
@@ -438,7 +434,7 @@ abstract class App {
 		$image->class = 'system';
 		$image->active = 1;
 		$image->priority = 1;
-		$image->pathParamOrder = null;
+		$image->pathParameterOrder = null;
 
 		self::$installedModules = [
 			$document,
@@ -610,7 +606,7 @@ abstract class App {
 
 
 	// Returns the path parameter order for the requested module
-	public static function getPathParamOrder($moduleName)
+	public static function getPathParameterOrder($moduleName)
 	{
 		// The extensions like control panel  (CP_) and form handler (IH_) have no different PPO
 		// They get the basemodule's PPO
@@ -620,7 +616,7 @@ abstract class App {
 			$moduleName = $parts[1];
 		}
 
-		return self::$pathParamOrders[$moduleName];
+		return self::$pathParameterOrders[$moduleName];
 	}
 
 

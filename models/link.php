@@ -11,7 +11,7 @@ use function Arembi\Xfw\Misc\decodeIfJson;
 
 class Link extends Model {
 
-	protected function pathParams(): Attribute
+	protected function path_parameters(): Attribute
     {
 		return Attribute::make(
 			get: fn (string $value) => decodeIfJson($value, true),
@@ -20,7 +20,7 @@ class Link extends Model {
     }
 
 
-	protected function queryString(): Attribute
+	protected function query_params(): Attribute
     {
 		return Attribute::make(
 			get: fn (string $value) => decodeIfJson($value, true),

@@ -83,7 +83,7 @@ abstract class Seo {
 	}
 
 
-	public static function maxImagePreview($setting = null)
+	public static function maxImagePreview(?string $setting = null)
 	{
 		if ($setting === null) {
 			return self::$maxImagePreview;
@@ -127,7 +127,7 @@ abstract class Seo {
 	}
 
 
-	public static function canonical(?string $url = null)
+	public static function canonical(?string $url = null): void
 	{
 		Head::canonical($url);
 	}

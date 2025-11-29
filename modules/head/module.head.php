@@ -3,8 +3,8 @@
 /*
 The <head>
 	The head will be sent to the output after the rest of the embedded modules.
-	You can set f.i. the title anywhere in the system by calling the
-	Head::setTitle('your title') function.
+	You can set f.i. the <title> anywhere in the system by calling the
+	Head::title('your title') function.
 	Same goes to the other head elements: css, JS, meta tags.
 */
 
@@ -122,7 +122,7 @@ class HeadBase extends ModuleBase {
 		if ($url === null) {
 			return self::$baseUrl;
 		}
-		self::$baseUrl = $url;
+		self::$baseUrl = Router::url($url);
 	}
 
 
@@ -140,7 +140,7 @@ class HeadBase extends ModuleBase {
 		if ($url === null) {
 			return self::$canonicalUrl;
 		}
-		self::$canonicalUrl = $url;
+		self::$canonicalUrl = Router::url($url);
 	}
 
 

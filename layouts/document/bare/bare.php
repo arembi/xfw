@@ -4,6 +4,6 @@
     <?php $this->embed('head');?>
 </head>
 <body>
-    <?php $this->embed($primaryModule, $primaryModuleParams) ?>
+    <?php $this->embed($primaryModule, $primaryModuleParameters) ?>
 </body>
 </html>

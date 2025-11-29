@@ -107,7 +107,7 @@ abstract class Config {
 				'hu' => 'Y-m-d H:i:s',
 				'en' => 'm-d-Y H:i:s'
 			],
-			'paginationParam' => [
+			'paginationParameter' => [
 				'en' => 'page',
 				'de' => 'seite',
 				'hu' => 'oldal'

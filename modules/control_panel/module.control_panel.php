@@ -31,9 +31,8 @@ class Control_PanelBase extends ModuleBase {
 	
 	public function init()
 	{
-		$this->loadPathParams();
+		$this->loadPathParameters();
 
-		// Executing default action
 		if (Router::getRequestedAction() === null) {
 			$this->panelAction();
 		}
@@ -55,7 +54,13 @@ class Control_PanelBase extends ModuleBase {
 				$controller
 					->layout('cp')
 					->layoutVariant($task);
+				
+				if ($controller->objectClass !== $this->objectClass) {
+					$controller->init();
+				}
+				
 				$controller->$action();
+				
 				$controller->finalize();
 				
 				$main = $controller->__toString();

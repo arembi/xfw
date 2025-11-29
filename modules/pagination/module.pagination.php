@@ -89,14 +89,14 @@ class PaginationBase extends ModuleBase {
 		 $linkData['href'] = "+route=$routeId";
 
 		 $ppo = Router::getMatchedRoutePpo();
-		 $pathParams = Router::getPathParams();
+		 $pathParameters = Router::getPathParameters();
 
 		 foreach ($ppo as $key => $param) {
-			 $linkData['href'] .= "+$param=$pathParams[$key]";
+			 $linkData['href'] .= "+$param=$pathParameters[$key]";
 		 }
 
-		 $linkData['queryParams'] = Router::getQueryString();
-		 unset($linkData['queryParams'][Router::getPaginationParam()]);
+		 $linkData['queryParameters'] = Router::getQueryString();
+		 unset($linkData['queryParameters'][Router::getPaginationParameter()]);
 
 		 for ($i = 1; $i <= $lastPage; $i++) {
 			$linkData['pageNumber'] = $i;

@@ -5,6 +5,7 @@ namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
+use Arembi\Xfw\Core\Settings;
 use Arembi\Xfw\Inc\Seo;
 
 class DocumentBase extends ModuleBase {
@@ -13,14 +14,14 @@ class DocumentBase extends ModuleBase {
 
 	protected $documentAction;
 	protected $primaryModule;
-	protected $primaryModuleParams;
+	protected $primaryModuleParameters;
 
 
 	public function init()
 	{
 		$this->documentAction = Router::getRequestedDocumentAction();
 		$this->primaryModule = $this->params['primaryModule'];
-		$this->primaryModuleParams = $this->params['primaryModuleParams'];
+		$this->primaryModuleParameters = $this->params['primaryModuleParameters'];
 
 		if ($this->documentAction) {
 			$this->executeAction($this->documentAction);
@@ -32,11 +33,11 @@ class DocumentBase extends ModuleBase {
 	{
 		$this->lv('lang', App::getLang());
 		$this->lv('primaryModule', $this->primaryModule);
-		$this->lv('primaryModuleParams', $this->primaryModuleParams);
+		$this->lv('primaryModuleParameters', $this->primaryModuleParameters);
 
 		Head::addMeta(['charset' => 'utf-8']);
 		
-		Seo::title('&#x1D6BE; Framework by Arembi');
-		Seo::metaDescription('&#x1D6BE;fw - The &#x1D6BE; PHP FrameWork created by Arembi');
+		Seo::title(Settings::get('siteName'));
+		Seo::metaDescription('Created with XfW.');
 	}
 }

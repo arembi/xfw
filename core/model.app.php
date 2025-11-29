@@ -30,7 +30,7 @@ class AppModel {
 				'modules.class as class',
 				'modules.priority as priority',
 				'module_domain.active as active',
-				'modules.path_param_order as pathParamOrder',
+				'modules.path_param_order as pathParameterOrder',
 				'module_categories.name as category'
 				)
 			->where('domains.id', $domainId)
@@ -38,7 +38,7 @@ class AppModel {
 			->distinct()
 			->get()
 			->transform(function ($item, $key) {
-				$item->pathParamOrder = json_decode($item->pathParamOrder ?? '', true);
+				$item->pathParameterOrder = json_decode($item->pathParameterOrder ?? '', true);
 				return $item;
 			});
 

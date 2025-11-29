@@ -45,7 +45,7 @@ abstract class Router {
 	private static $queryParameters;
 
 	// The parameters given to the primary modules via the path (query string not included)
-	private static $pathParams;
+	private static $pathParameters;
 
 	// The registered domains, will not be loaded automatically
 	private static $domains;
@@ -76,11 +76,14 @@ abstract class Router {
 	private static $pageNumber;
 
 	// Collection of URL parameters for the page number
-	private static $paginationParams;
+	private static $paginationParameters;
 
 	// The default page numbering URL parameter on the domain
 	// eg. page, oldal, seite
-	private static $paginationParam;
+	private static $paginationParameter;
+
+	private static $inputInfo;
+	private static $inputHandlerResult;
 
 	// Global clones
 	private static $GET;
@@ -89,10 +92,7 @@ abstract class Router {
 
 	private static $FILES;
 
-	private static $inputInfo;
-	private static $inputHandlerResult;
 
-	
 	public static function init()
 	{
 		self::$model = new RouterModel();	
@@ -113,7 +113,7 @@ abstract class Router {
 		self::$pathNoQueryString = '';
 		self::$queryString = '';
 		self::$queryParameters = [];
-		self::$pathParams = [];
+		self::$pathParameters = [];
 		self::$domains = [];
 		self::$redirects = [];
 		self::$links = [];
@@ -124,8 +124,8 @@ abstract class Router {
 		self::$pageNumber = null;
 		
 		self::$matchedRoute = null;
-		self::$paginationParams = [];
-		self::$paginationParam = '';
+		self::$paginationParameters = [];
+		self::$paginationParameter = '';
 		
 		self::loadDomains();
 
@@ -165,21 +165,21 @@ abstract class Router {
 	}
 
 
-	public static function getPathParams()
+	public static function getPathParameters()
 	{
-		return self::$pathParams;
+		return self::$pathParameters;
 	}
 
 
-	public static function getPaginationParams()
+	public static function getPaginationParameters()
 	{
-		return self::$paginationParams;
+		return self::$paginationParameters;
 	}
 
 
-	public static function getPaginationParam()
+	public static function getPaginationParameter()
 	{
-		return self::$paginationParam;
+		return self::$paginationParameter;
 	}
 
 
@@ -272,6 +272,12 @@ abstract class Router {
 	public static function getQueryString()
 	{
 		return self::$queryString;
+	}
+
+
+	public static function getQueryParameters()
+	{
+		return self::$queryParameters;
 	}
 
 
@@ -387,7 +393,7 @@ abstract class Router {
 			'pathNoQueryString' => self::$pathNoQueryString,
 			'queryString' => self::$queryString,
 			'queryParameters' => self::$queryParameters,
-			'pathParams' => self::$pathParams,
+			'pathParameters' => self::$pathParameters,
 			'pageNumber' => self::$pageNumber
 		];
 	}
@@ -438,8 +444,10 @@ abstract class Router {
 		$uriQuestionmarkParts = explode('?', $uri, 2);
 
 		if (isset($uriQuestionmarkParts[1])) {
+
 			self::$queryString = $uriQuestionmarkParts[1];
 			parse_str(self::$queryString, self::$queryParameters);
+
 		}
 
 		/*
@@ -447,6 +455,7 @@ abstract class Router {
 		(assuming that dev is mainly performed on localhost)
 		*/
 		if ($isLocalhost) {
+
 			$uriParts = explode('/', $uriQuestionmarkParts[0]);
 
 			/*
@@ -459,20 +468,25 @@ abstract class Router {
 			 *
 			 * */
 			if (!empty($uriParts[2])) {
-				$webRoot = $uriParts[1];
 
-		self::$paginationParams = Settings::get('paginationParam');
+				$webRoot = $uriParts[1];
+				self::$paginationParameters = Settings::get('paginationParameter');
 				$domain = $uriParts[2];
 				self::$pathNoQueryString = '/' . implode('/', array_slice($uriParts, 3));
 				self::$path = self::$pathNoQueryString . (isset($uriQuestionmarkParts[1]) ? '?' . $uriQuestionmarkParts[1] : '');
-			} else {
-				App::hcf(file_get_contents(ENGINE_DIR . DS . 'welcome.html'), false);
-			}
-		} else {
-			$domain = $_SERVER['HTTP_HOST'];
 
+			} else {
+
+				App::hcf(file_get_contents(ENGINE_DIR . DS . 'welcome.html'), false);
+
+			}
+
+		} else {
+
+			$domain = $_SERVER['HTTP_HOST'];
 			self::$pathNoQueryString = $uriQuestionmarkParts[0];
 			self::$path = $uri;
+
 		}
 		
 		$domainId = self::getDomainId($domain);
@@ -598,9 +612,9 @@ abstract class Router {
 			];
 		}
 
-		self::$paginationParams = Settings::get('paginationParam');
-		self::$paginationParam = self::$paginationParams[App::getLang()];
-		self::$pageNumber = !empty(self::$GET[self::$paginationParam]) ? self::$GET[self::$paginationParam] : null;
+		self::$paginationParameters = Settings::get('paginationParameter');
+		self::$paginationParameter = self::$paginationParameters[App::getLang()];
+		self::$pageNumber = !empty(self::$GET[self::$paginationParameter]) ? self::$GET[self::$paginationParameter] : null;
 
 		return self::matchRoute($pathWorkpiece);
 	}
@@ -749,7 +763,7 @@ abstract class Router {
 			// The primary module has been found, the remainder of the path consists of the path parameters
 			if ($bestMatch['match'] !== false) {
 				// +1 for the array indexing and another +1 for the starting slash
-				self::$pathParams = explode('/', mb_substr($path, mb_strlen($bestMatch['match']->path[App::getLang()]) + 1 ));
+				self::$pathParameters = explode('/', mb_substr($path, mb_strlen($bestMatch['match']->path[App::getLang()]) + 1 ));
 				self::$matchedRoute = $bestMatch['match'];
 				$match['primary'] = self::$matchedRoute->moduleName;
 				$match['action'] = self::$matchedRoute->moduleConfig['action'] ?? null;
@@ -883,7 +897,7 @@ abstract class Router {
 	{
 		self::$redirects->each(function ($redirect) {
 			if (preg_match($redirect->rule, self::$path)) {
-				self::redirect(Router::url($redirect->destination), $redirect->type);
+				self::redirect(self::url($redirect->destination), $redirect->type);
 			}
 		});
 	}
@@ -912,124 +926,51 @@ abstract class Router {
 	 * 	- for a route it's the domain ID, route ID, the language, the path parameters
 	 * 		and the query string
 	 * */
-	public static function linkToHref(int $id): array|false
+	public static function linkToUrl(int $linkId): array|false
 	{
 		$lang = '';
-		$hrefBase = '';
-		$queryStringParts = [];
-		$pathParams = '';
-		$langMarker = '';
-		$route = '';
-		$href = [
+		
+		$urlToReturn = [
 			'lang' => '',
-			'base' => '',
-			'queryStringParts' => []
+			'href' => ''
 		];
 
-		// $data has to be the link ID
-		if (!isset(self::$links[$id])) {
-			Debug::alert('Link with ID ' . $id . ' not found.', 'f');
+		if (!isset(self::$links[$linkId])) {
+			Debug::alert('Link #' . $linkId . ' not found.', 'f');
 			return false;
 		}
-		
-		// If the site is multilingual, we add the language marker to the URL
-		if (Settings::get('multiLang')) {
-			
-			$lang = self::$links[$id]['linkLang'] ?? App::getLang();
 
-			$langMarker = DS . $lang;
+		$link = self::$links[$linkId];
+		$lang = $link->linkLang ?? App::getLang();
+		$urlToReturn = self::routeToUrl($link->routeId, $lang, $link->pathParameters, $link->queryParameters);
 
-			if (self::$links[$id]->path != '/') {
-				if (isset(self::$links[$id]->path[$lang])) {
-					$route = self::$links[$id]->path[$lang];
-				} else {
-					return false;
-				}
-			} else {
-				$route = '/';
-			}
-		} else {
-			$lang = App::getLang();
-			$langMarker = '';
-			if (self::$links[$id]->path != '/') {
-				$route = self::$links[$id]->path[Settings::get('defaultLanguage')];
-			} else {
-				$route = '/';
-			}
-		}
-
-		// Assembling path parameters
-		foreach (self::$links[$id]->ppo as $link) {
-			$pathParams .= (isset(self::$links[$id]->pathParams[$link]))
-				? '/' . self::$links[$id]->pathParams[$link]
-				: '';
-		}
-
-		// The query string is stored in an array at this point
-		if (!empty(self::$links[$id]->queryString)) {
-			$queryStringParts = self::$links[$id]->queryString;
-		}
-
-		$domain = self::$links[$id]->domain;
-
-		$hrefBase = self::$protocol
-			. (IS_LOCALHOST ? $_SERVER['HTTP_HOST'] . DS . WEB_ROOT . DS : '')
-			. $domain
-			. $langMarker
-			. $route
-			. $pathParams;
-		
-		$href = [
-			'lang' => $lang,
-			'base' => $hrefBase,
-			'queyStringParts'=>$queryStringParts
-		];
-
-		return $href;
+		return $urlToReturn;
 	}
 
 
-	public static function routeToHref(array $data): array|false
+	public static function routeToUrl(int $routeId, string $lang, array $pathParameters = [], array $queryParameters = []): array|false
 	{
-		/*
-			Example:
-			[
-				'route'=>ID,
-				'lang'=>'en',
-				'pathParam1'=>'value1',
-				'pathParam2'=>value2
-			]
-		*/
-		$lang = '';
-		$hrefBase = '';
-		$pathParams = '';
-		$langMarker = '';
-		$href = [
+		$path = '';
+		$ppo = [];
+		$pathParametersSegment = '';
+		$url = '';
+		$queryString = '';
+		$langMarker = Settings::get('multiLang') ? (DS . $lang) : '';
+		
+		$urlToReturn = [
 			'lang' => '',
-			'base' => ''
+			'href' => ''
 		];
 		
-		if (empty($data['route'])) {
-			Debug::alert('Could not build href for route: parameters missing.', 'f');
-			return false;
-		}
-
-		// If the language has not been set, we use the deafult language on the domain
-		if (empty($data['lang']) || !Settings::get('multiLang')) {
-			$lang = App::getLang();
-		} else {
-			$lang = $data['lang'];
-		}
-
-		$routeRecord = self::getRouteRecordById($data['route']);
+		$routeRecord = self::getRouteRecordById($routeId);
 		
 		if (!$routeRecord) {
-			Debug::alert('Could not build href for route #' . $data['route'] . ': route missing.', 'f');
+			Debug::alert('Could not build href for route #' . $routeId . ': route missing.', 'f');
 			return false;
 		}
 
 		if (!isset($routeRecord->path[$lang])) {
-			Debug::alert('Could not build href for route #' . $data['route'] . ': path in language [' . $lang . '] missing.', 'w');
+			Debug::alert('Could not build href for route #' . $routeId . ': path in language [' . $lang . '] missing.', 'w');
 			return false;
 		}
 
@@ -1037,44 +978,48 @@ abstract class Router {
 
 		$ppo = $routeRecord->moduleConfig['ppo'] ?? $routeRecord->modulePpo;
 
+		// TODO: revise if it should be allowed to generate href if a path parameter is missing
 		if (!empty($ppo)) {
-			foreach ($ppo as $param) {
-				$pathParams .= isset($data[$param])
-					? '/' . $data[$param]
+			foreach ($ppo as $parameter) {
+				$pathParametersSegment .= isset($pathParameters[$parameter])
+					? '/' . $pathParameters[$parameter]
 					: '';
 			}
 		}
 
-		$langMarker = Settings::get('multiLang') ? (DS . $lang) : '';
+		if (Settings::get('URLTrailingSlash') == 'force') {
+			$pathParametersSegment .= '/';
+		}
+
+		$queryString = http_build_query($queryParameters);
 
 		// If we are on an alias domain, we will use the paths with the current domain, otherwise use the original domain
 		$domainId = IS_ALIAS && self::$aliasOf['id'] == $routeRecord->domainId ? DOMAIN_ID : $routeRecord->domainId ;
-		
 		$domain = self::getDomainRecordById($domainId);
 		
-		$hrefBase = (IS_LOCALHOST ? 'http://' : self::$protocol)
+		$url = (IS_LOCALHOST ? 'http://' : $domain->protocol)
 			. (IS_LOCALHOST ? $_SERVER['HTTP_HOST'] . DS . WEB_ROOT . DS : '')
 			. $domain['domain']
 			. $langMarker
 			. $path
-			. $pathParams;
+			. $pathParametersSegment
+			. ($queryString ? '?' . $queryString : '');
 
-		if (Settings::get('URLTrailingSlash') == 'force') {
-			$hrefBase .= '/';
-		}
-
-		$href = [
+		$urlToReturn = [
 			'lang' => $lang,
-			'base' => $hrefBase
+			'href' => $url
 		];
 
-		return $href;
-
+		return $urlToReturn;
 	}
 
 
 	/*
-		Translates hrefs intro URLs
+		Deconstructs a href string, and builds the url that corresponds the environment
+		href types:
+		 - route parameters + query string
+		 - link ID - links stored in the DB
+		 - freehand URLs
 	*/
 	public static function url(string $xfwHref, array $overrides = [], bool $returnLang = false): string|array|false
 	{
@@ -1083,7 +1028,8 @@ abstract class Router {
 		$routerHref = [];
 		$xfwHrefFirstChar = '';
 		$xfwHrefParts = [];
-		$queryStringParts = [];
+		$queryParameters = [];
+		$liveQueryString = '';
 		
 		if (mb_substr($xfwHref, 0 , 2) === '//') {
 			$xfwHref = self::getProtocol() . mb_substr($xfwHref, 2);
@@ -1095,90 +1041,84 @@ abstract class Router {
 			
 			$xfwHrefParts = explode('?', $xfwHref, 2);
 
-			if (isset($xfwHrefParts[1])) {
-				parse_str($xfwHrefParts[1], $queryStringParts);
-			}
-
-			// Assembling the path part
-			if ($xfwHrefFirstChar == '@') { //System link mode
-				//	linkId: an integer that follows the @
+			if ($xfwHrefFirstChar == '@') { // System link mode
+				// Required parameters
+				// linkId
+				// Example:
+				// href="@56"
 				$linkId = mb_substr($xfwHrefParts[0], 1);
 
-				$routerHref = self::linkToHref($linkId);
-				$queryStringParts = array_merge($queryStringParts, $routerHref['queryStringParts']);
+				$routerHref = self::linkToUrl($linkId);
+
+				if (isset($routerHref['queryParameters'])) {
+					$queryParameters = $routerHref['queryParameters'];
+				}
 			} elseif ($xfwHrefFirstChar == '+') { // Route mode
 				// Required parameters
 				// route: the route ID
 				// Example:
-				// href = "+route=19+lang=en+pathParam1=abc+pathParam2=xyz"
-				$routeData = [];
+				// href = "+route=19+lang=en+pathParameter1=abc+pathParameter2=xyz"
+				$pathParameters = [];
 				
-				if (isset($overrides['lang'])) {
-					$routeData['lang'] = $overrides['lang'];
-				}
+				$hrefParameters = explode('+', mb_substr($xfwHrefParts[0], 1));
 				
-				$hrefParams = explode('+', mb_substr($xfwHrefParts[0], 1));
-				
-				foreach ($hrefParams as $p) {
-					$cp = explode('=', $p, 2);
-					$routeData[trim($cp[0])] = trim($cp[1]);
+				foreach ($hrefParameters as $keyValuePair) {
+					$parameterParts = explode('=', $keyValuePair, 2);
+					$pathParameters[trim($parameterParts[0])] = trim($parameterParts[1]);
 				}
 
-				$routerHref = self::routeToHref($routeData);
+				$pathParameters = array_merge($pathParameters, $overrides);
+				$routeId = $pathParameters['route'];
+				$routeLang = $pathParameters['lang'] ?? App::getLang();
+				//$pathParameters = array_filter($pathParameters, fn ($key) => !in_array($key, ['route', 'lang']), ARRAY_FILTER_USE_KEY);
+				
+				if (isset($xfwHrefParts[1])) {
+					parse_str($xfwHrefParts[1], $queryParameters);
+				}
 
-			} else { // Starts with a /
-				$routerHref = [
-					'lang' => $overrides['lang'] ?? App::getLang(),
-					'base' => self::gethostURL() . $xfwHrefParts[0]
-				];
-			}
-			
-			if (is_array($routerHref) && $routerHref['base']) {
 				// Adding the page number to the query string
 				if (!empty($overrides['pageNumber'])) {
-					$queryStringParts[self::getPaginationParams()[$routerHref['lang']]] = $overrides['pageNumber'];
+					$queryParameters[self::getPaginationParameters()[$routerHref['lang']]] = $overrides['pageNumber'];
 				}
 
-				if (isset($routerHref['queryStringParts'])) {
-					$queryStringParts = array_merge($queryStringParts, $routerHref['queryStringParts']);
-				}
-
-				if (isset($overrides['queryParams']) && is_array($overrides['queryParams'])) {
-					$queryStringParts = array_merge($queryStringParts, $overrides['queryParams']);
+				if (isset($overrides['queryParameters']) && is_array($overrides['queryParameters'])) {
+					$queryParameters = array_merge($queryParameters, $overrides['queryParameters']);
 				}
 
 				// Elements in the query string can be removed with the remove parameter
 				if (isset($overrides['remove']) && is_array($overrides['remove'])) {
-					$queryStringParts = array_diff_key($queryStringParts, array_flip($overrides['remove']));
+					$queryParameters = array_diff_key($queryParameters, array_flip($overrides['remove']));
 				}
 
-				// The directly given parameters will override the saved ones
-				$queryString = http_build_query($queryStringParts);
+				$routerHref = self::routeToUrl($routeId, $routeLang, $pathParameters, $queryParameters);
 
-				// Adding the questionmark if it was not present
-				if ($queryString && strpos($routerHref['base'], '?') === false) {
-					$queryString = '?' . $queryString;
-				}
-
-				$urlToReturn = $routerHref['base'] . $queryString;
-
-			} else {
+			} else { // Starts with a /
+				$routerHref = [
+					'lang' => $overrides['lang'] ?? App::getLang(),
+					'href' => self::gethostURL() . $xfwHrefParts[0]
+				];
+			}
+			
+			// Assembling the query string
+			if (!is_array($routerHref) || !$routerHref['href']) {
 				return false;
 			}
-
+				
+			$urlToReturn = $routerHref['href'] . $liveQueryString;
 			$langToReturn = $routerHref['lang'];
 
-		} elseif ($xfwHrefFirstChar == '?') {
-			// Path stays the same, the query string will be merged with the existing one
-			$queryParameters = [];
+		} elseif ($xfwHrefFirstChar == '?') { // Path stays the same, the query string will be merged with the existing one
+			
 			parse_str(mb_substr($xfwHref, 1), $queryParameters);
-			$queryString = http_build_query(array_merge(self::$queryParameters, $queryParameters));
-			$urlToReturn = self::$urlNoQueryString . '?' . $queryString;
+			$liveQueryString = http_build_query(array_merge(self::$queryParameters, $queryParameters));
+			$urlToReturn = self::$urlNoQueryString . '?' . $liveQueryString;
 			$langToReturn = App::getLang();
-		} else {
-			// A full URL has been given, no changes needed
+
+		} else { // A full URL has been given, no changes needed
+			
+			$langToReturn = App::getLang();
 			$urlToReturn = $xfwHref;
-			$langToReturn = App::getLang();
+
 		}
 
 		return $returnLang ? ['lang'=>$langToReturn, 'url'=>$urlToReturn] : $urlToReturn;
