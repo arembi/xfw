@@ -14,6 +14,6 @@ $config = [
   ],
   'localhostAutoLogin'=>[
     'enabled'=>true,
-    'userGroup'=>'administrator'
+    'clearanceLevel'=>99
   ]
 ];
