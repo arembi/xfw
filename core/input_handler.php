@@ -7,6 +7,7 @@ namespace Arembi\Xfw\Core;
 
 use stdClass;
 use RuntimeException;
+
 use League\Flysystem\FilesystemException;
 use League\Flysystem\UnableToMoveFile;
 
@@ -41,12 +42,12 @@ class Input_Handler {
 
 		$formData = [];
 		$formName = '';
-		$form = self::$model->getFormById($formId);
 		$moduleAddonLoaded = false;
 		$controllerClass = '';
 		$handlerModule = '';
 		$controller = null;
 		$handlerMethod = '';
+		$form = self::$model->getFormById($formId);
 
 		if (!$form) {
 			$result->status(self::RESULT_ERROR)
@@ -54,15 +55,13 @@ class Input_Handler {
 			return $result;
 		}
 
-		$formName = $form->formName;
-		
 		// Sanitizing posted values
-		if (isset($form->formFields)) {
-			foreach ($form->formFields as $key => $value) {
+		if (isset($form->fields)) {
+			foreach ($form->fields as $key => $value) {
 				if (!(isset($value['type']) && in_array($value['type'], self::$formDataTypes))) {
 					$result
 						->status(self::RESULT_ERROR)
-						->message('Wrong type has been set for ' . $form->formFields[$key] . ' in form ' . $formName . '.');
+						->message('Wrong type has been set for ' . $form->fields[$key] . ' in form ' . $form->name . '.');
 				} else {
 					$formData[$key] = $value['type'];
 				}
@@ -84,7 +83,7 @@ class Input_Handler {
 		} else {
 			$result
 				->status(self::RESULT_ERROR)
-				->message('Missing parameter(s) for form ' . $formName);
+				->message('Missing parameter(s) for form ' . $form->name);
 			return $result;
 		}
 
@@ -94,8 +93,8 @@ class Input_Handler {
 		// If you want to use a form globally, do not assign it to a module,
 		// just put the form's handler function in the ih.document.php file
 
-		$handlerModule = $form->moduleName ?? 'document';
-		$handlerMethod = $formName;
+		$handlerModule = $form->module->name ?? 'document';
+		$handlerMethod = $form->name;
 		$result
 			->handlerModule($handlerModule)
 			->handlerMethod($handlerMethod);
@@ -114,7 +113,7 @@ class Input_Handler {
 		if (!class_exists($controllerClass)) {
 			$result
 				->status(self::RESULT_ERROR)
-				->message('Missing form handler class "' . $controllerClass . ' for form "' . $formName . '".');
+				->message('Missing form handler class "' . $controllerClass . ' for form "' . $form->name . '".');
 			return $result;
 		} else {
 			$controller = new $controllerClass();
@@ -124,9 +123,9 @@ class Input_Handler {
 
 			if (method_exists($controller, $handlerMethod)) {
 				$controller->$handlerMethod($result);
-				Debug::alert('Form ' . $formName . ' processed with method ' . get_class($controller) . '->' . $handlerMethod . '()', 'o');
+				Debug::alert('Form ' . $form->name . ' processed with method ' . get_class($controller) . '->' . $handlerMethod . '()', 'o');
 			} else {
-				Debug::alert('Missing form handler method "' . $handlerMethod . '()" for form "' . $formName . '".', 'f');
+				Debug::alert('Missing form handler method "' . $handlerMethod . '()" for form "' . $form->name . '".', 'f');
 			}
 		}
 		return $result;

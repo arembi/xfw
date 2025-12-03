@@ -40,4 +40,10 @@ class Module extends Model {
 		return $this->belongsToMany(Module_Category::class, 'module_module_category', 'module_id', 'module_category_id');
 	}
 
+
+	public function forms(): HasMany
+	{
+		return $this->hasMany(Form::class);
+	}
+
 }

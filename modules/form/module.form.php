@@ -5,6 +5,7 @@ namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\Router;
+use Arembi\Xfw\Core\Settings;
 use Arembi\Xfw\Inc\FormField;
 use Arembi\Xfw\Inc\FormFieldSet;
 
@@ -27,7 +28,7 @@ class FormBase extends ModuleBase {
 	public function init()
 	{
 		$this->invokeModel();
-
+		
 		$this
 			->fields(new FormFieldSet())
 			->overrides(new FormFieldSet())
@@ -37,13 +38,13 @@ class FormBase extends ModuleBase {
 		$this->hasFileField = false;
 
 		if (!empty($this->params['formId'])) {
-			$form = $this->model->getForm($this->params['formId']);
+			$form = $this->model->getFormById($this->params['formId']);
 			
 			if (!$form) {
 				$this->error('Could not find Form#' . $this->params['formId']);
 			} else {
-				if (isset($form['fields'])) {
-					foreach ($form['fields'] as $k => $f) {
+				if (!empty($form->fields)) {
+					foreach ($form->fields as $k => $f) {
 						$this->fields->addField($k, $this->arrayToFormField($f));
 					}
 				}
@@ -56,8 +57,8 @@ class FormBase extends ModuleBase {
 					->attribute('value' , $this->params['formId']);
 				
 				$this
-					->layout($form['options']['layout'] ?? $form['name'])
-					->layoutVariant($form['options']['layoutVariant'] ?? $form['name']);
+					->layout($form['options']['layout'] ?? Settings::get('defaultModuleLayout'))
+					->layoutVariant($form['options']['layoutVariant'] ?? (($form->module->name ?? 'document') . '-' . $form['name']));
 			}
 		} elseif (!empty($this->params['handlerModule']) && !empty($this->params['handlerMethod'])) { // Generic forms
 			if (isset($this->params['fields'])) {
@@ -75,8 +76,8 @@ class FormBase extends ModuleBase {
 			$this->actionUrl($this->params['actionUrl'] ?? '');
 			
 			$this
-				->layout($this->params['layout'] ?? $this->params['handlerMethod'])
-				->layoutVariant($this->params['layoutVariant'] ?? $this->params['handlerMethod']);
+				->layout($this->params['layout'] ?? Settings::get('defaultModuleLayout'))
+				->layoutVariant($this->params['layoutVariant'] ?? ($this->params['handlerModule'] . '-' . $this->params['handlerMethod']));
 		}
 	}
 
@@ -173,7 +174,7 @@ class FormBase extends ModuleBase {
 			return $this->actionUrl;
 		}
 		
-		$this->actionUrl = $url;
+		$this->actionUrl = Router::url($url);
 		return $this;
 	}
 

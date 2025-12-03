@@ -1,54 +1,26 @@
 <?php
 
 namespace Arembi\Xfw\Core;
-use Illuminate\Database\Capsule\Manager as DB;
-use Arembi\Xfw\Core\Models\Form;
+
+
+use Arembi\Xfw\Module\FormModel;
 
 class Input_HandlerModel {
+	
+	
 	public function getFormById(int $formId)
 	{
-		$form = DB::table('forms')
-			->leftJoin('form_module', 'forms.id', '=', 'form_module.form_id')
-			->leftJoin('modules', 'form_module.module_id', '=', 'modules.id')
-			->where('forms.id', $formId)
-			->select(
-				'forms.id AS formId',
-				'forms.name AS formName',
-				'forms.fields AS formFields',
-				'forms.action_url AS actionUrl',
-				'modules.name AS moduleName'
-				)
-			->first();
+		$formModel = new FormModel();
 
-		if ($form) {
-			$form->formFields = json_decode($form->formFields ?? '', true);
-		}
-
-		return $form;
+		return $formModel->getFormById($formId);
 	}
-
 
 
 	public function getFormByName(string $formName)
 	{
-		$form = DB::table('forms')
-			->leftJoin('form_module', 'forms.id', '=', 'form_module.form_id')
-			->leftJoin('modules', 'form_module.module_id', '=', 'modules.id')
-			->where('forms.name', $formName)
-			->select(
-				'forms.id AS formId',
-				'forms.name AS formName',
-				'forms.fields AS formFields',
-				'forms.action_url AS actionUrl',
-				'modules.name AS moduleName'
-				)
-			->first();
+		$formModel = new FormModel();
 
-		if ($form) {
-			$form->formFields = json_decode($form->formFields ?? '', true);
-		}
-
-		return $form;
+		return $formModel->getFormByName($formName);
 	}
 
 }
