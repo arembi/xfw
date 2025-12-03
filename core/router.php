@@ -876,18 +876,16 @@ abstract class Router {
 	}
 
 
-	public static function redirect(string $to = '', int $statusCode = 301): void
+	public static function redirect(string $url, int $statusCode = 301): void
 	{
-		if (!$to) {
-			$to = self::$fullUrl;
-		}
+		$location = self::url($url);
 
 		// Preventing permanent redirects in development environment
 		if (IS_LOCALHOST) {
 			$statusCode = 302;
 		}
 
-		header('Location: ' . $to, true, $statusCode);
+		header('Location: ' . $location, true, $statusCode);
 		
 		exit;
 	}
@@ -897,7 +895,7 @@ abstract class Router {
 	{
 		self::$redirects->each(function ($redirect) {
 			if (preg_match($redirect->rule, self::$path)) {
-				self::redirect(self::url($redirect->destination), $redirect->type);
+				self::redirect($redirect->destination, $redirect->type);
 			}
 		});
 	}
@@ -1058,6 +1056,7 @@ abstract class Router {
 				// route: the route ID
 				// Example:
 				// href = "+route=19+lang=en+pathParameter1=abc+pathParameter2=xyz"
+				// If the route is not set, the current route will be used
 				$pathParameters = [];
 				
 				$hrefParameters = explode('+', mb_substr($xfwHrefParts[0], 1));
@@ -1068,8 +1067,9 @@ abstract class Router {
 				}
 
 				$pathParameters = array_merge($pathParameters, $overrides);
-				$routeId = $pathParameters['route'];
-				$routeLang = $pathParameters['lang'] ?? App::getLang();
+				$routeId = $pathParameters['route'] ?? self::getMatchedRouteId();
+				$routeLang = $pathParameters['lang'] ?? App::getLang() ?: Settings::get('defaultLanguage');
+				
 				//$pathParameters = array_filter($pathParameters, fn ($key) => !in_array($key, ['route', 'lang']), ARRAY_FILTER_USE_KEY);
 				
 				if (isset($xfwHrefParts[1])) {
