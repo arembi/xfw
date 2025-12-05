@@ -12,6 +12,8 @@ Router tasks:
 
 namespace Arembi\Xfw\Core;
 
+use stdClass;
+
 use function Arembi\Xfw\Misc\getFileExtension;
 use function Arembi\Xfw\Misc\md_array_lookup_key;
 
@@ -568,7 +570,7 @@ abstract class Router {
 		self::$redirects = self::$domains[DOMAIN_ID]->redirects;
 
 		self::$routes = self::$model->getAvailableRoutes(DATA_DOMAIN_ID);
-
+		
 		foreach (self::$routes as $r) {
 			if ($r->moduleClass == 'b') {
 				self::$backendModuleRoutes[$r->id] = $r;
@@ -603,6 +605,10 @@ abstract class Router {
 		}
 
 		self::handleLanguage($pathNodesWorkpiece, $pathWorkpiece);
+
+		
+		Router::autoRedirect();
+
 
 		if (!self::$hit404 && !self::$routes) {
 			return [
@@ -683,8 +689,6 @@ abstract class Router {
 		}
 
 		$lang = App::getLang();
-		$match = [];
-
 		/*
 		Processing the module part
 		If the site is multilingual, then at this point, the language marker in the URL has been already removed
@@ -704,11 +708,6 @@ abstract class Router {
 			$rootId = self::getIdByRoute('/');
 
 			if ($rootId !== false) {
-				$match['documentLayout'] = self::$primaryModuleRoutes[$rootId]->moduleConfig['documentLayout'] ?? null;
-				$match['documentLayoutVariant'] = self::$primaryModuleRoutes[$rootId]->moduleConfig['documentLayoutVariant'] ?? null;
-				$match['primary'] = self::$primaryModuleRoutes[$rootId]->moduleName;
-				$match['action'] = self::$primaryModuleRoutes[$rootId]->moduleConfig['action'] ?? null;
-				$match['params'] = self::$primaryModuleRoutes[$rootId]->moduleConfig['params'] ?? [];
 
 				self::$matchedRoute = self::$primaryModuleRoutes[$rootId];
 			} else {
@@ -734,9 +733,9 @@ abstract class Router {
 				'accuracy' => 0
 			];
 			
-			foreach (self::$primaryModuleRoutes as $r) {
-				if (isset($r->path[$lang])) { // the root won't be a contender because of this
-					if (strpos($path, $r->path[$lang]) === 0 ) {
+			foreach (self::$primaryModuleRoutes as $route) {
+				if (isset($route->path[$lang])) { // the root won't be a contender because of this
+					if (strpos($path, $route->path[$lang]) === 0 ) {
 						/*
 						The whole segment has to match, so we need to check the following
 						character after the candidate route
@@ -746,13 +745,13 @@ abstract class Router {
 						here the route /pages/page1 would match both paths
 						*/
 
-						$length = mb_strlen($r->path[$lang]);
+						$length = mb_strlen($route->path[$lang]);
 						$nextChar = mb_substr($path, $length, 1);
-						$accuracy = mb_substr_count($r->path[$lang], '/');
+						$accuracy = mb_substr_count($route->path[$lang], '/');
 
 						if (($nextChar == '/' || !$nextChar) && $accuracy > $bestMatch['accuracy']) {
 							$bestMatch = [
-								'match' => $r,
+								'match' => $route,
 								'accuracy' => $accuracy
 							];
 						}
@@ -765,33 +764,16 @@ abstract class Router {
 				// +1 for the array indexing and another +1 for the starting slash
 				self::$pathParameters = explode('/', mb_substr($path, mb_strlen($bestMatch['match']->path[App::getLang()]) + 1 ));
 				self::$matchedRoute = $bestMatch['match'];
-				$match['primary'] = self::$matchedRoute->moduleName;
-				$match['action'] = self::$matchedRoute->moduleConfig['action'] ?? null;
-				$match['params'] = self::$matchedRoute->moduleConfig['params'] ?? [];
-				$match['documentLayout'] = self::$matchedRoute->moduleConfig['documentLayout'] ?? null;
-				$match['documentLayoutVariant'] = self::$matchedRoute->moduleConfig['documentLayoutVariant'] ?? null;
-			} else {
-				$match['documentLayout'] = null;
-				$match['documentLayoutVariant'] = null ;
 			}
 		}
 
-		if (!isset($match['primary'])) {
-			// Primary module match not found
-			$match = self::assemble404Module();
-			Debug::alert('Primary module not found.', 'f');
-		} else {
-			/*
-			Check whether the current user has the proper clearance level to access this route
-			If not, rewrite the primary module to unauthorized
-			*/
-			if (!$_SESSION['user']->allowedHere()) {
-				$match['primary'] = 'unauthorized';
-			}
-			Debug::alert('Primary module found: %' . $match['primary'] . '.', 'o');
+		if (null === self::$matchedRoute) {
+			self::$matchedRoute = self::assemble404Module();
 		}
 
-		return $match;
+		if (!$_SESSION['user']->isAllowedHere()) {
+			self::$matchedRoute->moduleName = 'unauthorized';
+		}
 	}
 
 
@@ -866,28 +848,34 @@ abstract class Router {
 
 	private static function assemble404Module()
 	{
-		return [
-			'primary'=>'fourohfour',
-			'action'=>'default',
-			'documentLayout'=>Settings::get('defaultDocumentLayout'),
-			'documentLayoutVariant'=>Settings::get('defaultDocumentLayoutVariant'),
-			'params'=>[]
-		];
+		$module = new stdClass();
+		$module->moduleName = 'fourohfour';
+		$module->action = 'default';
+		$module->clearanceLevel = 0;
+		$module->documentLayout = Settings::get('defaultDocumentLayout');
+		$module->documentLayoutVariant = Settings::get('defaultDocumentLayoutVariant');
+
+		return $module;
 	}
 
 
-	public static function redirect(string $url, int $statusCode = 301): void
+	public static function redirect(string $url, int $statusCode = 302): void
 	{
-		$location = self::url($url);
-
-		// Preventing permanent redirects in development environment
-		if (IS_LOCALHOST) {
-			$statusCode = 302;
-		}
-
-		header('Location: ' . $location, true, $statusCode);
 		
-		exit;
+		$location = self::url($url);
+		
+		if (null !== $location) {
+			// Preventing permanent redirects in development environment
+			if (IS_LOCALHOST) {
+				$statusCode = 302;
+			}
+			
+			header('Location: ' . $location, true, $statusCode);
+			exit;
+		} else {
+			Debug::alert('Cannot redirect URL, destination is missing.', 'f');
+		}
+		
 	}
 
 
@@ -961,7 +949,7 @@ abstract class Router {
 		];
 		
 		$routeRecord = self::getRouteRecordById($routeId);
-		
+
 		if (!$routeRecord) {
 			Debug::alert('Could not build href for route #' . $routeId . ': route missing.', 'f');
 			return false;
@@ -1019,39 +1007,39 @@ abstract class Router {
 		 - link ID - links stored in the DB
 		 - freehand URLs
 	*/
-	public static function url(string $xfwHref, array $overrides = [], bool $returnLang = false): string|array|false
+	public static function url(string $internalHref, array $overrides = [], bool $returnLang = false): string|array|false
 	{
 		$urlToReturn = '';
 		$langToReturn = '';
 		$routerHref = [];
-		$xfwHrefFirstChar = '';
-		$xfwHrefParts = [];
+		$internalHrefFirstChar = '';
+		$internalHrefParts = [];
 		$queryParameters = [];
 		$liveQueryString = '';
 		
-		if (mb_substr($xfwHref, 0 , 2) === '//') {
-			$xfwHref = self::getProtocol() . mb_substr($xfwHref, 2);
+		if (mb_substr($internalHref, 0 , 2) === '//') {
+			$internalHref = self::getProtocol() . mb_substr($internalHref, 2);
 		}
 
-		$xfwHrefFirstChar = mb_substr($xfwHref, 0, 1);
+		$internalHrefFirstChar = mb_substr($internalHref, 0, 1);
 		
-		if (in_array($xfwHrefFirstChar, ['@', '+', '/'])) { // Special href
+		if (in_array($internalHrefFirstChar, ['@', '+', '/'])) { // Special href
 			
-			$xfwHrefParts = explode('?', $xfwHref, 2);
+			$internalHrefParts = explode('?', $internalHref, 2);
 
-			if ($xfwHrefFirstChar == '@') { // System link mode
+			if ($internalHrefFirstChar == '@') { // Link mode
 				// Required parameters
 				// linkId
 				// Example:
 				// href="@56"
-				$linkId = mb_substr($xfwHrefParts[0], 1);
+				$linkId = mb_substr($internalHrefParts[0], 1);
 
 				$routerHref = self::linkToUrl($linkId);
 
 				if (isset($routerHref['queryParameters'])) {
 					$queryParameters = $routerHref['queryParameters'];
 				}
-			} elseif ($xfwHrefFirstChar == '+') { // Route mode
+			} elseif ($internalHrefFirstChar == '+') { // Route mode
 				// Required parameters
 				// route: the route ID
 				// Example:
@@ -1059,7 +1047,7 @@ abstract class Router {
 				// If the route is not set, the current route will be used
 				$pathParameters = [];
 				
-				$hrefParameters = explode('+', mb_substr($xfwHrefParts[0], 1));
+				$hrefParameters = explode('+', mb_substr($internalHrefParts[0], 1));
 				
 				foreach ($hrefParameters as $keyValuePair) {
 					$parameterParts = explode('=', $keyValuePair, 2);
@@ -1070,10 +1058,8 @@ abstract class Router {
 				$routeId = $pathParameters['route'] ?? self::getMatchedRouteId();
 				$routeLang = $pathParameters['lang'] ?? App::getLang() ?: Settings::get('defaultLanguage');
 				
-				//$pathParameters = array_filter($pathParameters, fn ($key) => !in_array($key, ['route', 'lang']), ARRAY_FILTER_USE_KEY);
-				
-				if (isset($xfwHrefParts[1])) {
-					parse_str($xfwHrefParts[1], $queryParameters);
+				if (isset($internalHrefParts[1])) {
+					parse_str($internalHrefParts[1], $queryParameters);
 				}
 
 				// Adding the page number to the query string
@@ -1089,13 +1075,13 @@ abstract class Router {
 				if (isset($overrides['remove']) && is_array($overrides['remove'])) {
 					$queryParameters = array_diff_key($queryParameters, array_flip($overrides['remove']));
 				}
-
+				
 				$routerHref = self::routeToUrl($routeId, $routeLang, $pathParameters, $queryParameters);
 
 			} else { // Starts with a /
 				$routerHref = [
 					'lang' => $overrides['lang'] ?? App::getLang(),
-					'href' => self::gethostURL() . $xfwHrefParts[0]
+					'href' => self::gethostURL() . $internalHrefParts[0]
 				];
 			}
 			
@@ -1107,9 +1093,9 @@ abstract class Router {
 			$urlToReturn = $routerHref['href'] . $liveQueryString;
 			$langToReturn = $routerHref['lang'];
 
-		} elseif ($xfwHrefFirstChar == '?') { // Path stays the same, the query string will be merged with the existing one
+		} elseif ($internalHrefFirstChar == '?') { // Path stays the same, the query string will be merged with the existing one
 			
-			parse_str(mb_substr($xfwHref, 1), $queryParameters);
+			parse_str(mb_substr($internalHref, 1), $queryParameters);
 			$liveQueryString = http_build_query(array_merge(self::$queryParameters, $queryParameters));
 			$urlToReturn = self::$urlNoQueryString . '?' . $liveQueryString;
 			$langToReturn = App::getLang();
@@ -1117,7 +1103,7 @@ abstract class Router {
 		} else { // A full URL has been given, no changes needed
 			
 			$langToReturn = App::getLang();
-			$urlToReturn = $xfwHref;
+			$urlToReturn = $internalHref;
 
 		}
 

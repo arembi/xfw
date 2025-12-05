@@ -13,22 +13,15 @@ use stdClass;
 abstract class App {
 
 	private static $model;
-
 	private static $coreModules;
-
 	private static $installedModules;
-
 	private static $activeModules;
-
 	// Keeps track of which modules have already been instantiated
 	// by the system, it holds the references to all embedded modules
 	private static $registeredModules;
-
 	// Autoincrementing ID for embedded modules
 	private static $registeredModuleId;
-
 	private static $pathParameterOrders;
-
 	private static $lang;
 
 
@@ -118,40 +111,40 @@ abstract class App {
 
 		Router::loadData();
 		
-		Router::autoRedirect();
-		
 		Router::processInput();
 		
 		Router::serveFiles();
 
 		/*
 		 * The system requires the document layout and a primary module from the router
-		 * For the primary module, the action is also required
 		 * */
-		$matchedRoute = Router::parsePath();
+		Router::parsePath();
+
 		Debug::alert('URI parsed');
 		Debug::alert('Active user: ' . $_SESSION['user']->get('username'));
 
 		Seo::init();
 		
+		$matchedRoute = Router::getMatchedRoute();
+
 		$documentModuleParameters = [
 			'parentModule'=>null,
-			'layout'=>$matchedRoute['documentLayout'] ?? Settings::get('defaultDocumentLayout'),
-			'layoutVariant'=>$matchedRoute['documentLayoutVariant'] ?? Settings::get('defaultDocumentLayoutVariant'),
-			'primaryModule'=>$matchedRoute['primary'],
-			'primaryModuleParameters'=>['autoAction'=>true, ...$matchedRoute['params']],
+			'layout'=>$matchedRoute->moduleConfig['documentLayout'] ?? Settings::get('defaultDocumentLayout'),
+			'layoutVariant'=>$matchedRoute->moduleConfig['documentLayoutVariant'] ?? Settings::get('defaultDocumentLayoutVariant'),
+			'primaryModule'=>$matchedRoute->moduleName,
+			'primaryModuleParameters'=>['autoAction'=>true, ...($matchedRoute->moduleConfig['params'] ?? [])],
 			'autoFinalize'=>true
 		];
-
+		
 		$responseDocument = new Document($documentModuleParameters);
 		
 		Debug::alert(
-			'Document layout / variant in use: '
+			'%document layout / variant in use: '
 			. '['
 			. $documentModuleParameters['layout']
 			. ' / '
 			. $documentModuleParameters['layoutVariant']
-			. ']. Ready to render.'
+			. '].'
 		);
 
 		$responseDocument
@@ -491,13 +484,13 @@ abstract class App {
 	}
 
 
-	public static function getLang()
+	public static function getLang(): string|null
 	{
 		return self::$lang;
 	}
 
 
-	public static function setLang(string $lang)
+	public static function setLang(string $lang): void
 	{
 		self::$lang = $lang;
 	}
