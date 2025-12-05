@@ -5,7 +5,6 @@ use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\Settings;
-use Arembi\Xfw\Inc\CustomMenuitem;
 use Illuminate\Support\Collection;
 
 class MenuBase extends ModuleBase {
@@ -107,7 +106,6 @@ class MenuBase extends ModuleBase {
 		if ($name === null) {
 			return $this->menuName;
 		}
-
 		$this->menuName = $name;
 		return $this;
 	}
@@ -118,18 +116,16 @@ class MenuBase extends ModuleBase {
 		if ($type === null) {
 			return $this->menuType;
 		}
-
 		$this->menuType = $type;
 		return $this;
 	}
 
 
-	public function item(int|string $key, Link|MenuBase|CustomMenuitem|null $item = null)
+	public function item(int|string $key, Link|Menu|Container|null $item = null): Menu|Link|Container|MenuBase
 	{
 		if ($item === null) {
 			return $this->items->get($key);
 		}
-
 		$this->addItem($item, $key);
 		return $this;
 	}
@@ -156,7 +152,7 @@ class MenuBase extends ModuleBase {
 	}
 
 
-	public function addItem(Link|Menu|CustomMenuitem $item, int|string|null $key = null): MenuBase|false
+	public function addItem(Link|Menu|Container $item, int|string|null $key = null): MenuBase|false
 	{
 		if ($item->error()['errorOccured']) {
 			return false;
@@ -185,7 +181,6 @@ class MenuBase extends ModuleBase {
 		if ($level === null) {
 			return $this->level;
 		}
-
 		$this->level = $level;
 		return $this;
 	}
@@ -196,13 +191,11 @@ class MenuBase extends ModuleBase {
 		if ($title === null) {
 			return $this->title;
 		}
-
 		if (is_string($title)) {
 			$this->title[App::getLang()] = $title;
 		} else {
 			$this->title = $title;
 		}
-		
 		return $this;
 	}
 
@@ -212,13 +205,12 @@ class MenuBase extends ModuleBase {
 		if ($value === null) {
 			return $this->displayTitle;
 		}
-		
 		$this->displayTitle = $value;
 		return $this;
 	}
 
 
-	protected function toMenuitem(object|array $o): Link|MenuBase|CustomMenuitem|null
+	protected function toMenuitem(object|array $o): Link|MenuBase|Container|null
 	{
 		$o = (object) $o;
 		$menuItem = null;
@@ -251,7 +243,10 @@ class MenuBase extends ModuleBase {
 				]);
 				break;
 			case 'custom':
-				$menuItem = new CustomMenuitem($o->content);
+				$menuItem = new Container([
+					'content'=>$o->content,
+					'displayTitle'=>false
+				]);
 				break;
 			default:
 				Debug::alert('Menuitem type: ' . ($o->type ?? '(not set)') . ' not suported.');
