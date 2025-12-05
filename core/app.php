@@ -298,7 +298,7 @@ abstract class App {
 
 	private static function loadInstalledModules()
 	{
-		self::loadInstalledModuleData();
+		self::$installedModules = self::$model->getInstalledModules(DATA_DOMAIN_ID);
 
 		/*
 		 * Module behaviour can be modified distinctly for every domain
@@ -380,65 +380,6 @@ abstract class App {
 			include($m);
 		}
 
-	}
-
-
-	private static function loadInstalledModuleData()
-	{
-		/*
-		 * The document and the head modules are non-optional
-		 * they are not listed in the db, so adding them manually
-		 * */
-		$document = new stdClass();
-		$document->id = 0;
-		$document->name = 'document';
-		$document->class = 'system';
-		$document->active = 1;
-		$document->priority = 0;
-		$document->pathParameterOrder = null;
-
-		$head = new stdClass();
-		$head->id = 0;
-		$head->name = 'head';
-		$head->class = 'system';
-		$head->active = 1;
-		$head->priority = 99;
-		$head->pathParameterOrder = null;
-
-		$bodyStart = new stdClass();
-		$bodyStart->id = 0;
-		$bodyStart->name = 'body_start';
-		$bodyStart->class = 'system';
-		$bodyStart->active = 1;
-		$bodyStart->priority = 98;
-		$bodyStart->pathParameterOrder = null;
-
-		$bodyEnd = new stdClass();
-		$bodyEnd->id = 0;
-		$bodyEnd->name = 'body_end';
-		$bodyEnd->class = 'system';
-		$bodyEnd->active = 1;
-		$bodyEnd->priority = 98;
-		$bodyEnd->pathParameterOrder = null;
-
-		$image = new stdClass();
-		$image->id = 0;
-		$image->name = 'image';
-		$image->class = 'system';
-		$image->active = 1;
-		$image->priority = 1;
-		$image->pathParameterOrder = null;
-
-		self::$installedModules = [
-			$document,
-			$head,
-			$bodyStart,
-			$bodyEnd,
-			$image
-		];
-
-		// Retrieving the modules stored in the database
-		self::$installedModules = array_merge(self::$installedModules, self::$model->getInstalledModules(DATA_DOMAIN_ID));
 	}
 
 
