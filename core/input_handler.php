@@ -56,7 +56,7 @@ class Input_Handler {
 		}
 
 		// Sanitizing posted values
-		if (isset($form->fields)) {
+		if (!empty($form->fields)) {
 			foreach ($form->fields as $key => $value) {
 				if (!(isset($value['type']) && in_array($value['type'], self::$formDataTypes))) {
 					$result
@@ -143,7 +143,7 @@ class Input_Handler {
 			->handlerModule($handlerModule)
 			->handlerMethod($handlerMethod);
 		
-		if (!$_SESSION['user']->allowedToSendInput()) {
+		if (!$_SESSION['user']->isAllowedToSendInput()) {
 			$result
 				->status(self::RESULT_ERROR)
 				->message('Unauthorized user request.');

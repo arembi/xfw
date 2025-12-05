@@ -62,13 +62,13 @@ class User {
 	}
 
 
-	public function allowedHere()
+	public function isAllowedHere()
 	{
 		return $this->data->clearanceLevel >= Router::getMatchedRoute()->clearanceLevel;
 	}
 
 
-	public function allowedToSendInput()
+	public function isAllowedToSendInput()
 	{
 		return $this->data->clearanceLevel >= Settings::get('inputClearance');
 	}
