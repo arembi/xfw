@@ -25,8 +25,8 @@ class Router_InfoBase extends ModuleBase {
 				Input_Handler::RESULT_SUCCESS=>'success'
 			]
 		];
-
-		$this->routeInfo = (array) Router::getMatchedRoute() ?: ['id'=>0, 'moduleName'=>'404'];
+		$this->routeInfo = (array) Router::getMatchedRoute();
+		$this->routeInfo['id'] ??= 'N/A';
 		$this->routeInfo['action'] = Router::getRequestedAction();
 
 		$ihResult = Router::inputHandlerResult();
