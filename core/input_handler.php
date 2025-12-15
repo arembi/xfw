@@ -192,8 +192,10 @@ class Input_Handler {
 		$sentFile = Router::files($uploadInput);
 		$acceptedMimes ?: Config::get('uploadAllowedMimeTypes');
 		$uploadMime = '';
+		$uploadExtension = '';
 		$mimeUnderscorePos = false;
-
+		$firstValidExtension = '';
+	
 		try {
 			// Undefined | Multiple Files | Corruption Attack
 			// If this request falls under any of them, treat it invalid.
@@ -219,33 +221,50 @@ class Input_Handler {
 			if ($sentFile['size'] > Config::get('uploadMaxFileSize')) {
 				throw new RuntimeException('Exceeded filesize limit.');
 			}
-			
-			$uploadMime = $sysFs->mimeType($sentFile['tmp_name']);
-			
-			$result->ext = array_search($uploadMime, $acceptedMimes, true);
-
-			if (false === $result->ext) {
-				throw new RuntimeException('Invalid file format.');
-			}
-
-			// Removing enumeration from the extension marker
-			$mimeUnderscorePos = strpos($result->ext, "_");
-			if ($mimeUnderscorePos !== false) {
-				$result->ext = substr($result->ext, 0, $mimeUnderscorePos);
-			}
-			
-			$result->destination = UPLOADS_DIR . DS . $targetDir . DS . sprintf('%s.%s', sha1_file($sentFile['tmp_name']), $result->ext);
 
 			try {
-				$sysFs->move($sentFile['tmp_name'], $result->destination, [
+				$tempFilePath = $sentFile['tmp_name'] . '_' . $sentFile['name'];
+				$sysFs->move($sentFile['tmp_name'], $tempFilePath, [
 					'visibility'=>'public',
 					'directory_visibility'=>'public'
 				]);
+				$uploadMime = $sysFs->mimeType($tempFilePath);
+			} catch (FilesystemException | UnableToRetrieveMetadata $exception) {
+				Debug::alert($exception->getMessage(), 'w');
+				$uploadMime = 'text/plain';
+			}
+			
+			$uploadExtension = pathinfo($tempFilePath, PATHINFO_EXTENSION);
+			
+			$validMime = array_filter($acceptedMimes, function ($value, $key) use ($uploadMime, $uploadExtension) {
+				return $value == $uploadMime && mb_strpos($key, $uploadExtension) !== false;
+			}, ARRAY_FILTER_USE_BOTH);
+			
+			if (empty($validMime)) {
+				throw new RuntimeException('Invalid file format.');
+			}
+
+			$firstValidExtension = array_key_first($validMime);
+
+			// Removing enumeration from the extension marker
+			$mimeUnderscorePos = strpos($firstValidExtension, "_");
+			if ($mimeUnderscorePos !== false) {
+				$result->ext = substr($firstValidExtension, 0, $mimeUnderscorePos);
+			} else {
+				$result->ext = $firstValidExtension;
+			}
+			
+			$result->destination = UPLOADS_DIR . DS . $targetDir . DS . sprintf('%s.%s', sha1_file($tempFilePath), $result->ext);
+			
+			try {
+				$sysFs->move($tempFilePath, $result->destination, [
+					'visibility'=>'public',
+					'directory_visibility'=>'public'
+				]);
+				$result->success = true;
 			} catch (FilesystemException | UnableToMoveFile $exception) {
 				$result->message = $exception->getMessage();
 			}
-
-			$result->success = true;
 
 		} catch (RuntimeException $e) {
 			$result->message = $e->getMessage();
