@@ -40,6 +40,7 @@ class ComposerStaticInit987f9e445263527baaa7f3b619a97411
         'L' => 
         array (
             'League\\MimeTypeDetection\\' => 25,
+            'League\\Flysystem\\ZipArchive\\' => 28,
             'League\\Flysystem\\Local\\' => 23,
             'League\\Flysystem\\' => 17,
             'Laravel\\SerializableClosure\\' => 28,
@@ -107,6 +108,10 @@ class ComposerStaticInit987f9e445263527baaa7f3b619a97411
         array (
             0 => __DIR__ . '/..' . '/league/mime-type-detection/src',
         ),
+        'League\\Flysystem\\ZipArchive\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/league/flysystem-ziparchive',
+        ),
         'League\\Flysystem\\Local\\' => 
         array (
             0 => __DIR__ . '/..' . '/league/flysystem-local',
@@ -121,9 +126,9 @@ class ComposerStaticInit987f9e445263527baaa7f3b619a97411
         ),
         'Illuminate\\Support\\' => 
         array (
-            0 => __DIR__ . '/..' . '/illuminate/collections',
+            0 => __DIR__ . '/..' . '/illuminate/macroable',
             1 => __DIR__ . '/..' . '/illuminate/conditionable',
-            2 => __DIR__ . '/..' . '/illuminate/macroable',
+            2 => __DIR__ . '/..' . '/illuminate/collections',
             3 => __DIR__ . '/..' . '/illuminate/support',
         ),
         'Illuminate\\Database\\' => 
@@ -140,7 +145,7 @@ class ComposerStaticInit987f9e445263527baaa7f3b619a97411
         ),
         'Doctrine\\Inflector\\' => 
         array (
-            0 => __DIR__ . '/..' . '/doctrine/inflector/lib/Doctrine/Inflector',
+            0 => __DIR__ . '/..' . '/doctrine/inflector/src',
         ),
         'Carbon\\Doctrine\\' => 
         array (
