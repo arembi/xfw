@@ -508,15 +508,12 @@ abstract class ModuleBase {
 	protected function print(string|array|null $value, ?array $mutators = null)
 	{	
 		$value ??= '';
-		$lang = '';
 		$printedValue = '';
+		$lang = $mutators['lang'] ?? App::getLang();
 		$filters = [];
 		
-		if (is_array($value)) {
-			$lang = $mutators['lang'] ?? App::getLang();
-			if (isset($value[$lang])) {
-				$printedValue = $value[$lang];
-			}
+		if (is_array($value)) { 
+			$printedValue = $value[$lang] ?? array_pop($value);
 		} else {
 			$printedValue = $value;
 		}
