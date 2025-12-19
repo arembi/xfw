@@ -38,10 +38,20 @@ class FormBase extends ModuleBase {
 		$this->hasFileField = false;
 
 		if (!empty($this->params['formId'])) {
-			$form = $this->model->getFormById($this->params['formId']);
+			$formIdentifier = 'id';
+			$formIdentifierValue = $this->params['formId'];
+		} elseif (!empty($this->params['formName'])) {
+			$formIdentifier = 'name';
+			$formIdentifierValue = $this->params['formName'];
+		} else {
+			$formIdentifier = false;
+		}
+
+		if ($formIdentifier !== false) { // Forms from the database
+			$form = $formIdentifier == 'id' ? $this->model->getFormById($formIdentifierValue) : $this->model->getFormByName($formIdentifierValue);
 			
 			if (!$form) {
-				$this->error('Could not find Form#' . $this->params['formId']);
+				$this->error('Could not find Form#' . $form->id);
 			} else {
 				if (!empty($form->fields)) {
 					foreach ($form->fields as $k => $f) {
@@ -54,11 +64,11 @@ class FormBase extends ModuleBase {
 				}
 
 				$this->addField('formId', 'hidden')
-					->attribute('value' , $this->params['formId']);
+					->attribute('value' , $form->id);
 				
 				$this
-					->layout($form['options']['layout'] ?? Settings::get('defaultModuleLayout'))
-					->layoutVariant($form['options']['layoutVariant'] ?? (($form->module->name ?? 'document') . '-' . $form['name']));
+					->layout($form->options->layout ?? Settings::get('defaultModuleLayout'))
+					->layoutVariant($form->options->layoutVariant ?? (($form->module->name ?? 'document') . '-' . $form->name));
 			}
 		} elseif (!empty($this->params['handlerModule']) && !empty($this->params['handlerMethod'])) { // Generic forms
 			if (isset($this->params['fields'])) {
