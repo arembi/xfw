@@ -5,7 +5,7 @@
 		Group: <?php $this->print($userGroup) ?> (CL: <?php $this->print($clearanceLevel) ?>)
 	</div>
 	<div>
-		Log out: <?php $this->embed('form', ['formId' => 2]);?>
+		Log out: <?php $this->embed('form', ['formName' => 'logout']);?>
 	</div>
 <?php else: ?>
 	<div>
