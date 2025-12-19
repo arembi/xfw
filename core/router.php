@@ -965,11 +965,20 @@ abstract class Router {
 		$ppo = $routeRecord->moduleConfig['ppo'] ?? $routeRecord->modulePpo;
 
 		// TODO: revise if it should be allowed to generate href if a path parameter is missing
+		// The path parameters can be either arrays, when there are more available languages or strings, when there is only one available language
 		if (!empty($ppo)) {
 			foreach ($ppo as $parameter) {
-				$pathParametersSegment .= isset($pathParameters[$parameter])
-					? '/' . $pathParameters[$parameter]
-					: '';
+				if (!isset($pathParameters[$parameter])) {
+					continue;
+				}
+				$currentParameter = is_array($pathParameters[$parameter])
+					? ($pathParameters[$parameter][$lang] ?? '')
+					: (is_string($pathParameters[$parameter])
+						? '/' . $pathParameters[$parameter]
+						: '');
+				if ($currentParameter) {
+					$pathParametersSegment .= $currentParameter;	
+				}
 			}
 		}
 
