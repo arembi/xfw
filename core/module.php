@@ -146,6 +146,7 @@ abstract class ModuleBase {
 		];
 		$this->layout = $params['layout'] ?? Settings::get('defaultModuleLayout');
 		$this->layoutVariant = $params['layoutVariant'] ?? Settings::get('defaultModuleLayoutVariant');
+		$this->layoutHtml = '';
 		$this->layoutProcessed = false;
 		$this->layoutVariables = [];
 		$this->layoutFilters = $params['layoutFilters'] ?? [];
@@ -327,7 +328,6 @@ abstract class ModuleBase {
 	{
 		if ($this->error()['errorOccured']) {
 			Debug::alert("Cannot process layout of %$this->moduleName #" . $this->params['id'] . ': ' . $this->error()['message'], 'f');
-			$this->layoutHtml = '';
 			return $this;
 		}
 
