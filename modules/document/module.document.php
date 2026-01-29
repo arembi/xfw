@@ -6,7 +6,6 @@ use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Settings;
-use Arembi\Xfw\Inc\Seo;
 
 class DocumentBase extends ModuleBase {
 
@@ -37,7 +36,7 @@ class DocumentBase extends ModuleBase {
 
 		Head::addMeta(['charset' => 'utf-8']);
 		
-		Seo::title(Settings::get('siteName'));
-		Seo::metaDescription('Created with XfW.');
+		Head::title(Settings::get('siteName'));
+		Head::metaDescription('Created with XfW.');
 	}
 }

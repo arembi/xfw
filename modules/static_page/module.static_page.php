@@ -6,7 +6,6 @@ use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\App;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Settings;
-use Arembi\Xfw\Inc\Seo;
 
 class Static_PageBase extends ModuleBase {
 
@@ -74,13 +73,6 @@ class Static_PageBase extends ModuleBase {
 				->createdBy($page->createdBy)
 				->createdAt($page->createdAt)
 				->updatedAt($page->updatedAt);
-
-			if (isset($page->seoDescription)) {
-				Seo::metaDescription($page->seoDescription);
-			}
-			if (isset($page->seoTitle)) {
-				Seo::title($page->seoTitle);
-			}
 		}
 	}
 

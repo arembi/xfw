@@ -13,38 +13,64 @@ namespace Arembi\Xfw\Module;
 use Arembi\Xfw\Core\ModuleBase;
 use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\Router;
-use Arembi\Xfw\Inc\Seo;
 use Arembi\Xfw\Inc\Js;
 use function Arembi\Xfw\Misc\getFileExtension;
 use function Arembi\Xfw\Misc\parseHtmlAttributes;
 
 class HeadBase extends ModuleBase {
+
 	protected static $autoloadModel = false;
 
-	private static $title = '';
-	private static $metaDescription = '';
+	protected static $title = '';
+	protected static $metaDescription = '';
 
-	private static $meta = [];
-	private static $link = [];
-	private static $base = ['url'=>'', 'target'=>''];
-	private static $favicon = ['url'=>'', 'imageType'=>''];
-	private static $canonicalUrl = '';
-	private static $js = [];
-	private static $css = [];
-	private static $custom = ['top'=>[], 'bottom'=>[]];
+	protected static $meta = [];
+	protected static $link = [];
+	protected static $base = ['url'=>'', 'target'=>''];
+	protected static $favicon = ['url'=>'', 'imageType'=>''];
+	protected static $canonicalUrl = '';
+	protected static $js = [];
+	protected static $css = [];
+	protected static $custom = ['top'=>[], 'bottom'=>[]];
+
+	protected static $indexable;
+	protected static $followable;
+	protected static $archivable;
+	protected static $maxSnippet;
+	protected static $maxImagePreview;
+	protected static $allowedmaxImagePreviewSettings;
+	protected static $maxVideoPreview;
+	protected static $translatable;
+	protected static $imagesIndexable;
+
+	protected $autoInit = false;
+	
+
+	public static function initStatic()
+	{
+		self::$indexable = true;
+		self::$followable = true;
+		self::$archivable = true;
+		self::$maxSnippet = -1;
+		self::$allowedmaxImagePreviewSettings = [
+			'standard',
+			'large',
+			'none'
+		];
+		self::$maxImagePreview = 'standard';
+		self::$maxVideoPreview = -1;
+		self::$translatable = true;
+		self::$imagesIndexable = true;
+	}
 
 
 	protected function init() {}
 
 
 	public function finalize(): void
-	{	
-		$robotsMeta = self::generateRobotsMeta();
-		$robotsMetaContent = implode(', ', array_filter($robotsMeta));
-		
-		self::addMeta(['name' => 'robots', 'content' => $robotsMetaContent]);
-		self::addMeta(['name' => 'description', 'content' => self::$metaDescription]);
-		
+	{
+		$this->addRobotsMeta();
+
 		if (!empty(self::$canonicalUrl)) {
 			self::addLink([
 				'rel'=>'canonical',
@@ -88,14 +114,17 @@ class HeadBase extends ModuleBase {
 			];
 		}
 
-		$this->lv('title', self::$title);
-		$this->lv('meta', self::$meta);
-		$this->lv('css', self::$css);
-		$this->lv('javascript', $jsTags);
-		$this->lv('custom', self::$custom);
-		$this->lv('link', self::$link);
-		$this->lv('base', self::$base);
-		$this->lv('favicon', self::$favicon);
+		self::addMeta(['name' => 'description', 'content' => self::$metaDescription]);
+
+		$this
+			->lv('title', self::$title)
+			->lv('meta', self::$meta)
+			->lv('css', self::$css)
+			->lv('javascript', $jsTags)
+			->lv('custom', self::$custom)
+			->lv('link', self::$link)
+			->lv('base', self::$base)
+			->lv('favicon', self::$favicon);
 	}
 
 
@@ -242,17 +271,101 @@ class HeadBase extends ModuleBase {
 	}
 
 
-	public static function generateRobotsMeta(): array
+	public static function indexable(?bool $state = null)
 	{
-		return [
-			'index'=>Seo::indexable() ? 'index' : 'noindex',
-			'follow'=>Seo::followable() ? 'follow' : 'nofollow',
-			'noArchive'=>Seo::archivable() ? false : 'noarchive',
-			'maxSnippet'=>'max-snippet:' . Seo::maxSnippet(),
-			'maxImagePreview'=>'max-image-preview:' . Seo::maxImagePreview(),
-			'max-video-preview'=>'max-video-preview:' . Seo::maxVideoPreview(),
-			'noTranslate'=>Seo::translatable() ? false : 'notranslate',
-			'noImageIndex'=>Seo::imagesIndexable() ? false : 'noimageindex'
+		if ($state === null) {
+			return self::$indexable;
+		}
+		self::$indexable = $state;
+	}
+
+
+	public static function followable(?bool $state = null)
+	{
+		if ($state === null) {
+			return self::$followable;
+		}
+		self::$followable = $state;
+	}
+
+
+	public static function archivable(?bool $state = null)
+	{
+		if ($state === null) {
+			return self::$archivable;
+		}
+		self::$archivable = $state;
+	}
+
+
+	public static function maxSnippet(?int $characterCount = null)
+	{
+		if ($characterCount === null) {
+			return self::$maxSnippet;
+		}
+		self::$maxSnippet = $characterCount;
+	}
+
+
+	public static function maxImagePreview(?string $setting = null)
+	{
+		if ($setting === null) {
+			return self::$maxImagePreview;
+		}
+		if (in_array($setting, self::$allowedmaxImagePreviewSettings)) {
+			self::$maxImagePreview = $setting;
+		} else {
+			Debug::alert('max-image-preview could not be set, invalid value given.', 'f');
+		}
+	}
+
+
+	public static function maxVideoPreview(?int $seconds = null)
+	{
+		if ($seconds === null) {
+			return self::$maxVideoPreview;
+		}
+		if ($seconds >= -1) {
+			self::$maxVideoPreview = $seconds;
+		} else {
+			Debug::alert('max-video-preview could not be set, invalid value given.', 'f');
+		}	
+	}
+
+
+	public static function translatable(?bool $state = null)
+	{
+		if ($state === null) {
+			return self::$translatable;
+		}
+		self::$translatable = $state;
+	}
+
+
+	public static function imagesIndexable(?bool $state = null)
+	{
+		if ($state === null) {
+			return self::$imagesIndexable;
+		}
+		self::$imagesIndexable = $state;
+	}
+
+
+	public static function addRobotsMeta(): void
+	{
+		$robotsMeta = [
+			'index'=>self::indexable() ? 'index' : 'noindex',
+			'follow'=>self::followable() ? 'follow' : 'nofollow',
+			'noArchive'=>self::archivable() ? false : 'noarchive',
+			'maxSnippet'=>'max-snippet:' . self::maxSnippet(),
+			'maxImagePreview'=>'max-image-preview:' . self::maxImagePreview(),
+			'max-video-preview'=>'max-video-preview:' . self::maxVideoPreview(),
+			'noTranslate'=>self::translatable() ? false : 'notranslate',
+			'noImageIndex'=>self::imagesIndexable() ? false : 'noimageindex'
 		];
+
+		$robotsMetaContent = implode(', ', array_filter($robotsMeta));
+		
+		self::addMeta(['name' => 'robots', 'content' => $robotsMetaContent]);
 	}
 }

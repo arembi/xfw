@@ -44,10 +44,4 @@ class Static_Page extends Model {
 	{
 		return $this->belongsTo(User::class, 'id', 'created_by');
 	}
-
-
-	public function seoData()
-	{
-		return $this->hasOneThrough(Seo::class, Seo_Module::class);
-	}
 }

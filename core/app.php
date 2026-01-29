@@ -3,12 +3,12 @@
 namespace Arembi\Xfw\Core;
 
 use Arembi\Xfw\Module\Document;
+use Arembi\Xfw\Module\Head;
 use Arembi\Xfw\Misc\Timer;
-use Arembi\Xfw\Inc\Seo;
 use Illuminate\Support\Collection;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use stdClass;
+
 
 abstract class App {
 
@@ -110,21 +110,15 @@ abstract class App {
 		Debug::alert('Modules loaded.');
 
 		Router::loadData();
-		
 		Router::processInput();
-		
 		Router::serveFiles();
 
-		/*
-		 * The system requires the document layout and a primary module from the router
-		 * */
+		//The system requires the document layout and a primary module from the router
 		Router::parsePath();
 
 		Debug::alert('URI parsed');
 		Debug::alert('Active user: ' . $_SESSION['user']->get('username'));
 
-		Seo::init();
-		
 		$matchedRoute = Router::getMatchedRoute();
 
 		$documentModuleParameters = [
@@ -135,9 +129,12 @@ abstract class App {
 			'primaryModuleParameters'=>['autoAction'=>true, ...($matchedRoute->moduleConfig['params'] ?? [])],
 			'autoFinalize'=>true
 		];
+
+		// Default values for the head module
+		Head::initStatic();
 		
 		$responseDocument = new Document($documentModuleParameters);
-		
+
 		Debug::alert(
 			'%document layout / variant in use: '
 			. '['
