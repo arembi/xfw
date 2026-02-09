@@ -45,19 +45,13 @@ abstract class Config {
 			'css',
 			'js',
 			'jpg',
+			'jpeg',
 			'png',
 			'gif',
-			'xml',
-			'csv',
-			'xls',
-			'xlsx',
-			'doc',
-			'docx',
-			'ods',
-			'odt',
-			'otf',
-			'pdf',
-			'ttf'
+			'svg',
+			'webp',
+			'ico',
+			'txt'
 		],
 
 		'uploadMaxFileSize' => 10000000,
@@ -72,6 +66,10 @@ abstract class Config {
 			'xml_2'=>'application/xml',
 			'xml_3'=>'text/plain'
 		],
+
+		'csrfRequired' => true,
+
+		'uploadsDir' => ROOT_DIR . DS . 'xfw_uploads',
 
 		'baseModels' => [
 			'domain',
@@ -101,7 +99,9 @@ abstract class Config {
 			'defaultDocumentLayoutVariant' => 'default',
 			'multiLang' => false,
 			'URLTrailingSlash' => 'remove',
-			'inputClearance' => 0,
+			'inputClearance' => 1,
+			'inputHandlerAllowlist' => null,
+			'publicFilesDir' => 'public',
 			'dateTimeFormat' => [
 				'hu' => 'Y-m-d H:i:s',
 				'en' => 'm-d-Y H:i:s'

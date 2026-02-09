@@ -15,5 +15,12 @@ $config = [
   'localhostAutoLogin'=>[
     'enabled'=>true,
     'clearanceLevel'=>99
+  ],
+  'csrfRequired'=>true,
+  'uploadsDir'=>ROOT_DIR . DS . 'xfw_uploads',
+  'defaultDomainSettings'=>[
+    'inputClearance'=>1,
+    'inputHandlerAllowlist'=>null,
+    'publicFilesDir'=>'public'
   ]
 ];
