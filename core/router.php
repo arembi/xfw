@@ -20,82 +20,37 @@ use function Arembi\Xfw\Misc\md_array_lookup_key;
 abstract class Router {
 
 	private static $model;
-
-	// Whether the domain acts as an alias of another
-	private static $aliasOf;
-
-	// Http, https
-	private static $protocol;
-
-	// Protocol + domain
-	private static $hostUrl;
-
-	// Equivalent to Apache's %{REQUEST_URI}
-	private static $path;
-
-	// The URL without the query string
-	private static $urlNoQueryString;
-
-	// Protocol + domain + path + query string
-	private static $fullUrl;
-
-	// Parts of the path
+	private static $aliasOf; // Whether the domain acts as an alias of another
+	private static $protocol; // Http, https
+	private static $hostUrl; // Protocol + domain
+	private static $path; // Equivalent to Apache's %{REQUEST_URI}
+	private static $urlNoQueryString; // The URL without the query string
+	private static $fullUrl; // Protocol + domain + path + query string
 	private static $pathNodes; // The segments of the path
 	private static $pathNoQueryString; // The path without the query string
-	private static $queryString; // The query string
-
+	private static $queryString;
 	private static $queryParameters;
-
-	// The parameters given to the primary modules via the path (query string not included)
-	private static $pathParameters;
-
-	// The registered domains, will not be loaded automatically
-	private static $domains;
-
-	// Custom redirects from the DB
-	private static $redirects;
-
-	// Saved links in the system
-	private static $links;
-
-	// Defined routes in the system
-	private static $routes;
-
-	// Available primary modules
-	private static $primaryModuleRoutes;
-
-	// Available backend modules
-	private static $backendModuleRoutes;
-
-	// hit404 shall be set to true if a 404 error occures
-	// It should prevent further scripts from execution
-	private static $hit404;
-
-	// The matched route's record
-	private static $matchedRoute;
-
-	// The number of the page used by the pagination
-	private static $pageNumber;
-
-	// Collection of URL parameters for the page number
-	private static $paginationParameters;
-
-	// The default page numbering URL parameter on the domain
-	// eg. page, oldal, seite
-	private static $paginationParameter;
-
+	private static $pathParameters; // The parameters given to the primary modules via the path (query string not included)
+	private static $domains; // The registered domains, will not be loaded automatically
+	private static $redirects; // Custom redirects from the DB
+	private static $links; // Saved links in the system
+	private static $routes; // Defined routes in the system
+	private static $primaryModuleRoutes; // Available primary modules
+	private static $backendModuleRoutes; // Available backend modules
+	private static $hit404; // Shall be set to true if a 404 error occures
+	private static $matchedRoute; // The matched route's record
+	private static $pageNumber; // The number of the page used by the pagination
+	private static $paginationParameters; // Collection of URL parameters for the page number
+	private static $paginationParameter; // The default page numbering URL parameter on the domain; eg. page, oldal, seite
 	private static $inputInfo;
 	private static $inputHandlerResult;
-
-	// Global clones
-	private static $GET;
-	private static $POST;
-	private static $REQUEST;
-
-	private static $FILES;
+	private static $GET; // Global clone
+	private static $POST; // Global clone
+	private static $REQUEST; // Global clone
+	private static $FILES; // Global clone
 
 
-	public static function init()
+	public static function init(): void
 	{
 		self::$model = new RouterModel();	
 		
@@ -167,19 +122,19 @@ abstract class Router {
 	}
 
 
-	public static function getPathParameters()
+	public static function getPathParameters(): array
 	{
 		return self::$pathParameters;
 	}
 
 
-	public static function getPaginationParameters()
+	public static function getPaginationParameters(): array
 	{
 		return self::$paginationParameters;
 	}
 
 
-	public static function getPaginationParameter()
+	public static function getPaginationParameter(): string
 	{
 		return self::$paginationParameter;
 	}
@@ -203,14 +158,12 @@ abstract class Router {
 	}
 
 
-	// Returns the domain name for the given ID, or false if it can't be found
 	public static function getDomainRecordById(int $id)
 	{
 		return self::$domains[$id] ?? false;
 	}
 
 
-	// Returns the ID of the domain, or false if it can't be found
 	public static function getDomainId(string $domain)
 	{
 		return md_array_lookup_key(self::$domains, 'domain', $domain);
@@ -223,7 +176,6 @@ abstract class Router {
 	}
 
 
-	// Returns the actual route (/lang/some/fancy/url) for the given route ID
 	public static function getPathByRouteId(int $routeId, ?string $lang = null)
 	{
 		$ret = null;
@@ -882,7 +834,7 @@ abstract class Router {
 	public static function autoRedirect()
 	{
 		self::$redirects->each(function ($redirect) {
-			if (preg_match($redirect->rule, self::$path)) {
+			if (preg_match('/' . $redirect->rule . '/', self::$path)) {
 				self::redirect($redirect->destination, $redirect->type);
 			}
 		});
