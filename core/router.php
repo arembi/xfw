@@ -532,7 +532,7 @@ abstract class Router {
 		define('IS_LOCALHOST', $isLocalhost);
 		define('HOST_ROOT', (IS_LOCALHOST ? $_SERVER['HTTP_HOST'] . DS . WEB_ROOT . DS : '') . DOMAIN);
 		define('DOMAIN_DIR', SITES_DIR . DS . DOMAIN);
-		define('UPLOADS_DIR', DOMAIN_DIR . DS . 'uploads');
+		define('UPLOADS_DIR', Config::get('uploadsDir') . DS . DOMAIN);
 		
 		self::$protocol = IS_LOCALHOST ? 'http://' : $domainRecord['protocol'];
 
@@ -821,6 +821,21 @@ abstract class Router {
 		$extension = getFileExtension(self::$pathNoQueryString);
 		
 		if ($extension !== false) {
+			$publicDir = Settings::get('publicFilesDir') ?? 'public';
+			$relativePath = ltrim(self::$pathNoQueryString, '/');
+
+			if ($publicDir === '' || $publicDir === null) {
+				return;
+			}
+
+			if (str_contains($relativePath, '..')) {
+				App::hcf('Invalid file path.');
+			}
+
+			if (!str_starts_with($relativePath, $publicDir . '/')) {
+				return;
+			}
+
 			$allowedExtensionsByDefault = Config::get('fileTypesServed');
 			$allowedExtensionsOnSite = Settings::get('fileTypesServed');
 

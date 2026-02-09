@@ -40,6 +40,21 @@ class Input_Handler {
 		self::$model = new Input_HandlerModel();
 		$result = new Input_Handler_Result();
 
+		if (Config::get('csrfRequired') && $_SERVER['REQUEST_METHOD'] !== 'GET') {
+			if (!Session::validateCsrfToken(Router::request('_csrf'))) {
+				$result
+					->status(self::RESULT_ERROR)
+					->message('Invalid CSRF token.');
+				return $result;
+			}
+		}
+		if (!$_SESSION['user']->isAllowedToSendInput()) {
+			$result
+				->status(self::RESULT_ERROR)
+				->message('Unauthorized user request.');
+			return $result;
+		}
+
 		$formData = [];
 		$formName = '';
 		$moduleAddonLoaded = false;
@@ -99,6 +114,13 @@ class Input_Handler {
 			->handlerModule($handlerModule)
 			->handlerMethod($handlerMethod);
 
+		if (!self::isHandlerAllowed($handlerModule, $handlerMethod)) {
+			$result
+				->status(self::RESULT_ERROR)
+				->message('Handler is not allowed.');
+			return $result;
+		}
+
 		$moduleAddonLoaded = App::loadModuleAddon($handlerModule, 'ih');
 
 		if (!$moduleAddonLoaded) {
@@ -139,6 +161,15 @@ class Input_Handler {
 		$controllerClass = '';
 		$controller = null;
 
+		if (Config::get('csrfRequired') && $_SERVER['REQUEST_METHOD'] !== 'GET') {
+			if (!Session::validateCsrfToken(Router::request('_csrf'))) {
+				$result
+					->status(self::RESULT_ERROR)
+					->message('Invalid CSRF token.');
+				return $result;
+			}
+		}
+
 		$result
 			->handlerModule($handlerModule)
 			->handlerMethod($handlerMethod);
@@ -147,6 +178,13 @@ class Input_Handler {
 			$result
 				->status(self::RESULT_ERROR)
 				->message('Unauthorized user request.');
+			return $result;
+		}
+
+		if (!self::isHandlerAllowed($handlerModule, $handlerMethod)) {
+			$result
+				->status(self::RESULT_ERROR)
+				->message('Handler is not allowed.');
 			return $result;
 		}
 
@@ -190,13 +228,16 @@ class Input_Handler {
 
 		$sysFs = FS::getFilesystem('sys');
 		$sentFile = Router::files($uploadInput);
-		$acceptedMimes ?: Config::get('uploadAllowedMimeTypes');
+		$acceptedMimes = $acceptedMimes ?: Config::get('uploadAcceptedMimeTypes');
 		$uploadMime = '';
 		$uploadExtension = '';
 		$mimeUnderscorePos = false;
 		$firstValidExtension = '';
 	
 		try {
+			if (empty($acceptedMimes)) {
+				throw new RuntimeException('No accepted MIME types configured.');
+			}
 			// Undefined | Multiple Files | Corruption Attack
 			// If this request falls under any of them, treat it invalid.
 			if (
@@ -225,8 +266,8 @@ class Input_Handler {
 			try {
 				$tempFilePath = $sentFile['tmp_name'] . '_' . $sentFile['name'];
 				$sysFs->move($sentFile['tmp_name'], $tempFilePath, [
-					'visibility'=>'public',
-					'directory_visibility'=>'public'
+					'visibility'=>'private',
+					'directory_visibility'=>'private'
 				]);
 				$uploadMime = $sysFs->mimeType($tempFilePath);
 			} catch (FilesystemException | UnableToRetrieveMetadata $exception) {
@@ -254,12 +295,19 @@ class Input_Handler {
 				$result->ext = $firstValidExtension;
 			}
 			
-			$result->destination = UPLOADS_DIR . DS . $targetDir . DS . sprintf('%s.%s', sha1_file($tempFilePath), $result->ext);
+			$targetPath = UPLOADS_DIR . DS . $targetDir;
+			if (!is_dir($targetPath)) {
+				$sysFs->createDirectory($targetPath, [
+					'visibility' => 'private',
+					'directory_visibility' => 'private'
+				]);
+			}
+			$result->destination = $targetPath . DS . sprintf('%s.%s', sha1_file($tempFilePath), $result->ext);
 			
 			try {
 				$sysFs->move($tempFilePath, $result->destination, [
-					'visibility'=>'public',
-					'directory_visibility'=>'public'
+					'visibility'=>'private',
+					'directory_visibility'=>'private'
 				]);
 				$result->success = true;
 			} catch (FilesystemException | UnableToMoveFile $exception) {
@@ -271,6 +319,30 @@ class Input_Handler {
 		}
 
 		return $result;
+	}
+
+	private static function isHandlerAllowed(string $handlerModule, string $handlerMethod): bool
+	{
+		$allowlist = Settings::get('inputHandlerAllowlist');
+
+		if ($allowlist === null) {
+			return true;
+		}
+
+		if (!is_array($allowlist) || empty($allowlist)) {
+			return false;
+		}
+
+		if (isset($allowlist['*']) && (in_array('*', $allowlist['*'], true) || in_array($handlerMethod, $allowlist['*'], true))) {
+			return true;
+		}
+
+		if (!isset($allowlist[$handlerModule])) {
+			return false;
+		}
+
+		return in_array('*', $allowlist[$handlerModule], true)
+			|| in_array($handlerMethod, $allowlist[$handlerModule], true);
 	}
 
 }
