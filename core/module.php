@@ -200,10 +200,8 @@ abstract class ModuleBase {
 			$this->init();
 		}
 
-		if ($this->autoAction) {
-			if ($this->action) {
-				$this->executeAction($this->action);
-			}
+		if ($this->autoAction && $this->action) {
+			$this->executeAction($this->action);
 		}
 
 		if ($this->autoFinalize) {
