@@ -51,7 +51,18 @@ abstract class Config {
 			'svg',
 			'webp',
 			'ico',
-			'txt'
+			'txt',
+			'pdf',
+			'csv',
+			'xml',
+			'xlsx',
+			'docx',
+			'ods',
+			'odt',
+			'otf',
+			'ttf',
+			'doc',
+			'xls'
 		],
 
 		'uploadMaxFileSize' => 10000000,
