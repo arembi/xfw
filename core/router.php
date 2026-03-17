@@ -775,17 +775,17 @@ abstract class Router {
 		if ($extension !== false) {
 			$publicDir = Settings::get('publicFilesDir') ?? 'public';
 			$relativePath = ltrim(self::$pathNoQueryString, '/');
-
+			
 			if ($publicDir === '' || $publicDir === null) {
-				return;
+				App::hcf('Public directory not defined.');
 			}
 
 			if (str_contains($relativePath, '..')) {
 				App::hcf('Invalid file path.');
 			}
-
+			
 			if (!str_starts_with($relativePath, $publicDir . '/')) {
-				return;
+				App::hcf('Trying to access file outside the public directory.');
 			}
 
 			$allowedExtensionsByDefault = Config::get('fileTypesServed');
@@ -1016,8 +1016,6 @@ abstract class Router {
 					$queryParameters = $routerHref['queryParameters'];
 				}
 			} elseif ($internalHrefFirstChar == '+') { // Route mode
-				// Required parameters
-				// route: the route ID
 				// Example:
 				// href = "+route=19+lang=en+pathParameter1=abc+pathParameter2=xyz"
 				// If the route is not set, the current route will be used
