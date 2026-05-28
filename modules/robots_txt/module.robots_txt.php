@@ -7,7 +7,7 @@ use Arembi\Xfw\Core\Settings;
 
 class Robots_TxtBase extends ModuleBase {
 
-	protected static $autoloadModel = false;
+	protected static bool $autoloadModel = false;
 	
 	protected $dictionary;
 	protected $content;

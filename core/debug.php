@@ -5,17 +5,12 @@ namespace Arembi\Xfw\Core;
 use Arembi\Xfw\Core\Config;
 
 abstract class Debug {
-	private static $suppressed;
-
+	
+	private static bool $suppressed;
 	private static $log;
-
-	// keys are the notations
-	// values: debug message notation , message color
-	private static $alertLevels;
-
-	private static $style;
-
-	private static $alerts;
+	private static array $alertLevels; 	// keys are the notations, values: debug message notation , message color
+	private static string $style;
+	private static array $alerts;
 
 	
 	public static function init()
@@ -31,7 +26,7 @@ abstract class Debug {
 			'e' => ['&#9760;', '#C00']
 		];
 		self::$style = '
-		div#debugArea{
+			div#debugArea{
 			width: 40%;
 			height: 98%;
 			padding: 1% 0 0 1%;
@@ -99,7 +94,7 @@ abstract class Debug {
 	}
 
 
-	public static function alert($message, $alertLevel = 'default')
+	public static function alert(string|array $message, string $alertLevel = 'default')
 	{
 		if (Config::get('debugMode') || ($_SESSION['debugMode'])) {
 			self::$alerts[] = [$message, $alertLevel];

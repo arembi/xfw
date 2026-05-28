@@ -7,11 +7,11 @@ use stdClass;
 
 class User {
 
-	private static $model = null;
+	private static ?UserModel $model = null;
 
-	private static $instantiated = false;
+	private static bool $instantiated = false;
 
-	private $data;
+	private object $data;
 	
 	/*
 	 * Users can be constructed with their ID, or username
@@ -20,7 +20,7 @@ class User {
 	 * @param $key: identifying method, can be username, ID, or generic
 	 * */
 
-	public function __construct($value, $key = 'username')
+	public function __construct(int|string $id, $key = 'username')
 	{
 		if (!self::$instantiated) {
 			// Load the model
@@ -30,26 +30,26 @@ class User {
 
 		switch ($key) {
 			case 'id':
-				$this->data = self::$model->getUserById($value);
+				$this->data = self::$model->getUserById($id);
 				break;
 			case 'username':
-				$this->data = self::$model->getUserByUsername($value);
+				$this->data = self::$model->getUserByUsername($id);
 				break;
 			default:
 				$this->data = new stdClass();
-				$this->data->username = $value;
+				$this->data->username = $id;
 				break;
 		}
 	}
 
 
-	public function get($field)
+	public function get(string $field)
 	{
 		return $this->data->$field ?? null;
 	}
 
 
-	public function set($field, $value)
+	public function set(string $field, mixed $value)
 	{
 		$this->data->$field = $value;
 		return $this;

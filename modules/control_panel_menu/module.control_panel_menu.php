@@ -9,7 +9,7 @@ use Arembi\Xfw\Core\Router;
 
 class Control_Panel_MenuBase extends ModuleBase {
 
-	protected static $autoloadModel = false;
+	protected static bool $autoloadModel = false;
 	protected $menuItems;
 
 

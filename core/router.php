@@ -16,38 +16,39 @@ use stdClass;
 
 use function Arembi\Xfw\Misc\getFileExtension;
 use function Arembi\Xfw\Misc\md_array_lookup_key;
+use Illuminate\Support\Collection;
 
 abstract class Router {
 
-	private static $model;
-	private static $aliasOf; // Whether the domain acts as an alias of another
-	private static $protocol; // Http, https
-	private static $hostUrl; // Protocol + domain
-	private static $path; // Equivalent to Apache's %{REQUEST_URI}
-	private static $urlNoQueryString; // The URL without the query string
-	private static $fullUrl; // Protocol + domain + path + query string
-	private static $pathNodes; // The segments of the path
-	private static $pathNoQueryString; // The path without the query string
-	private static $queryString;
-	private static $queryParameters;
-	private static $pathParameters; // The parameters given to the primary modules via the path (query string not included)
-	private static $domains; // The registered domains, will not be loaded automatically
-	private static $redirects; // Custom redirects from the DB
-	private static $links; // Saved links in the system
-	private static $routes; // Defined routes in the system
-	private static $primaryModuleRoutes; // Available primary modules
-	private static $backendModuleRoutes; // Available backend modules
-	private static $hit404; // Shall be set to true if a 404 error occures
-	private static $matchedRoute; // The matched route's record
-	private static $pageNumber; // The number of the page used by the pagination
-	private static $paginationParameters; // Collection of URL parameters for the page number
-	private static $paginationParameter; // The default page numbering URL parameter on the domain; eg. page, oldal, seite
-	private static $inputInfo;
-	private static $inputHandlerResult;
-	private static $GET; // Global clone
-	private static $POST; // Global clone
-	private static $REQUEST; // Global clone
-	private static $FILES; // Global clone
+	private static ?RouterModel $model;
+	private static ?array $aliasOf; // Whether the domain acts as an alias of another
+	private static string $protocol; // Http, https
+	private static string $hostUrl; // Protocol + domain
+	private static string $path; // Equivalent to Apache's %{REQUEST_URI}
+	private static string $urlNoQueryString; // The URL without the query string
+	private static string $fullUrl; // Protocol + domain + path + query string
+	private static array $pathNodes; // The segments of the path
+	private static ?string $pathNoQueryString; // The path without the query string
+	private static ?string $queryString;
+	private static array $queryParameters;
+	private static array $pathParameters; // The parameters given to the primary modules via the path (query string not included)
+	private static Collection $domains; // The registered domains, will not be loaded automatically
+	private static Collection $redirects; // Custom redirects from the DB
+	private static Collection $links; // Saved links in the system
+	private static Collection $routes; // Defined routes in the system
+	private static Collection $primaryModuleRoutes; // Available primary modules
+	private static Collection $backendModuleRoutes; // Available backend modules
+	private static bool $hit404; // Shall be set to true if a 404 error occures
+	private static ?StdClass $matchedRoute; // The matched route's record
+	private static ?int $pageNumber; // The number of the page used by the pagination
+	private static array $paginationParameters; // Collection of URL parameters for the page number
+	private static string $paginationParameter; // The default page numbering URL parameter on the domain; eg. page, oldal, seite
+	private static array $inputInfo;
+	private static ?Input_Handler_Result $inputHandlerResult;
+	private static array $GET; // Global clone
+	private static array $POST; // Global clone
+	private static array $REQUEST; // Global clone
+	private static array $FILES; // Global clone
 
 
 	public static function init(): void
@@ -71,12 +72,12 @@ abstract class Router {
 		self::$queryString = '';
 		self::$queryParameters = [];
 		self::$pathParameters = [];
-		self::$domains = [];
-		self::$redirects = [];
-		self::$links = [];
-		self::$routes = [];
-		self::$primaryModuleRoutes = [];
-		self::$backendModuleRoutes = [];
+		self::$domains = new Collection();
+		self::$redirects = new Collection();
+		self::$links = new Collection();
+		self::$routes = new Collection();
+		self::$primaryModuleRoutes = new Collection();
+		self::$backendModuleRoutes = new Collection();
 		self::$hit404 = false;
 		self::$pageNumber = null;
 		
@@ -194,7 +195,7 @@ abstract class Router {
 				$ret = $route->path[$lang];
 			} else {
 				// Route not yet loaded, fetching from database
-				$ret = self::$model->getRouteById($routeId, $lang);
+				$ret = self::$model->getRouteById($routeId);
 				if ($ret) {
 					$ret = $ret->path[$lang];
 				}
@@ -261,7 +262,7 @@ abstract class Router {
 
 	public static function getMatchedRoute()
 	{
-		return self::$matchedRoute ?? null;
+		return self::$matchedRoute;
 	}
 
 
@@ -316,6 +317,8 @@ abstract class Router {
 
 	public static function getIdByRoute(string $path, string $type = 'all'): int|false
 	{
+		$routeCollection = new Collection();
+
 		if ($type == 'all') {
 			$routeCollection = self::$routes;
 		} elseif ($type == "primary") {
@@ -409,7 +412,6 @@ abstract class Router {
 		(assuming that dev is mainly performed on localhost)
 		*/
 		if ($isLocalhost) {
-
 			$uriParts = explode('/', $uriQuestionmarkParts[0]);
 
 			/*
@@ -422,25 +424,18 @@ abstract class Router {
 			 *
 			 * */
 			if (!empty($uriParts[2])) {
-
 				$webRoot = $uriParts[1];
-				self::$paginationParameters = Settings::get('paginationParameter');
+				self::$paginationParameters = Settings::get('paginationParameter') ?? [];
 				$domain = $uriParts[2];
 				self::$pathNoQueryString = '/' . implode('/', array_slice($uriParts, 3));
 				self::$path = self::$pathNoQueryString . (isset($uriQuestionmarkParts[1]) ? '?' . $uriQuestionmarkParts[1] : '');
-
 			} else {
-
 				App::hcf(file_get_contents(ENGINE_DIR . DS . 'welcome.html'), false);
-
 			}
-
 		} else {
-
 			$domain = $_SERVER['HTTP_HOST'];
 			self::$pathNoQueryString = $uriQuestionmarkParts[0];
 			self::$path = $uri;
-
 		}
 		
 		$domainId = self::getDomainId($domain);
@@ -458,7 +453,7 @@ abstract class Router {
 			If a domain is marked as an alias of another via its domain settings, the alias will inherit
 			all settings, i.e routes, content from the original domain
 		*/
-		$mirroredDomainId = $domainRecord['settings']['aliasOf'] ?? false;
+		$mirroredDomainId = $domainRecord['settings']['aliasOf'] ?? null;
 		
 		if ($mirroredDomainId) {
 			$mirroredDomainRecord = self::getDomainRecordById($mirroredDomainId);
@@ -576,9 +571,9 @@ abstract class Router {
 
 		return self::matchRoute($pathWorkpiece);
 	}
+	
 
-
-	private static function handleLanguage(&$pathNodes, &$path): void
+	private static function handleLanguage(array &$pathNodes, string &$path): void
 	{
 		/*
 		 * LANGUAGE MARKERS
@@ -681,7 +676,7 @@ abstract class Router {
 			otherwise it could be interpreted as a static page at /mystuff with the first parameter: diary
 			*/
 			$bestMatch = [
-				'match' => false,
+				'match' => null,
 				'accuracy' => 0
 			];
 			
@@ -712,7 +707,7 @@ abstract class Router {
 			}
 
 			// The primary module has been found, the remainder of the path consists of the path parameters
-			if ($bestMatch['match'] !== false) {
+			if ($bestMatch['match'] !== null) {
 				// +1 for the array indexing and another +1 for the starting slash
 				self::$pathParameters = explode('/', mb_substr($path, mb_strlen($bestMatch['match']->path[App::getLang()]) + 1 ));
 				self::$matchedRoute = $bestMatch['match'];
@@ -731,7 +726,25 @@ abstract class Router {
 
 	public static function processInput()
 	{
-		$result = null;
+		$result = new Input_Handler_Result();
+
+		// CSRF check
+		if (Config::get('csrfRequired')) {
+			if (!Session::validateCsrfToken(Router::request('_csrf'))) {
+				$result
+					->status(Input_Handler::RESULT_ERROR)
+					->message('Invalid CSRF token.');
+				return $result;
+			}
+		}
+		
+		// User permissions check
+		if (!$_SESSION['user']->isAllowedToSendInput()) {
+			$result
+				->status(Input_Handler::RESULT_ERROR)
+				->message('Unauthorized user request.');
+			return $result;
+		}
 
 		if (!empty(self::$REQUEST['formId'])) {
 			$result = Input_Handler::processStoredForm(self::$REQUEST['formId']);
@@ -746,6 +759,7 @@ abstract class Router {
 			];
 		} elseif (!empty(self::$REQUEST['handlerModule']) && !empty(self::$REQUEST['handlerMethod'])) {
 			$result = Input_Handler::processGenericRequest(self::$REQUEST['handlerModule'], self::$REQUEST['handlerMethod']);
+			
 			self::$inputInfo = [
 				'mode'=>'generic',
 				'data'=>[
@@ -755,15 +769,18 @@ abstract class Router {
 			];
 		}
 
-		if ($result) {
-			if ($result->status() == Input_Handler::RESULT_SUCCESS) {
-				Debug::alert('Input processing result: ' . $result->message(), 'o');
-				self::inputHandlerResult($result);
-			} elseif ($result->status() == Input_Handler::RESULT_ERROR) {
-				Debug::alert('Error while processing input: ' .  $result->message(), 'f');
-			}
+		if ($result->status() == Input_Handler::RESULT_SUCCESS) {
+			Debug::alert('Input processing result: ' . $result->message(), 'o');
+		} elseif ($result->status() == Input_Handler::RESULT_ERROR) {
+			Debug::alert('Error while processing input: ' .  $result->message(), 'f');
 		} else {
 			Debug::alert('No input has been sent.');
+		}
+		
+		self::inputHandlerResult($result);
+		
+		if (Config::get('csrfRequired')) {
+			Session::resetCsrfToken();
 		}
 	}
 
@@ -982,6 +999,15 @@ abstract class Router {
 		 - route parameters + query string
 		 - link ID - links stored in the DB
 		 - freehand URLs
+
+		In ROUTE mode, the following URL parameters can be overridden by the $overrides assoc. array:
+		[
+			'pathParameter1'=>'abc',
+			'pathParameter2'=>'def',
+			'pageNumber'=>xxx,
+			'queryParameters'=>[],
+			'remove'=>[]
+		]
 	*/
 	public static function url(string $internalHref, array $overrides = [], bool $returnLang = false): string|array|false
 	{

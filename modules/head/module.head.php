@@ -19,31 +19,31 @@ use function Arembi\Xfw\Misc\parseHtmlAttributes;
 
 class HeadBase extends ModuleBase {
 
-	protected static $autoloadModel = false;
+	protected static bool $autoloadModel = false;
 
-	protected static $title = '';
-	protected static $metaDescription = '';
+	protected static string|array $title = '';
+	protected static string|array $metaDescription = '';
 
-	protected static $meta = [];
-	protected static $link = [];
-	protected static $base = ['url'=>'', 'target'=>''];
-	protected static $favicon = ['url'=>'', 'imageType'=>''];
-	protected static $canonicalUrl = '';
-	protected static $js = [];
-	protected static $css = [];
-	protected static $custom = ['top'=>[], 'bottom'=>[]];
+	protected static array $meta = [];
+	protected static array $link = [];
+	protected static array $base = ['url'=>'', 'target'=>''];
+	protected static array $favicon = ['url'=>'', 'imageType'=>''];
+	protected static string $canonicalUrl = '';
+	protected static array $js = [];
+	protected static array $css = [];
+	protected static array $custom = ['top'=>[], 'bottom'=>[]];
 
-	protected static $indexable;
-	protected static $followable;
-	protected static $archivable;
-	protected static $maxSnippet;
-	protected static $maxImagePreview;
-	protected static $allowedmaxImagePreviewSettings;
-	protected static $maxVideoPreview;
-	protected static $translatable;
-	protected static $imagesIndexable;
+	protected static bool $indexable;
+	protected static bool $followable;
+	protected static bool $archivable;
+	protected static int $maxSnippet;
+	protected static string $maxImagePreview;
+	protected static array $allowedmaxImagePreviewSettings;
+	protected static int $maxVideoPreview;
+	protected static bool $translatable;
+	protected static bool $imagesIndexable;
 
-	protected $autoInit = false;
+	protected bool $autoInit = false;
 	
 
 	public static function initStatic()

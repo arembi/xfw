@@ -2,10 +2,9 @@
 
 namespace Arembi\Xfw\Core;
 
-
 use Arembi\Xfw\Module\FormModel;
 
-class Input_HandlerModel {
+class Input_HandlerModel extends Model {
 	
 	
 	public function getFormById(int $formId)

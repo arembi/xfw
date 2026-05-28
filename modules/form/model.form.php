@@ -3,8 +3,9 @@
 namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\Models\Form;
+use Arembi\Xfw\Core\Model;
 
-class FormBaseModel {
+class FormBaseModel extends Model {
 
 	public function getFormById(int $formId)
 	{

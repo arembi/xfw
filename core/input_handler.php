@@ -13,8 +13,8 @@ use League\Flysystem\UnableToMoveFile;
 
 class Input_Handler {
 
-	private static $model;
-	private static $formDataTypes;
+	private static ?Input_HandlerModel $model;
+	private static array $formDataTypes;
 
 	public const DATA_NOT_PROCESSED = 0;
 	public const RESULT_SUCCESS = 1;
@@ -35,28 +35,12 @@ class Input_Handler {
 	}
 
 
-	public static function processStoredForm($formId)
+	public static function processStoredForm(int $formId): Input_Handler_Result
 	{
 		self::$model = new Input_HandlerModel();
 		$result = new Input_Handler_Result();
 
-		if (Config::get('csrfRequired') && $_SERVER['REQUEST_METHOD'] !== 'GET') {
-			if (!Session::validateCsrfToken(Router::request('_csrf'))) {
-				$result
-					->status(self::RESULT_ERROR)
-					->message('Invalid CSRF token.');
-				return $result;
-			}
-		}
-		if (!$_SESSION['user']->isAllowedToSendInput()) {
-			$result
-				->status(self::RESULT_ERROR)
-				->message('Unauthorized user request.');
-			return $result;
-		}
-
 		$formData = [];
-		$formName = '';
 		$moduleAddonLoaded = false;
 		$controllerClass = '';
 		$handlerModule = '';
@@ -154,32 +138,16 @@ class Input_Handler {
 	}
 
 
-	public static function processGenericRequest(string $handlerModule, string $handlerMethod)
+	public static function processGenericRequest(string $handlerModule, string $handlerMethod): Input_Handler_Result
 	{
 		$result = new Input_Handler_Result();
 		$moduleAddonLoaded = false;
 		$controllerClass = '';
 		$controller = null;
 
-		if (Config::get('csrfRequired') && $_SERVER['REQUEST_METHOD'] !== 'GET') {
-			if (!Session::validateCsrfToken(Router::request('_csrf'))) {
-				$result
-					->status(self::RESULT_ERROR)
-					->message('Invalid CSRF token.');
-				return $result;
-			}
-		}
-
 		$result
 			->handlerModule($handlerModule)
 			->handlerMethod($handlerMethod);
-		
-		if (!$_SESSION['user']->isAllowedToSendInput()) {
-			$result
-				->status(self::RESULT_ERROR)
-				->message('Unauthorized user request.');
-			return $result;
-		}
 
 		if (!self::isHandlerAllowed($handlerModule, $handlerMethod)) {
 			$result
@@ -229,6 +197,7 @@ class Input_Handler {
 		$sysFs = FS::getFilesystem('sys');
 		$sentFile = Router::files($uploadInput);
 		$acceptedMimes = $acceptedMimes ?: Config::get('uploadAcceptedMimeTypes');
+		$tempFilePath = '';
 		$uploadMime = '';
 		$uploadExtension = '';
 		$mimeUnderscorePos = false;
@@ -263,8 +232,9 @@ class Input_Handler {
 				throw new RuntimeException('Exceeded filesize limit.');
 			}
 
+			$tempFilePath = $sentFile['tmp_name'] . '_' . $sentFile['name'];
+
 			try {
-				$tempFilePath = $sentFile['tmp_name'] . '_' . $sentFile['name'];
 				$sysFs->move($sentFile['tmp_name'], $tempFilePath, [
 					'visibility'=>'private',
 					'directory_visibility'=>'private'

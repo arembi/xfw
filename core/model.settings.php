@@ -2,6 +2,6 @@
 
 namespace Arembi\Xfw\Core;
 
-class SettingsModel {
+class SettingsModel extends Model {
 
 }

@@ -4,11 +4,12 @@ namespace Arembi\Xfw\Module;
 
 use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\App;
+use Arembi\Xfw\Core\Model;
 use Arembi\Xfw\Core\Settings;
 use Arembi\Xfw\Core\Models\Static_Page;
 use DateTime;
 
-class Static_PageBaseModel {
+class Static_PageBaseModel extends Model {
 
 	// Returns static page records
 	// All, if $pageIds was not given, or only the records with requested IDs

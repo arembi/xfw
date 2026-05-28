@@ -2,13 +2,13 @@
 
 namespace Arembi\Xfw\Core\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use function Arembi\Xfw\Misc\decodeIfJson;
 
-class Route extends Model {
+class Route extends EloquentModel {
 
 	protected function path(): Attribute
 	{

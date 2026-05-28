@@ -12,8 +12,8 @@ use League\Flysystem\UnixVisibility\PortableVisibilityConverter;
 
 abstract class FS {
 
-	private static $filesystems;
-	private static $activeFilesystem;
+	private static array $filesystems;
+	private static ?string $activeFilesystem;
 
 	public static function addLocalFilesystem(string $name, string $rootDir, ?array $visibility = null): Filesystem|false
 	{
@@ -90,14 +90,14 @@ abstract class FS {
 	}
 
 
-	public static function write(string $path, $contents, array $config = [], ?string $fs = null)
+	public static function write(string $path, string $contents, array $config = [], ?string $fs = null)
 	{
 		$filesystem = $fs === null ? self::$filesystems[self::$activeFilesystem] : self::$filesystems[$fs];
 		$filesystem->write($path, $contents, $config);
 	}
 
 
-	public static function writeStream(string $path, $contents, array $config = [], ?string $fs = null)
+	public static function writeStream(string $path, string $contents, array $config = [], ?string $fs = null)
 	{
 		$filesystem = $fs === null ? self::$filesystems[self::$activeFilesystem] : self::$filesystems[$fs];
 		$filesystem->writeStream($path, $contents, $config);

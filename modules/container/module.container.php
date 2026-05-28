@@ -6,7 +6,7 @@ use Arembi\Xfw\Core\ModuleBase;
 
 class ContainerBase extends ModuleBase {
 
-	protected static $autoloadModel = true;
+	protected static bool $autoloadModel = true;
 
 	protected $id;
 	protected $title;

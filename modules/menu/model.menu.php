@@ -2,11 +2,12 @@
 
 namespace Arembi\Xfw\Module;
 use Illuminate\Database\Capsule\Manager as DB;
+use Arembi\Xfw\Core\Model;
 use Arembi\Xfw\Core\Models\Menu;
 use Arembi\Xfw\Core\Models\Menuitem;
 
 
-class MenuBaseModel {
+class MenuBaseModel extends Model {
 
 	public function getMenuByMenuId(int $id)
 	{

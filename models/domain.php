@@ -2,14 +2,14 @@
 
 namespace Arembi\Xfw\Core\Models;
 
-use \Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use function Arembi\Xfw\Misc\decodeIfJson;
 
 
-class Domain extends Model {
+class Domain extends EloquentModel {
 
 	protected function settings(): Attribute
 	{

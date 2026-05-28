@@ -33,7 +33,7 @@ use Arembi\Xfw\Core\Language;
 
 class PaginationBase extends ModuleBase {
 
-	protected static $autoloadModel = false;
+	protected static bool $autoloadModel = false;
 
 	protected static $defaults = [
 		'itemsPerPage' => 10,

@@ -9,7 +9,7 @@ use Arembi\Xfw\Core\Settings;
 
 class DocumentBase extends ModuleBase {
 
-	protected static $autoloadModel = false;
+	protected static bool $autoloadModel = false;
 
 	protected $documentAction;
 	protected $primaryModule;

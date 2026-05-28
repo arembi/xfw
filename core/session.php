@@ -3,10 +3,11 @@
 namespace Arembi\Xfw\Core;
 
 class Session {
-	// The SessionCore's model (SessionCoreModel object)
-	private static $model;
 
-	private static $lifeTime;
+	private static $model;
+	private static $lifetime;
+	private static $csrfTokenLifetime;
+
 
 	public static function init()
 	{
@@ -14,46 +15,26 @@ class Session {
 			session_name('xfw_sess_' . str_replace('.', '_', DOMAIN));
 		}
 
-		self::$lifeTime = get_cfg_var("session.gc_maxlifetime");
+		self::$lifetime = get_cfg_var('session.gc_maxlifetime');
+		self::$csrfTokenLifetime = Settings::get('csrfTokenLifetime') ?? self::$lifetime;
 
-		// Setting up database session handler if necessary
 		if (Config::get('sessionStorage') == 'database') {
 			self::$model = new SessionModel();
 
 			session_set_save_handler(
-				[__CLASS__, "_open"],
-				[__CLASS__, "_close"],
-				[__CLASS__, "_read"],
-				[__CLASS__, "_write"],
-				[__CLASS__, "_destroy"],
-				[__CLASS__, "_gc"]
+				[__CLASS__, '_open'],
+				[__CLASS__, '_close'],
+				[__CLASS__, '_read'],
+				[__CLASS__, '_write'],
+				[__CLASS__, '_destroy'],
+				[__CLASS__, '_gc']
 			);
 		}
 	}
 
-	public static function start()
+	public static function start(): void
 	{
 		session_start();
-	}
-
-
-	public static function csrfToken(): string
-	{
-		if (empty($_SESSION['_csrf'])) {
-			$_SESSION['_csrf'] = bin2hex(random_bytes(32));
-		}
-
-		return $_SESSION['_csrf'];
-	}
-
-
-	public static function validateCsrfToken(?string $token): bool
-	{
-		if (empty($_SESSION['_csrf']) || empty($token)) {
-			return false;
-		}
-
-		return hash_equals($_SESSION['_csrf'], $token);
 	}
 
 
@@ -93,6 +74,38 @@ class Session {
 		return self::$model->destroy(session_id());
 	}
 
+
+	public static function csrfToken(): string
+	{
+		if (empty($_SESSION['_csrf'])) {
+			self::resetCsrfToken();
+		}
+
+		return $_SESSION['_csrf'];
+	}
+
+
+	public static function resetCsrfToken(): void
+	{	
+		$now = time();
+		if (empty($_SESSION['_csrfTokenTimestamp']) || $now - $_SESSION['_csrfTokenTimestamp'] > self::$csrfTokenLifetime) {
+			$_SESSION['_csrfTokenTimestamp'] = $now;
+		}
+		
+		$_SESSION['_csrf'] = bin2hex(random_bytes(32));
+	}
+
+
+	public static function validateCsrfToken(?string $token): bool
+	{
+		if (empty($_SESSION['_csrf']) || empty($token)) {
+			return false;
+		}
+
+		return hash_equals($_SESSION['_csrf'], $token);
+	}
+
+
 	public static function reset()
 	{
 		$_SESSION = [];
@@ -106,9 +119,7 @@ class Session {
 		}
 		
 		session_destroy();
-		
 		session_start();
-
 		App::populateSessionUser();
 	}
 

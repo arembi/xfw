@@ -5,7 +5,7 @@ namespace Arembi\Xfw\Core;
 use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\Models\User;
 
-class UserModel {
+class UserModel extends Model{
 	public function getUserById(int $id, $domain = null)
 	{
 

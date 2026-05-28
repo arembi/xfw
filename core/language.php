@@ -4,7 +4,7 @@ namespace Arembi\Xfw\Core;
 
 abstract class Language {
 
-	private static $alphabets;
+	private static array $alphabets;
 
 
 	public static function init()

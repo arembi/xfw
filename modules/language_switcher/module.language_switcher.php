@@ -8,7 +8,7 @@ use Arembi\Xfw\Core\Settings;
 
 class Language_SwitcherBase extends ModuleBase {
   
-	protected static $autoloadModel = false;
+	protected static bool $autoloadModel = false;
 
 	protected static $flags = [
 		'en'=>'🇬🇧',

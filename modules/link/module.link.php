@@ -30,7 +30,7 @@ use function Arembi\Xfw\Misc\parseHtmlAttributes;
 
 class LinkBase extends ModuleBase {
 
-	protected static $autoloadModel = false;
+	protected static bool $autoloadModel = false;
 	
 	protected $href;
 	protected $hrefLang;
@@ -157,7 +157,7 @@ class LinkBase extends ModuleBase {
 	}
 
 
-	public function anchor(string|array|null $anchor = null): string|array|LinkBase
+	public function htmlAnchor(string|array|null $anchor = null): string|array|LinkBase
 	{
 		if ($anchor === null) {
 			return $this->anchor;
@@ -167,6 +167,11 @@ class LinkBase extends ModuleBase {
 		}
 		$this->anchor = $anchor;
 		return $this;
+	}
+
+	public function anchor(string|array|null $anchor = null): string|array|LinkBase
+	{
+		return $this->htmlAnchor($anchor);
 	}
 
 
@@ -233,10 +238,16 @@ class LinkBase extends ModuleBase {
 	}
 
 
-	protected function follow(bool $follow = true): LinkBase
+	protected function htmlFollow(bool $follow = true): LinkBase
 	{
 		$this->params['follow'] = $follow;
 		return $this;
+	}
+
+
+	protected function follow(bool $follow = true): LinkBase
+	{
+		return $this->htmlFollow($follow);
 	}
 
 }

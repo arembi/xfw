@@ -3,15 +3,17 @@
 namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\ModuleBase;
+use Arembi\Xfw\Core\Config;
 use Arembi\Xfw\Core\Debug;
 use Arembi\Xfw\Core\Router;
+use Arembi\Xfw\Core\Session;
 use Arembi\Xfw\Core\Settings;
 use Arembi\Xfw\Inc\FormField;
 use Arembi\Xfw\Inc\FormFieldSet;
 
 class FormBase extends ModuleBase {
 
-	protected static $autoloadModel = true;
+	protected static bool $autoloadModel = true;
 	protected static $encTypes = [
 		'application/x-www-form-urlencoded',
 		'multipart/form-data',
@@ -94,6 +96,11 @@ class FormBase extends ModuleBase {
 
 	public function finalize(): FormBase
 	{
+		if (Config::get('csrfRequired')) {
+			$this->addField('_csrf', 'hidden')
+				->attribute('value', Session::csrfToken());
+		}
+		
 		$this
 			->applyOverrides()
 			->generateFieldTags();
@@ -145,6 +152,7 @@ class FormBase extends ModuleBase {
 			}
 
 		}
+		
 		return $this;
 	}
 
@@ -194,6 +202,7 @@ class FormBase extends ModuleBase {
 		if ($encType === null) {
 			return $this->encType;
 		}
+
 		if (is_string($encType)) {
 			$key = array_search($encType, self::$encTypes);
 			if ($key !== false) {
@@ -206,6 +215,7 @@ class FormBase extends ModuleBase {
 		} else {
 			$this->error('encType not found.');
 		}
+
 		return $this;
 	}
 
@@ -219,6 +229,7 @@ class FormBase extends ModuleBase {
 		if ($type == 'file') {
 			$this->hasFileField = true;
 		}
+
 		return $field;
 	}
 

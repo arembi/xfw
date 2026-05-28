@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 
 class MenuBase extends ModuleBase {
 
-	protected static $autoloadModel = true;
+	protected static bool $autoloadModel = true;
 	
 	private $level;
 	private $lang;

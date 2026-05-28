@@ -7,7 +7,7 @@ use Arembi\Xfw\Core\User;
 
 class User_StatusBase extends ModuleBase {
   
-	protected static $autoloadModel = false;
+	protected static bool $autoloadModel = false;
 	protected $user;
 
 	protected function init()

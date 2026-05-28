@@ -4,7 +4,7 @@ namespace Arembi\Xfw\Core;
 
 use Illuminate\Database\Capsule\Manager as DB;
 
-class AppModel {
+class AppModel extends Model{
 
 	/*
 	 * Returns the modules that are enabled to the given site (domain)
@@ -47,7 +47,7 @@ class AppModel {
 					return $module->active == 1 ;
 				});
 			}
-		return $installedModules->toArray();
+		return $installedModules;
 	}
 
 

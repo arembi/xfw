@@ -9,8 +9,7 @@ use Arembi\Xfw\Core\Settings;
 
 class Static_PageBase extends ModuleBase {
 
-	protected static $autoloadModel = true;
-
+	protected static bool $autoloadModel = true;
 	protected static $unavailableInfo = [
 		'title'=>[
 			'hu'=>'Hamarosan&hellip;',
@@ -26,14 +25,14 @@ class Static_PageBase extends ModuleBase {
 		]
 	];
 
-	protected $title;
-	protected $excerpt;
-	protected $content;
-	protected $routeId;
-	protected $thumbnail;
-	protected $createdAt;
-	protected $createdBy;
-	protected $updatedAt;
+	protected ?array $title;
+	protected ?array $excerpt;
+	protected ?array $content;
+	protected ?int $routeId;
+	protected ?string $thumbnail;
+	protected ?string $createdAt;
+	protected ?string $createdBy;
+	protected ?string $updatedAt;
 
 
 	protected function init()

@@ -2,13 +2,13 @@
 
 namespace Arembi\Xfw\Core\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 
-class Static_Page extends Model {
+class Static_Page extends EloquentModel {
 
 	protected $table = 'static_pages';
 

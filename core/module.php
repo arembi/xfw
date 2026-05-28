@@ -94,32 +94,32 @@ use ReflectionClass;
 
 abstract class ModuleBase {
 	
-	protected static $autoloadModel; // Whether the autoloader should look for a model
+	protected static bool $autoloadModel = false; // Whether the autoloader should look for a model
 	
-	protected $moduleName; // The module's name
-	protected $noAddonName; // The module's name without the addon's prefix
-	protected $rId; // Registration ID, used by the system to identify instantiated modules
-	protected $params; // Parameters used beyond the module's basic functionality
-	protected $objectClass; // The module class's name
-	protected $addonType; // Module addon type, or false if it is not an addon
-	protected $parentModule; // Reference to the module which embedded this
-	protected $model; // The model module extension
-	protected $error; // Error that can prevent layout processing
-	protected $action; // The action to be execeuted upon request
-	protected $autoAction; // Whether an anction has to be triggered for the module
-	protected $layout; // Layout used to render the module
-	protected $layoutVariant; // Layout variant used to render the module
-	protected $layoutHtml; // The HTML output for the module after processing its layout
-	protected $layoutProcessed; // Shows whether the module's layout has already been processed
-	protected $layoutVariables; // Variables that can be accessed in layouts
-	protected $layoutFilters; // Mutators of the printed values
-	protected $embeddedModules; // The array of embedded modules in the layout
-	protected $reflector; // Instance of the Reflector class
-	protected $embedId; // Used for ordering of embedded modules within a layout
-	protected $recursive; // Whether the loop should continue through the current layout
-	protected $formData; // Data sent by forms defined within the system, used by IH module extensions
-	protected $autoInit; // Whether to run init() automatically
-	protected $autoFinalize; // Whether to run finalize() automatically
+	protected string $moduleName; // The module's name
+	protected string $noAddonName; // The module's name without the addon's prefix
+	protected int $rId; // Registration ID, used by the system to identify instantiated modules
+	protected array $params; // Parameters used beyond the module's basic functionality
+	protected string $objectClass; // The module class's name
+	protected ?string $addonType; // Module addon type, or false if it is not an addon
+	protected ?ModuleBase $parentModule; // Reference to the module which embedded this
+	protected ?Model $model; // The model module extension
+	protected array $error; // Error that can prevent layout processing
+	protected ?string $action; // The action to be execeuted upon request
+	protected bool $autoAction; // Whether an anction has to be triggered for the module
+	protected string $layout; // Layout used to render the module
+	protected string $layoutVariant; // Layout variant used to render the module
+	protected string $layoutHtml; // The HTML output for the module after processing its layout
+	protected bool $layoutProcessed; // Shows whether the module's layout has already been processed
+	protected array $layoutVariables; // Variables that can be accessed in layouts
+	protected array $layoutFilters; // Mutators of the printed values
+	protected array $embeddedModules; // The array of embedded modules in the layout
+	protected ReflectionClass $reflector; // Instance of the Reflector class
+	protected int $embedId; // Used for ordering of embedded modules within a layout
+	protected bool $recursive; // Whether the loop should continue through the current layout
+	protected array $formData; // Data sent by forms defined within the system, used by IH module extensions
+	protected bool $autoInit; // Whether to run init() automatically
+	protected bool $autoFinalize; // Whether to run finalize() automatically
 
 
 	public static function autoloadModel()
@@ -464,7 +464,7 @@ abstract class ModuleBase {
 
 
 	// Adds the variable to the layout variables
-	public function lv(string $var, $value)
+	public function lv(string $var, mixed $value)
 	{
 		$this->layoutVariables[$var] = $value;
 		return $this;
@@ -663,7 +663,7 @@ abstract class ModuleBase {
 	}
 
 
-	public function setFormData($data)
+	public function setFormData(mixed $data)
 	{
 		$this->formData = $data;
 		return $this;

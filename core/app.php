@@ -12,17 +12,14 @@ use RecursiveIteratorIterator;
 
 abstract class App {
 
-	private static $model;
-	private static $coreModules;
-	private static $installedModules;
-	private static $activeModules;
-	// Keeps track of which modules have already been instantiated
-	// by the system, it holds the references to all embedded modules
-	private static $registeredModules;
-	// Autoincrementing ID for embedded modules
-	private static $registeredModuleId;
-	private static $pathParameterOrders;
-	private static $lang;
+	private static ?AppModel $model;
+	private static array $coreModules;
+	private static Collection $installedModules;
+	private static Collection $activeModules;
+	private static array $registeredModules; // Keeps track of which modules have already been instantiated by the system, it holds the references to all embedded modules
+	private static int $registeredModuleId; // Autoincrementing ID for embedded modules
+	private static array $pathParameterOrders;
+	private static string $lang;
 
 
 	public static function init()
@@ -32,6 +29,7 @@ abstract class App {
 		self::$model = null;
 		self::$coreModules = [
 			'filesystem',
+			'database',
 			'model',
 			'settings',
 			'language',
@@ -444,7 +442,7 @@ abstract class App {
 	}
 
 
-	public static function moduleInfo($identifier, $value)
+	public static function moduleInfo(string $identifier, mixed $value)
 	{
 		$i = 0;
 		$l = count(self::$installedModules);
@@ -517,29 +515,25 @@ abstract class App {
 	}
 
 
-	// Register all instantiated modules in an array
-	public static function registerModule(&$moduleObject)
+	public static function registerModule(object &$moduleObject)
 	{
 		self::$registeredModules[self::$registeredModuleId] = $moduleObject;
 		return self::$registeredModuleId++;
 	}
 
 
-	// Returns the whole record of registered modules
 	public static function getRegisteredModules()
 	{
 		return self::$registeredModules;
 	}
 
 
-	// Implement it if needed
 	public static function deregisterModule() {}
 
 
-	// Returns the path parameter order for the requested module
-	public static function getPathParameterOrder($moduleName)
+	public static function getPathParameterOrder(string $moduleName)
 	{
-		// The extensions like control panel  (CP_) and form handler (IH_) have no different PPO
+		// The extensions like control panel  (CP_) and input handler (IH_) have no different PPO
 		// They get the basemodule's PPO
 		$parts = explode('_', $moduleName, 2);
 

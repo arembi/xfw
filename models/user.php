@@ -2,10 +2,10 @@
 
 namespace Arembi\Xfw\Core\Models;
 
-use \Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class User extends Model {
+class User extends EloquentModel {
 
 	protected $table = 'users';
 

@@ -3,9 +3,9 @@
 namespace Arembi\Xfw\Core;
 use Arembi\Xfw\Core\Models\Session;
 
-class SessionModel {
+class SessionModel extends Model {
 
-	public function readData($id)
+	public function readData(int|string $id)
 	{
 		$session = Session::find($id);
 
@@ -13,7 +13,7 @@ class SessionModel {
 	}
 
 
-	public function writeData($id, $data)
+	public function writeData(int|string $id, string $data)
 	{
     	$session = Session::find($id) ?? new Session;
 
@@ -26,7 +26,7 @@ class SessionModel {
 	}
 
 
-	public function destroy($id)
+	public function destroy(int|string $id)
 	{
 		$session = Session::find($id);
 		
@@ -37,7 +37,7 @@ class SessionModel {
 	/*
 	 * Garbage collector
 	 * */
-	public function gc($max)
+	public function gc(int $max)
 	{
 		// Calculate what is to be deemed old
 		$old = time() - $max;

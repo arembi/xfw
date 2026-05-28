@@ -2,10 +2,10 @@
 
 namespace Arembi\Xfw\Core\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
-class Html_Content extends Model {
+class Html_Content extends EloquentModel {
 
 	protected $table = 'html_content';
 

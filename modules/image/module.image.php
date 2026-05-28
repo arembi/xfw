@@ -9,7 +9,7 @@ use function Arembi\Xfw\Misc\parseHtmlAttributes;
 
 class ImageBase extends ModuleBase {
 
-	protected static $autoloadModel = false;
+	protected static bool $autoloadModel = false;
 	
 	protected $htmlId;
 	protected $htmlClass;

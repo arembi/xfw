@@ -11,7 +11,7 @@ use Arembi\Xfw\Core\Models\Route;
 use function Arembi\Xfw\Misc\decodeIfJson;
 
 
-class RouterModel {
+class RouterModel extends Model {
 
 	public function getDomains()
 	{
@@ -19,7 +19,7 @@ class RouterModel {
 	}
 
 
-	public function getDomainById($id)
+	public function getDomainById(int $id)
 	{
 		return Domain::find($id);
 	}

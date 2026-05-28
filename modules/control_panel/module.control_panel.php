@@ -25,7 +25,7 @@ their own operating area
 
 class Control_PanelBase extends ModuleBase {
 
-	protected static $autoloadModel = true;
+	protected static bool $autoloadModel = true;
 
 	
 	public function init()

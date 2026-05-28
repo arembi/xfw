@@ -2,10 +2,10 @@
 
 namespace Arembi\Xfw\Module;
 
-use Illuminate\Database\Capsule\Manager as DB;
 use Arembi\Xfw\Core\Models\Html_Content;
+use Arembi\Xfw\Core\Model;
 
-class ContainerBaseModel {
+class ContainerBaseModel extends Model {
 
 	public function getContents()
 	{
@@ -43,7 +43,7 @@ class ContainerBaseModel {
 	}
 
 
-	public function deleteContent($id)
+	public function deleteContent(int $id)
 	{
 		$hc = Html_Content::find($id);
 

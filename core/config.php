@@ -4,9 +4,9 @@ namespace Arembi\Xfw\Core;
 
 abstract class Config {
 
-	private static $configFileName = 'config.php';
+	private static string $configFileName = 'config.php';
 
-	private static $config = [
+	private static array $config = [
 
 		'debugMode' => true,
 
@@ -110,7 +110,7 @@ abstract class Config {
 			'defaultDocumentLayoutVariant' => 'default',
 			'multiLang' => false,
 			'URLTrailingSlash' => 'remove',
-			'inputClearance' => 1,
+			'inputClearance' => 0,
 			'inputHandlerAllowlist' => null,
 			'publicFilesDir' => 'public',
 			'dateTimeFormat' => [
@@ -142,7 +142,7 @@ abstract class Config {
 	}
 
 
-	public static function get($record, $NA = null)
+	public static function get(string $record, $NA = null)
 	{
 		return isset(self::$config[$record]) ? self::$config[$record] : $NA;
 	}

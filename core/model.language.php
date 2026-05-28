@@ -2,6 +2,6 @@
 
 namespace Arembi\Xfw\Core;
 
-class LanguageModel {
+class LanguageModel extends Model {
 
 }

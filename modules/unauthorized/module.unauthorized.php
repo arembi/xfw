@@ -6,7 +6,7 @@ use Arembi\Xfw\Core\ModuleBase;
 
 class UnauthorizedBase extends ModuleBase {
 	
-	protected static $autoloadModel = false;
+	protected static bool $autoloadModel = false;
 	
 	
 	protected function init()

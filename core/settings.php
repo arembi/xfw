@@ -4,7 +4,7 @@
 namespace Arembi\Xfw\Core;
 
 class Settings {
-	private static $settings;
+	private static array $settings;
 
 	public static function init()
 	{
@@ -22,7 +22,7 @@ class Settings {
 	}
 
 
-	public static function _($record)
+	public static function _(?string $record)
 	{
 		return self::get($record);
 	}
