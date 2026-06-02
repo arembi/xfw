@@ -8,10 +8,10 @@ use Arembi\Xfw\Core\Router;
 
 class Router_InfoBase extends ModuleBase {
 
-	protected $inputHandlerInfo;
-	protected $routeInfo;
+	protected array $inputHandlerInfo;
+	protected array $routeInfo;
 
-	protected function init()
+	protected function init(): void
 	{
 		$this->inputHandlerInfo = [
 			'inputInfo'=>Router::inputInfo(),

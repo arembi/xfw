@@ -4,9 +4,9 @@ namespace Arembi\Xfw\Core;
 
 class Session {
 
-	private static $model;
-	private static $lifetime;
-	private static $csrfTokenLifetime;
+	private static ?SessionModel $model;
+	private static int $lifetime;
+	private static int $csrfTokenLifetime;
 
 
 	public static function init()
@@ -38,38 +38,38 @@ class Session {
 	}
 
 
-	public static function _open()
+	public static function _open(): bool
 	{
 		return self::$model ? true : false;
 	}
 
 
-	public static function _close()
+	public static function _close(): bool
 	{
 		return true;
 	}
 
 
-	public static function _read($id)
+	public static function _read(int|string $id): string
 	{
 		$data = self::$model->readData($id);
 		return $data ?? '';
 	}
 
 
-	public static function _write($id, $data)
+	public static function _write(int|string $id, string $data): bool
 	{
 		return self::$model->writeData($id, $data);
 	}
 
 
-	public static function _gc($max)
+	public static function _gc(int $max): bool
 	{
 		return self::$model->gc($max);
 	}
 
 
-	public static function _destroy()
+	public static function _destroy(): bool
 	{
 		return self::$model->destroy(session_id());
 	}
@@ -106,7 +106,7 @@ class Session {
 	}
 
 
-	public static function reset()
+	public static function reset(): void
 	{
 		$_SESSION = [];
 

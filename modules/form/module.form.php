@@ -20,11 +20,11 @@ class FormBase extends ModuleBase {
 		'text/plain'
 	];
 
-	private $fields;
-	private $overrides;
-	private $actionUrl;
-	private $encType;
-	private $hasFileField;
+	private FormFieldSet $fields;
+	private FormFieldSet $overrides;
+	private string $actionUrl;
+	private int $encType;
+	private bool $hasFileField;
 
 	
 	public function init()
@@ -96,10 +96,8 @@ class FormBase extends ModuleBase {
 
 	public function finalize(): FormBase
 	{
-		if (Config::get('csrfRequired')) {
-			$this->addField('_csrf', 'hidden')
-				->attribute('value', Session::csrfToken());
-		}
+		$this->addField('_csrf', 'hidden')
+			->attribute('value', Config::get('csrfRequired') ?Session::csrfToken() : '');
 		
 		$this
 			->applyOverrides()

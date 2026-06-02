@@ -3,14 +3,15 @@
 namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\Input_Handler;
+use Arembi\Xfw\Core\Input_Handler_Result;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Settings;
 
 class IH_Static_PageBase extends Static_Page {
 
-	public $formData;
+	public array $formData;
 
-	public function page_new(&$result)
+	public function page_new(Input_Handler_Result &$result)
 	{
 		$this->invokeModel();
 		
@@ -56,7 +57,7 @@ class IH_Static_PageBase extends Static_Page {
 
 
 
-	public function page_update(&$result)
+	public function page_update(Input_Handler_Result &$result)
 	{
 		$this->invokeModel();
 		$id = Router::post('id');
@@ -103,7 +104,7 @@ class IH_Static_PageBase extends Static_Page {
 	}
 
 
-	public function page_delete(&$result)
+	public function page_delete(Input_Handler_Result &$result)
 	{
 		$this->invokeModel();
 

@@ -3,14 +3,15 @@
 namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\Input_Handler;
+use Arembi\Xfw\Core\Input_Handler_Result;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Settings;
 
 class IH_ContainerBase extends Container {
 
-	public $formData;
+	public array $formData;
 
-	public function content_new(&$result)
+	public function content_new(Input_Handler_Result &$result)
 	{
 		$this->invokeModel();
 		
@@ -46,7 +47,7 @@ class IH_ContainerBase extends Container {
 
 
 
-	public function content_update(&$result)
+	public function content_update(Input_Handler_Result &$result)
 	{
 		$this->invokeModel();
 
@@ -84,7 +85,7 @@ class IH_ContainerBase extends Container {
 
 
 
-	public function content_delete(&$result)
+	public function content_delete(Input_Handler_Result &$result)
 	{
 		$this->invokeModel();
 

@@ -8,10 +8,10 @@ class ContainerBase extends ModuleBase {
 
 	protected static bool $autoloadModel = true;
 
-	protected $id;
-	protected $title;
-	protected $content;
-	protected $displayTitle;
+	protected int $id;
+	protected string|array $title;
+	protected string|array $content;
+	protected bool $displayTitle;
 
 
 	protected function init()

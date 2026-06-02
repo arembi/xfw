@@ -5,7 +5,7 @@ use Arembi\Xfw\Core\Models\Session;
 
 class SessionModel extends Model {
 
-	public function readData(int|string $id)
+	public function readData(int|string $id): string
 	{
 		$session = Session::find($id);
 
@@ -13,7 +13,7 @@ class SessionModel extends Model {
 	}
 
 
-	public function writeData(int|string $id, string $data)
+	public function writeData(int|string $id, string $data): bool
 	{
     	$session = Session::find($id) ?? new Session;
 
@@ -26,7 +26,7 @@ class SessionModel extends Model {
 	}
 
 
-	public function destroy(int|string $id)
+	public function destroy(int|string $id): bool
 	{
 		$session = Session::find($id);
 		
@@ -37,9 +37,8 @@ class SessionModel extends Model {
 	/*
 	 * Garbage collector
 	 * */
-	public function gc(int $max)
+	public function gc(int $max): bool
 	{
-		// Calculate what is to be deemed old
 		$old = time() - $max;
 
 	    return Session::where('access','<',$old)->delete();

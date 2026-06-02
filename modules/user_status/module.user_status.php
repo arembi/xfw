@@ -8,15 +8,15 @@ use Arembi\Xfw\Core\User;
 class User_StatusBase extends ModuleBase {
   
 	protected static bool $autoloadModel = false;
-	protected $user;
+	protected User $user;
 
-	protected function init()
+	protected function init(): void
 	{
 		$this->user($_SESSION['user']);
 	}
 
 
-	public function finalize()
+	public function finalize(): void
 	{
 		$this
 			->lv('user', $this->user)

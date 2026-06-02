@@ -10,17 +10,17 @@ class Language_SwitcherBase extends ModuleBase {
   
 	protected static bool $autoloadModel = false;
 
-	protected static $flags = [
+	protected static array $flags = [
 		'en'=>'🇬🇧',
 		'hu'=>'🇭🇺'
 	];
 
-	protected $switcherMenu;
-	protected $menuLayout;
-	protected $menuLayoutVariant;
+	protected Menu $switcherMenu;
+	protected string $menuLayout;
+	protected string $menuLayoutVariant;
 
 
-	protected function init()
+	protected function init(): void
 	{
 		if (!Settings::get('multiLang')) {
 			$this->error('Site is not nultilingual, cannot load the Language Switcher.');

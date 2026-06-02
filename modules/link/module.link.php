@@ -32,35 +32,19 @@ class LinkBase extends ModuleBase {
 
 	protected static bool $autoloadModel = false;
 	
-	protected $href;
-	protected $hrefLang;
-	protected $hrefOverrides;
-	protected $anchor;
-	protected $htmlTitle;
-	protected $htmlId;
-	protected $htmlClass;
-	protected $htmlStyle;
-	protected $htmlTarget;
-	protected $htmlRel;
-	
-	/*
-	params:
-		'href' => null,
-		'remove' => null, // remove parameters from the query string
-		'style' => null, // HTML attribute
-		'id' => null, // HTML attribute
-		'class' => null, // HTML attribute
-		'title' => null, // HTML attribute
-		'target' => null, // HTML attribute
-		'follow' => true, // HTML rel nofollow attribute
-		'rel' => null, // HTML attribute
-		'anchor' => null, // the anchor text
-		'queryParameters'=>null,
-		'pageNumber' => null
-	*/
+	protected string $href;
+	protected string $hrefLang;
+	protected array $hrefOverrides;
+	protected string|array $anchor;
+	protected string|array $htmlTitle;
+	protected string $htmlId;
+	protected string $htmlClass;
+	protected string $htmlStyle;
+	protected string $htmlTarget;
+	protected string $htmlRel;
 	
 	
-	protected function init()
+	protected function init(): void
 	{
 		$this->href = '';
 		$this->hrefLang = '';

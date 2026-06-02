@@ -11,16 +11,16 @@ class MenuBase extends ModuleBase {
 
 	protected static bool $autoloadModel = true;
 	
-	private $level;
-	private $lang;
-	private $items;
-	private $menuName;
-	private $menuType;
-	private $title;
-	private $displayTitle;
+	private int $level;
+	private string $lang;
+	private Collection $items;
+	private string $menuName;
+	private string $menuType;
+	private array $title;
+	private bool $displayTitle;
 
 
-	protected function init()
+	protected function init(): void
 	{
 		$this->level = 0;
 		$this->lang = '';

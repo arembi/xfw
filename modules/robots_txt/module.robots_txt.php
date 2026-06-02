@@ -9,10 +9,10 @@ class Robots_TxtBase extends ModuleBase {
 
 	protected static bool $autoloadModel = false;
 	
-	protected $dictionary;
-	protected $content;
+	protected array $dictionary;
+	protected string $content;
 
-	protected function init()
+	protected function init(): void
 	{   
 		Debug::suppress();
 		header('Content-Type: text/plain');

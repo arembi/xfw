@@ -11,9 +11,9 @@ class DocumentBase extends ModuleBase {
 
 	protected static bool $autoloadModel = false;
 
-	protected $documentAction;
-	protected $primaryModule;
-	protected $primaryModuleParameters;
+	protected ?string $documentAction;
+	protected string $primaryModule;
+	protected array $primaryModuleParameters;
 
 
 	public function init()

@@ -11,14 +11,14 @@ class ImageBase extends ModuleBase {
 
 	protected static bool $autoloadModel = false;
 	
-	protected $htmlId;
-	protected $htmlClass;
-	protected $htmlAlt;
-	protected $htmlTitle;
-	protected $htmlStyle;
-	protected $htmlWidth;
-	protected $htmlHeight;
-	protected $htmlSrc;
+	protected string $htmlId;
+	protected string $htmlClass;
+	protected string|array $htmlAlt;
+	protected string|array $htmlTitle;
+	protected string $htmlStyle;
+	protected string $htmlWidth;
+	protected string $htmlHeight;
+	protected string $htmlSrc;
 
 
 	protected function init(): void

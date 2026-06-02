@@ -4,7 +4,9 @@
 namespace Arembi\Xfw\Core;
 
 class Settings {
+
 	private static array $settings;
+	
 
 	public static function init()
 	{

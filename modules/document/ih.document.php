@@ -3,13 +3,14 @@
 namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\Input_Handler;
+use Arembi\Xfw\Core\Input_Handler_Result;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Session;
 use Arembi\Xfw\Core\User;
 
 class IH_DocumentBase extends Document {
 
-	public function login(&$result)
+	public function login(Input_Handler_Result &$result)
 	{
 		$user = new User(Router::post('username'));
 		$passwordHash = $user->get('password');
@@ -33,7 +34,7 @@ class IH_DocumentBase extends Document {
 	}
 
 	
-	public function logout(&$result)
+	public function logout(Input_Handler_Result &$result)
 	{
 		$username = $_SESSION['user']->get('name');
 		$id = session_id();

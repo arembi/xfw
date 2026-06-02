@@ -3,12 +3,11 @@
 namespace Arembi\Xfw\Core;
 
 use Illuminate\Database\Capsule\Manager as DB;
-use Arembi\Xfw\Core\Models\User;
 
 class UserModel extends Model{
+
 	public function getUserById(int $id, $domain = null)
 	{
-
 		if ($domain === null) {
 			$domainId = DOMAIN_ID;
 		} else {
@@ -36,8 +35,8 @@ class UserModel extends Model{
 			->where('users.id', $id)
 			->where('user_domain_user_group.domain_id', $domainId)
 			->first();
-
-		return $user();
+		
+		return $user;
 	}
 
 	public function getUserByUsername(string $username, $domain = null)

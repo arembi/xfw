@@ -25,9 +25,9 @@ class Static_PageBase extends ModuleBase {
 		]
 	];
 
-	protected ?array $title;
-	protected ?array $excerpt;
-	protected ?array $content;
+	protected string|array|null $title;
+	protected string|array|null $excerpt;
+	protected string|array|null $content;
 	protected ?int $routeId;
 	protected ?string $thumbnail;
 	protected ?string $createdAt;

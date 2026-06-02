@@ -3,6 +3,7 @@
 namespace Arembi\Xfw\Module;
 
 use Arembi\Xfw\Core\Input_Handler;
+use Arembi\Xfw\Core\Input_Handler_Result;
 use Arembi\Xfw\Core\Router;
 use Arembi\Xfw\Core\Settings;
 use Arembi\Xfw\Misc;
@@ -10,7 +11,7 @@ use Arembi\Xfw\Misc;
 class IH_Control_PanelBase extends Control_Panel {
 
 
-	public function domain_new(&$result)
+	public function domain_new(Input_Handler_Result &$result)
 	{
 		$this->invokeModel();
 
@@ -32,7 +33,7 @@ class IH_Control_PanelBase extends Control_Panel {
 	}
 
 
-	public function domain_edit(&$result)
+	public function domain_edit(Input_Handler_Result &$result)
 	{
 		$this->invokeModel();
 
@@ -68,7 +69,7 @@ class IH_Control_PanelBase extends Control_Panel {
 	}
 
 
-	public function domain_delete(&$result)
+	public function domain_delete(Input_Handler_Result &$result)
 	{
 		$this->invokeModel();
 
@@ -84,7 +85,7 @@ class IH_Control_PanelBase extends Control_Panel {
 	}
 
 
-	public function route_new(&$result)
+	public function route_new(Input_Handler_Result &$result)
 	{
 		$this->invokeModel();
 
@@ -115,7 +116,7 @@ class IH_Control_PanelBase extends Control_Panel {
 	}
 
 
-	public function route_edit(&$result)
+	public function route_edit(Input_Handler_Result &$result)
 	{
 		$this->invokeModel();
 
@@ -159,7 +160,7 @@ class IH_Control_PanelBase extends Control_Panel {
 	}
 
 
-	public function route_delete(&$result)
+	public function route_delete(Input_Handler_Result &$result)
 	{
 		$this->invokeModel();
 
