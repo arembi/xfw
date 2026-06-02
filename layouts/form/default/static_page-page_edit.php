@@ -80,4 +80,5 @@
 	</table>
 	<?php $this->print($fields['handlerModule']->tag()) ?>
 	<?php $this->print($fields['handlerMethod']->tag()) ?>
+	<?php $this->print($fields['_csrf']->tag()) ?>
 </form>
